@@ -30,13 +30,23 @@
             "type": "command",
             "command": ".claude/hooks/phpcs-check.sh"
           },
-           {
+          {
             "type": "command",
             "command": ".claude/hooks/eslint-check.sh"
           },
           {
             "type": "command",
             "command": ".claude/hooks/pint-check.sh"
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "prompt",
+            "prompt": "Review this session. If any new conventions, decisions or architectural patterns were established, update CLAUDE.md accordingly. Do not add noise — only meaningful persistent context."
           }
         ]
       }
