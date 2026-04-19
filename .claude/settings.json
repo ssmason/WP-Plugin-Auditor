@@ -1,0 +1,48 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(composer *)",
+      "Bash(wp *)",
+      "Bash(npm run *)",
+      "Bash(phpcs *)",
+      "Bash(git *)",
+      "Read",
+      "Write",
+      "Edit",
+      "MultiEdit",
+      "Glob",
+      "Grep",
+      "WebFetch",
+      "WebSearch"
+    ],
+    "deny": [
+      "Read(./.env)",
+      "Read(./.env.*)",
+      "Read(./secrets/**)"
+    ]
+  },
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Edit|Write|MultiEdit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": ".claude/hooks/phpcs-check.sh"
+          },
+           {
+            "type": "command",
+            "command": ".claude/hooks/eslint-check.sh"
+          },
+          {
+            "type": "command",
+            "command": ".claude/hooks/pint-check.sh"
+          }
+        ]
+      }
+    ]
+  },
+  "env": {},
+  "model": "",
+  "outputStyle": ""
+}
