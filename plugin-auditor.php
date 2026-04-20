@@ -3,7 +3,7 @@
  * Plugin Name:       Plugin Auditor
  * Plugin URI:        https://github.com/plugin-auditor/plugin-auditor
  * Description:       Audits WordPress plugins for security issues, coding standards violations, and permissions.
- * Version:           1.0.0
+ * Version:           1.0.1
  * Requires at least: 6.4
  * Requires PHP:      8.1
  * Author:            Plugin Auditor
@@ -20,7 +20,7 @@ declare( strict_types=1 );
 
 defined( 'ABSPATH' ) || exit;
 
-define( 'PLUGIN_AUDITOR_VERSION', '1.0.0' );
+define( 'PLUGIN_AUDITOR_VERSION', '1.0.1' );
 define( 'PLUGIN_AUDITOR_FILE', __FILE__ );
 define( 'PLUGIN_AUDITOR_DIR', plugin_dir_path( __FILE__ ) );
 define( 'PLUGIN_AUDITOR_URL', plugin_dir_url( __FILE__ ) );

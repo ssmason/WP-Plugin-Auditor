@@ -1928,6 +1928,19 @@ class Scanner {
 	 * @param array<string, mixed> $findings Section findings.
 	 */
 	private function calculate_score( array $findings ): int {
+		return self::score_from_findings( $findings );
+	}
+
+	private function calculate_rating( int $score ): string {
+		return self::rating_from_score( $score );
+	}
+
+	/**
+	 * Calculates a numeric risk score from security section findings.
+	 *
+	 * @param array<string, mixed> $findings Section findings.
+	 */
+	public static function score_from_findings( array $findings ): int {
 		$score = 0;
 		foreach ( self::security_sections() as $section ) {
 			if ( ! isset( $findings[ $section ] ) || ! is_array( $findings[ $section ] ) ) {
@@ -1945,7 +1958,7 @@ class Scanner {
 	 *
 	 * @param int $score Numeric score.
 	 */
-	private function calculate_rating( int $score ): string {
+	public static function rating_from_score( int $score ): string {
 		if ( $score >= 50 ) {
 			return 'CRITICAL';
 		}

@@ -150,8 +150,16 @@ class Report {
 			$findings[ $section ] = is_array( $value ) ? $value : array();
 		}
 
-		$findings['rating'] = (string) get_post_meta( $report_id, '_pla_risk', true );
-		$findings['score']  = (int) get_post_meta( $report_id, '_pla_score', true );
+		$findings['score']  = Scanner::score_from_findings( $findings );
+		$findings['rating'] = Scanner::rating_from_score( (int) $findings['score'] );
+
+		$stored_score  = (int) get_post_meta( $report_id, '_pla_score', true );
+		$stored_rating = (string) get_post_meta( $report_id, '_pla_risk', true );
+
+		if ( $stored_score !== $findings['score'] || $stored_rating !== $findings['rating'] ) {
+			update_post_meta( $report_id, '_pla_score', $findings['score'] );
+			update_post_meta( $report_id, '_pla_risk', $findings['rating'] );
+		}
 
 		return $findings;
 	}
