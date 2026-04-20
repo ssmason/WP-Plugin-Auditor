@@ -83,6 +83,19 @@
 	flex-shrink: 0;
 }
 
+.pla-modal__print.button-primary {
+	background: #006d33;
+	border-color: #005a29;
+	color: #fff;
+}
+
+.pla-modal__print.button-primary:hover,
+.pla-modal__print.button-primary:focus {
+	background: #005a29;
+	border-color: #004a22;
+	color: #fff;
+}
+
 /* Progress */
 .pla-modal__progress {
 	display: flex;
@@ -276,6 +289,36 @@
 	font-size: 12px;
 	color: #666;
 	padding: 4px 0;
+}
+
+/* Admin reports page CTAs */
+.pla-view-report.button,
+.pla-download-report.button {
+	background: #006d33;
+	border-color: #005a29;
+	color: #fff;
+}
+
+.pla-view-report.button:hover,
+.pla-view-report.button:focus,
+.pla-download-report.button:hover,
+.pla-download-report.button:focus {
+	background: #005a29;
+	border-color: #004a22;
+	color: #fff;
+}
+
+.pla-delete-report.button {
+	background: #ff0019;
+	border-color: #cc0014;
+	color: #fff;
+}
+
+.pla-delete-report.button:hover,
+.pla-delete-report.button:focus {
+	background: #cc0014;
+	border-color: #990010;
+	color: #fff;
 }
 
 /* Risk column in admin list */
