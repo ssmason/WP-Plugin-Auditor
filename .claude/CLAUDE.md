@@ -7,7 +7,10 @@
 - Do not write code and then list its known gaps — resolve them first or stop and ask
 - Do not skip any rule below "for brevity"
 - If a complete, correct implementation is not possible within the current scope, say so
-
+- Tests must be written alongside code — never after
+- No task is complete until the full test cycle passes clean
+- Full test cycle before handover: `composer install` → `npm run lint:php` → `npm run analyze` → `npm run test:unit` → `npm run test:integration`
+- Nothing is handed over with failing, incomplete, or skipped tests
 ---
 
 ## Project Overview
@@ -30,7 +33,7 @@ A WordPress plugin that audits other installed plugins for security issues, codi
 - WordPress Coding Standards (WPCS) at all times
 - PHP >= 8.1
 - `declare( strict_types=1 )` in every PHP file
-- Namespaced: `PluginAuditor\` — classmap autoloading via Composer (not PSR-4 — WordPress `class-*.php` filenames are incompatible with PSR-4 class-to-file mapping)
+- Namespaced: `PluginAuditor\` — PSR-4 autoloading via Composer
 - Every file begins with `defined( 'ABSPATH' ) || exit;`
 - No `@` error suppression
 - No `extract()`
@@ -429,10 +432,10 @@ plugin-auditor/
     "mockery/mockery": "^1"
   },
   "autoload": {
-    "classmap": [ "includes/" ]
+    "psr-4": { "PluginAuditor\\": "includes/" }
   },
   "autoload-dev": {
-    "classmap": [ "tests/" ]
+    "psr-4": { "PluginAuditor\\Tests\\": "tests/" }
   }
 }
 ```
@@ -470,12 +473,6 @@ plugin-auditor/
 - Bootstrap Brain Monkey in `setUp()`, tear down in `tearDown()`
 - One behaviour per test method
 - Cover: happy path, boundary conditions, invalid input, missing input, multi-line taint cases
-
-### Test Bootstrap — `tests/bootstrap.php`
-Two non-obvious requirements for unit tests to work:
-1. `vendor/brain/monkey/inc/patchwork-loader.php` must be required **before** `vendor/autoload.php` — Brain\Monkey's Patchwork must initialise first
-2. `ABSPATH` must be defined before any plugin class is autoloaded — every class file has `defined( 'ABSPATH' ) || exit;` which will kill the process silently if ABSPATH is missing during autoload
-- `tests/Integration/` directory must exist (even empty) or PHPUnit errors on suite discovery
 
 ### Integration Tests — `tests/Integration/`
 - Extend `WP_UnitTestCase`
