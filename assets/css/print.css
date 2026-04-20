@@ -5,48 +5,58 @@
 	margin: 20mm 15mm;
 }
 
-/* Allow browsers to print background colours */
-* {
-	-webkit-print-color-adjust: exact;
-	print-color-adjust: exact;
-}
-
-/* Hide modal chrome */
+/* Hide admin chrome always */
+#wpadminbar,
+#adminmenumain,
+#wpfooter,
+.pla-modal__backdrop,
 .pla-modal__header,
 .pla-modal__close,
 .pla-modal__footer,
 .pla-modal__progress,
-.pla-modal__error,
-.pla-modal__print,
-#wpadminbar,
-#adminmenumain,
-#wpfooter,
-.pla-modal__backdrop {
+.pla-modal__error {
 	display: none !important;
 }
 
-/* Remove backdrop and dialog chrome; let report fill page */
-.pla-modal {
-	position: static !important;
-	display: block !important;
+/* When print is triggered via the Download PDF button, body gets pla-is-printing */
+body.pla-is-printing > *:not( #pla-modal ) {
+	display: none !important;
 }
 
-.pla-modal__dialog {
+body.pla-is-printing #pla-modal {
+	display: block !important;
+	position: static !important;
+	width: 100% !important;
+	height: auto !important;
+	inset: auto !important;
+	z-index: auto !important;
+}
+
+body.pla-is-printing .pla-modal__dialog {
+	display: block !important;
 	position: static !important;
 	width: 100% !important;
 	max-width: none !important;
 	max-height: none !important;
+	height: auto !important;
 	box-shadow: none !important;
 	border-radius: 0 !important;
 }
 
-.pla-modal__body {
+body.pla-is-printing .pla-modal__body {
+	display: block !important;
 	overflow: visible !important;
+	max-height: none !important;
+	height: auto !important;
+	flex: none !important;
 	padding: 0 !important;
 }
 
+body.pla-is-printing .pla-modal__report {
+	display: block !important;
+}
+
 body {
-	background: #fff !important;
 	font-size: 11pt;
 	line-height: 1.5;
 }
@@ -56,54 +66,31 @@ body {
 }
 
 .pla-report__header {
-	border-bottom: 2pt solid #ddd;
+	border-bottom: 2pt solid #000;
 	margin-bottom: 12pt;
 	padding-bottom: 8pt;
 }
 
 .pla-report__plugin-name {
 	font-size: 16pt;
-	color: #1d2327;
 }
 
-/* Rating badges — preserve colours */
 .pla-report__risk {
 	font-weight: bold;
 	font-size: 12pt;
 }
 
-.pla-rating--critical { background: #fce8e8 !important; color: #8a0000 !important; }
-.pla-rating--high     { background: #fef3e2 !important; color: #7a4200 !important; }
-.pla-rating--medium   { background: #fef9e2 !important; color: #6b5400 !important; }
-.pla-rating--low      { background: #eef6fb !important; color: #004c6a !important; }
-.pla-rating--clean    { background: #e8f5e9 !important; color: #1b5e20 !important; }
-
 /* Section headings always on same page as first row */
 .pla-report__section-title {
 	page-break-after: avoid;
+	border-left: 3pt solid #000 !important;
 	font-size: 11pt;
-	background: #f6f7f7 !important;
-	color: #1d2327 !important;
-}
-
-.pla-report__section--issues .pla-report__section-title {
-	border-left-color: #d63638 !important;
-}
-
-.pla-report__section--pass .pla-report__section-title {
-	border-left-color: #00a32a !important;
 }
 
 /* Avoid breaking inside finding rows */
 .pla-report__row {
 	page-break-inside: avoid;
 }
-
-/* Row background colours */
-.pla-report__row--critical td { background: #fff5f5 !important; }
-.pla-report__row--high     td { background: #fffaf0 !important; }
-.pla-report__row--medium   td { background: #fffff0 !important; }
-.pla-report__row--low      td { background: #f0f8ff !important; }
 
 .pla-report__table {
 	width: 100%;
@@ -113,52 +100,31 @@ body {
 
 .pla-report__table th,
 .pla-report__table td {
-	border: 0.5pt solid #ccc;
+	border: 0.5pt solid #888;
 	padding: 4pt 5pt;
 	vertical-align: top;
 }
 
 .pla-report__table th {
 	font-weight: bold;
-	background: #f6f7f7 !important;
-	color: #1d2327 !important;
 }
 
-/* Severity badges — preserve colours */
-.pla-severity {
-	border-radius: 2px;
+.pla-severity,
+.pla-risk {
+	border: 0.5pt solid #000 !important;
 	padding: 1pt 3pt;
 	font-size: 8pt;
-	font-weight: 700;
-	white-space: nowrap;
-}
-
-.pla-severity--critical { background: #d63638 !important; color: #fff !important; }
-.pla-severity--high     { background: #d67709 !important; color: #fff !important; }
-.pla-severity--medium   { background: #dba617 !important; color: #fff !important; }
-.pla-severity--low      { background: #0073aa !important; color: #fff !important; }
-.pla-severity--info     { background: #888 !important;    color: #fff !important; }
-
-/* Pass badge */
-.pla-report__pass-badge {
-	font-weight: 700;
-	font-size: 9pt;
-	background: #e8f5e9 !important;
-	color: #00a32a !important;
-	padding: 2pt 6pt;
-	border-radius: 2px;
-}
-
-.pla-report__pass-note {
-	color: #666 !important;
-	font-style: italic;
 }
 
 .pla-report__snippet code {
 	font-size: 8pt;
 	font-family: monospace;
 	word-break: break-all;
-	white-space: pre-wrap;
+}
+
+.pla-report__pass-badge {
+	font-weight: bold;
+	font-size: 9pt;
 }
 
 details[open] summary::before {

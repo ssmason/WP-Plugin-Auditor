@@ -238,7 +238,12 @@
 	} );
 
 	printBtn.addEventListener( 'click', function () {
+		document.body.classList.add( 'pla-is-printing' );
 		window.print();
+		window.addEventListener( 'afterprint', function restoreAfterPrint() {
+			document.body.classList.remove( 'pla-is-printing' );
+			window.removeEventListener( 'afterprint', restoreAfterPrint );
+		} );
 	} );
 
 	// Audit trigger links in plugin rows.

@@ -323,8 +323,7 @@ Flag any use of: `eval`, `exec`, `shell_exec`, `system`, `passthru`, `popen`, `p
 - `@page` rule must define margins and `size: A4`
 - Hide modal chrome, close button, progress indicator, PDF download button
 - Page break rules: avoid breaking inside finding rows, section headings always start on same page as first row
-- Preserve all colours in print output — use `print-color-adjust: exact` and `-webkit-print-color-adjust: exact` on `*`; do NOT strip backgrounds with `background: #fff !important` globally
-- Severity badge colours, row highlight colours, and rating badge colours must all render in the PDF identically to screen
+- Do NOT attempt to preserve colours by overriding the print stylesheet with `print-color-adjust: exact` and complex layout resets — this causes blank pages due to flex container collapse. The working approach hides only modal chrome and lets the browser render the fixed-position modal naturally.
 
 ---
 

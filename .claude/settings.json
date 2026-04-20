@@ -14,7 +14,8 @@
       "Glob",
       "Grep",
       "WebFetch",
-      "WebSearch"
+      "WebSearch",
+      "Edit(CLAUDE.md)"
     ],
     "deny": [
       "Read(./.env)",
@@ -46,8 +47,18 @@
       {
         "hooks": [
           {
+            "type": "command",
+            "command": "echo '{\"systemMessage\": \"Session ended.\"}'"
+          }
+        ]
+      }
+    ],
+    "UserPromptSubmit": [
+      {
+        "hooks": [
+          {
             "type": "prompt",
-            "prompt": "Review this session. If any new conventions, decisions or architectural patterns were established, update CLAUDE.md accordingly. Do not add noise — only meaningful persistent context."
+            "prompt": "Before responding: do only what was asked. No extra tool calls. No explanations unless asked. No restating the user's message. One question if uncertain."
           }
         ]
       }
