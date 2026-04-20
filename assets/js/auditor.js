@@ -23,6 +23,7 @@
 	let activeRequest        = null;
 	let currentReportId      = null;
 	let currentDownloadNonce = null;
+	let progressTimer        = null;
 
 	// -------------------------------------------------------------------------
 	// Modal open / close
@@ -48,6 +49,10 @@
 	}
 
 	function resetModal() {
+		if ( progressTimer ) {
+			clearTimeout( progressTimer );
+			progressTimer = null;
+		}
 		progressEl.hidden         = true;
 		errorEl.hidden            = true;
 		reportEl.hidden           = true;
@@ -73,7 +78,7 @@
 		progressFill.style.width     = '100%';
 		progressText.textContent     = plaAuditor.i18n.complete;
 		progressHint.textContent     = '';
-		setTimeout( callback, 600 );
+		progressTimer = setTimeout( callback, 600 );
 	}
 
 	function showError( message ) {
