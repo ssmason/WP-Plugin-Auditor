@@ -1,0 +1,13 @@
+{
+  "core": "WordPress/WordPress#trunk",
+  "phpVersion": "8.1",
+  "plugins": [ "." ],
+  "config": {
+    "WP_DEBUG": true,
+    "WP_DEBUG_LOG": true,
+    "SCRIPT_DEBUG": true
+  },
+  "testsConfig": {
+    "WP_DEBUG": false
+  }
+}

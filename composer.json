@@ -1,0 +1,35 @@
+{
+  "name": "plugin-auditor/plugin-auditor",
+  "description": "Audits WordPress plugins for security issues and coding standards violations.",
+  "type": "wordpress-plugin",
+  "license": "GPL-2.0-or-later",
+  "require": {
+    "php": ">=8.1"
+  },
+  "require-dev": {
+    "squizlabs/php_codesniffer": "^3",
+    "wp-coding-standards/wpcs": "^3",
+    "phpcompatibility/phpcompatibility-wp": "*",
+    "phpstan/phpstan": "^1",
+    "szepeviktor/phpstan-wordpress": "^1",
+    "phpunit/phpunit": "^9",
+    "brain/monkey": "^2",
+    "mockery/mockery": "^1"
+  },
+  "autoload": {
+    "classmap": [ "includes/" ]
+  },
+  "autoload-dev": {
+    "classmap": [ "tests/" ]
+  },
+  "repositories": [
+    {
+     
+    }
+  ],
+  "config": {
+    "allow-plugins": {
+      "dealerdirect/phpcodesniffer-composer-installer": true
+    }
+  }
+}

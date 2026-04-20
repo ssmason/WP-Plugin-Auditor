@@ -1,0 +1,19 @@
+{
+  "name": "plugin-auditor",
+  "version": "1.0.0",
+  "scripts": {
+    "env:start": "wp-env start",
+    "env:stop": "wp-env stop",
+    "env:clean": "wp-env clean",
+    "test:unit": "phpunit --configuration phpunit.xml.dist --testsuite unit",
+    "test:integration": "wp-env run tests-cli phpunit --configuration phpunit.xml.dist --testsuite integration",
+    "lint:php": "phpcs",
+    "lint:fix": "phpcbf",
+    "analyze": "phpstan analyse"
+  },
+  "devDependencies": {
+    "@wordpress/env": "^10.0.0",
+    "eslint": "^8.0.0",
+    "eslint-plugin-jsdoc": "^46.0.0"
+  }
+}

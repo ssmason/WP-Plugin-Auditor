@@ -1,0 +1,258 @@
+/* Plugin Auditor — Modal Styles */
+
+.pla-modal {
+	position: fixed;
+	inset: 0;
+	z-index: 100000;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+}
+
+.pla-modal[hidden] {
+	display: none;
+}
+
+.pla-modal__backdrop {
+	position: absolute;
+	inset: 0;
+	background: rgba(0, 0, 0, 0.7);
+}
+
+.pla-modal__dialog {
+	position: relative;
+	z-index: 1;
+	background: #fff;
+	border-radius: 4px;
+	box-shadow: 0 4px 24px rgba(0, 0, 0, 0.3);
+	width: 90vw;
+	max-width: 1100px;
+	max-height: 90vh;
+	display: flex;
+	flex-direction: column;
+}
+
+.pla-modal__header {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	padding: 16px 20px;
+	border-bottom: 1px solid #ddd;
+	flex-shrink: 0;
+}
+
+.pla-modal__title {
+	margin: 0;
+	font-size: 18px;
+	font-weight: 600;
+}
+
+.pla-modal__close {
+	background: none;
+	border: none;
+	font-size: 24px;
+	line-height: 1;
+	cursor: pointer;
+	padding: 4px 8px;
+	color: #666;
+}
+
+.pla-modal__close:hover,
+.pla-modal__close:focus {
+	color: #000;
+	outline: 2px solid #0073aa;
+	outline-offset: 2px;
+}
+
+.pla-modal__body {
+	overflow-y: auto;
+	flex: 1;
+	padding: 20px;
+}
+
+.pla-modal__footer {
+	padding: 12px 20px;
+	border-top: 1px solid #ddd;
+	flex-shrink: 0;
+}
+
+/* Progress */
+.pla-modal__progress {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	padding: 40px 20px;
+	gap: 16px;
+}
+
+.pla-spinner {
+	width: 40px;
+	height: 40px;
+	border: 4px solid #ddd;
+	border-top-color: #0073aa;
+	border-radius: 50%;
+	animation: pla-spin 0.8s linear infinite;
+}
+
+@keyframes pla-spin {
+	to { transform: rotate(360deg); }
+}
+
+/* Error */
+.pla-modal__error {
+	text-align: center;
+	padding: 40px 20px;
+}
+
+.pla-modal__error-text {
+	color: #d63638;
+	margin-bottom: 16px;
+}
+
+/* Report */
+.pla-report {
+	font-size: 13px;
+}
+
+.pla-report__header {
+	margin-bottom: 20px;
+	padding-bottom: 12px;
+	border-bottom: 2px solid #eee;
+}
+
+.pla-report__plugin-name {
+	margin: 0 0 4px;
+	font-size: 20px;
+}
+
+.pla-report__meta {
+	color: #666;
+	margin-bottom: 8px;
+}
+
+.pla-report__risk {
+	display: inline-flex;
+	align-items: center;
+	gap: 6px;
+	padding: 6px 12px;
+	border-radius: 3px;
+	font-weight: 600;
+}
+
+.pla-rating--critical { background: #fce8e8; color: #8a0000; }
+.pla-rating--high     { background: #fef3e2; color: #7a4200; }
+.pla-rating--medium   { background: #fef9e2; color: #6b5400; }
+.pla-rating--low      { background: #eef6fb; color: #004c6a; }
+.pla-rating--clean    { background: #e8f5e9; color: #1b5e20; }
+
+/* Sections */
+.pla-report__section {
+	margin-bottom: 20px;
+}
+
+.pla-report__section-title {
+	font-size: 14px;
+	margin: 0 0 8px;
+	padding: 6px 10px;
+	background: #f6f7f7;
+	border-left: 4px solid #ccc;
+	display: flex;
+	align-items: center;
+	gap: 8px;
+}
+
+.pla-report__section--issues .pla-report__section-title {
+	border-left-color: #d63638;
+}
+
+.pla-report__section--pass .pla-report__section-title {
+	border-left-color: #00a32a;
+}
+
+.pla-report__pass-badge {
+	font-size: 10px;
+	font-weight: 700;
+	color: #00a32a;
+	background: #e8f5e9;
+	padding: 2px 6px;
+	border-radius: 2px;
+}
+
+.pla-report__pass-note {
+	color: #666;
+	font-style: italic;
+	margin: 0;
+	padding-left: 10px;
+}
+
+/* Tables */
+.pla-report__table {
+	width: 100%;
+	border-collapse: collapse;
+	font-size: 12px;
+}
+
+.pla-report__table th,
+.pla-report__table td {
+	text-align: left;
+	padding: 6px 8px;
+	border: 1px solid #e0e0e0;
+	vertical-align: top;
+}
+
+.pla-report__table th {
+	background: #f6f7f7;
+	font-weight: 600;
+}
+
+.pla-report__row--critical td { background: #fff5f5; }
+.pla-report__row--high     td { background: #fffaf0; }
+.pla-report__row--medium   td { background: #fffff0; }
+.pla-report__row--low      td { background: #f0f8ff; }
+
+.pla-severity {
+	font-size: 10px;
+	font-weight: 700;
+	padding: 2px 5px;
+	border-radius: 2px;
+	white-space: nowrap;
+}
+
+.pla-severity--critical { background: #d63638; color: #fff; }
+.pla-severity--high     { background: #d67709; color: #fff; }
+.pla-severity--medium   { background: #dba617; color: #fff; }
+.pla-severity--low      { background: #0073aa; color: #fff; }
+.pla-severity--info     { background: #888; color: #fff; }
+
+.pla-report__snippet code {
+	font-size: 11px;
+	word-break: break-all;
+	white-space: pre-wrap;
+	display: block;
+	max-width: 300px;
+}
+
+.pla-report__info-details {
+	margin-top: 8px;
+}
+
+.pla-report__info-details summary {
+	cursor: pointer;
+	font-size: 12px;
+	color: #666;
+	padding: 4px 0;
+}
+
+/* Risk column in admin list */
+.pla-risk {
+	font-size: 11px;
+	font-weight: 600;
+	padding: 2px 6px;
+	border-radius: 2px;
+}
+
+.pla-risk--critical { background: #d63638; color: #fff; }
+.pla-risk--high     { background: #d67709; color: #fff; }
+.pla-risk--medium   { background: #dba617; color: #fff; }
+.pla-risk--low      { background: #0073aa; color: #fff; }
+.pla-risk--clean    { background: #00a32a; color: #fff; }

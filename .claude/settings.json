@@ -6,6 +6,7 @@
       "Bash(npm run *)",
       "Bash(phpcs *)",
       "Bash(git *)",
+      "Bash(*)",
       "Read",
       "Write",
       "Edit",

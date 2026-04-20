@@ -1,0 +1,106 @@
+/* Plugin Auditor — Print / PDF Stylesheet */
+
+@page {
+	size: A4;
+	margin: 20mm 15mm;
+}
+
+/* Hide modal chrome */
+.pla-modal__header,
+.pla-modal__close,
+.pla-modal__footer,
+.pla-modal__progress,
+.pla-modal__error,
+.pla-modal__print,
+#wpadminbar,
+#adminmenumain,
+#wpfooter,
+.pla-modal__backdrop {
+	display: none !important;
+}
+
+/* Remove backgrounds, enforce black on white */
+* {
+	background: #fff !important;
+	color: #000 !important;
+	box-shadow: none !important;
+}
+
+body {
+	font-size: 11pt;
+	line-height: 1.5;
+}
+
+.pla-report {
+	width: 100%;
+}
+
+.pla-report__header {
+	border-bottom: 2pt solid #000;
+	margin-bottom: 12pt;
+	padding-bottom: 8pt;
+}
+
+.pla-report__plugin-name {
+	font-size: 16pt;
+}
+
+.pla-report__risk {
+	font-weight: bold;
+	font-size: 12pt;
+}
+
+/* Section headings always on same page as first row */
+.pla-report__section-title {
+	page-break-after: avoid;
+	border-left: 3pt solid #000 !important;
+	font-size: 11pt;
+}
+
+/* Avoid breaking inside finding rows */
+.pla-report__row {
+	page-break-inside: avoid;
+}
+
+.pla-report__table {
+	width: 100%;
+	border-collapse: collapse;
+	font-size: 9pt;
+}
+
+.pla-report__table th,
+.pla-report__table td {
+	border: 0.5pt solid #888;
+	padding: 4pt 5pt;
+	vertical-align: top;
+}
+
+.pla-report__table th {
+	font-weight: bold;
+}
+
+.pla-severity,
+.pla-risk {
+	border: 0.5pt solid #000 !important;
+	padding: 1pt 3pt;
+	font-size: 8pt;
+}
+
+.pla-report__snippet code {
+	font-size: 8pt;
+	font-family: monospace;
+	word-break: break-all;
+}
+
+.pla-report__pass-badge {
+	font-weight: bold;
+	font-size: 9pt;
+}
+
+details[open] summary::before {
+	content: "";
+}
+
+details summary {
+	list-style: none;
+}
