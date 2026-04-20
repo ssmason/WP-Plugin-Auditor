@@ -71,10 +71,7 @@ $rating_class = 'pla-rating--' . strtolower( esc_attr( $rating ) );
 				<?php endif; ?>
 			</h4>
 
-			<?php if ( empty( $section_findings ) ) : ?>
-				<p class="pla-report__pass-note"><?php esc_html_e( 'No issues found.', 'plugin-auditor' ); ?></p>
-
-			<?php else : ?>
+			<?php if ( ! empty( $section_findings ) ) : ?>
 
 				<?php if ( $has_issues ) : ?>
 				<table class="pla-report__table">
