@@ -323,7 +323,8 @@ Flag any use of: `eval`, `exec`, `shell_exec`, `system`, `passthru`, `popen`, `p
 - `@page` rule must define margins and `size: A4`
 - Hide modal chrome, close button, progress indicator, PDF download button
 - Page break rules: avoid breaking inside finding rows, section headings always start on same page as first row
-- Ensure all text is black on white — remove background colours
+- Preserve all colours in print output — use `print-color-adjust: exact` and `-webkit-print-color-adjust: exact` on `*`; do NOT strip backgrounds with `background: #fff !important` globally
+- Severity badge colours, row highlight colours, and rating badge colours must all render in the PDF identically to screen
 
 ---
 
