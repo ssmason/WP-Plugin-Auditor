@@ -75,21 +75,37 @@ npm run env:clean    # destroy and recreate (wipes data)
 
 Every check reports both findings **and** confirmed passes.
 
-| Section | Severity |
-|---|---|
-| Dangerous functions (`eval`, `exec`, `shell_exec`, `base64_decode`, etc.) | CRITICAL |
-| Obfuscated calls (variable variables, dynamic function names, `preg_replace /e`) | CRITICAL |
-| Output escaping — multi-line taint tracking | HIGH / MEDIUM |
-| Input sanitization — missing `sanitize_*`, missing `wp_unslash()` | HIGH / MEDIUM |
-| Nonce verification — forms, AJAX, GET actions | CRITICAL / HIGH |
-| Capability checks — admin pages, write operations | HIGH |
-| Database queries — unprepared statements, raw `mysql_*` calls | CRITICAL |
-| Hardcoded credentials — passwords, API keys, tokens (value redacted in report) | CRITICAL |
-| External HTTP requests — all outbound calls reported as informational | INFO |
-| Asset versioning — hardcoded version strings or `false` version argument | LOW |
-| Error suppression — `error_reporting(0)`, `ini_set` on error settings | HIGH / MEDIUM |
-| File permissions — world-writable files, PHP files with execute bit | HIGH / MEDIUM |
-| Plugin header / metadata — missing required headers | LOW |
+| # | Check | Severity |
+|---|---|---|
+| 1 | Dangerous functions (`eval`, `exec`, `shell_exec`, `base64_decode`, etc.) | CRITICAL |
+| 2 | Output escaping — unescaped echo, wrong escape function, `_e()` / `__()` without escaping | HIGH / MEDIUM |
+| 3 | Input sanitization — unsanitized superglobals, missing `wp_unslash()` | HIGH / MEDIUM |
+| 4 | Nonce verification — forms, AJAX handlers, GET actions | CRITICAL / HIGH |
+| 5 | Capability checks — admin pages, write operations | HIGH |
+| 6 | Database queries — unprepared statements, raw `mysql_*` calls | CRITICAL |
+| 7 | Hardcoded credentials — passwords, API keys, tokens (value redacted in report) | CRITICAL |
+| 8 | Error suppression — `error_reporting(0)`, `ini_set` on error settings | HIGH / MEDIUM |
+| 9 | Obfuscated calls — variable variables, dynamic function names, `preg_replace /e` | CRITICAL |
+| 10 | Direct file access guard — missing `defined('ABSPATH') \|\| exit` | HIGH |
+| 11 | Debug output PHP — `var_dump`, `print_r`, `var_export` | MEDIUM |
+| 12 | Debug output JS — `console.log`, `console.warn`, etc. | LOW |
+| 13 | File permissions — world-writable files, PHP files with execute bit | HIGH / MEDIUM |
+| 14 | Deprecated WordPress functions | MEDIUM |
+| 15 | Plugin structure — missing `index.php` sentinels, exposed readme files | LOW |
+| 16 | Licensing — LICENSE file present, GPL-compatible license declared | LOW / MEDIUM |
+| 17 | PHP compatibility — PHP 8.0/8.1 features vs declared minimum version | MEDIUM |
+| 18 | Commented-out code — blocks of 5+ consecutive comment lines | LOW / MEDIUM |
+| 19 | Plugin header / metadata — missing required headers | LOW |
+| 20 | External HTTP requests — all outbound calls reported as informational | INFO |
+| 21 | Asset versioning — hardcoded version strings or `false` version argument | LOW |
+| 22 | Redirect without exit — `wp_redirect` / `wp_safe_redirect` not followed by `exit` | HIGH |
+| 23 | Role name in `current_user_can()` — role names passed instead of capability names | HIGH |
+| 24 | Shortcode output escaping — unescaped return values in shortcode callbacks | MEDIUM |
+| 25 | Option writes without capability check — `update_option`, `add_option`, `delete_option` | HIGH |
+| 26 | Wrong `$wpdb->prepare()` placeholder — `%s` for integers, `%d` for strings | MEDIUM |
+| 27 | Duplicate hook registrations — same hook/callback/priority registered more than once | LOW |
+| 28 | Unnecessary closures — `function() { return true; }` instead of `__return_true` | LOW |
+| 29 | Early translation calls — translation functions called at file scope before `init` | LOW |
 
 ### Risk Rating
 
@@ -163,40 +179,56 @@ PHPCS runs automatically as a post-edit hook in Claude Code — any violation bl
 
 ```
 plugin-auditor/
-├── plugin-auditor.php          # Plugin header, constants, bootstrap
-├── uninstall.php               # Removes all plugin data on uninstall
+├── plugin-auditor.php              # Plugin header, constants, bootstrap
+├── uninstall.php                   # Removes all plugin data on uninstall (multisite-aware)
+├── readme.txt                      # WordPress.org plugin directory listing
+├── LICENSE                         # GPL-2.0 full text
+├── index.php                       # Directory listing sentinel
 ├── composer.json
 ├── composer.lock
 ├── package.json
-├── phpcs.xml.dist              # WordPress coding standards config
-├── phpstan.neon.dist           # PHPStan level 8 config
+├── phpcs.xml.dist                  # WordPress coding standards config
+├── phpstan.neon.dist               # PHPStan level 8 config
 ├── phpunit.xml.dist
 ├── .wp-env.json
 ├── .eslintrc.json
 ├── includes/
-│   ├── class-admin.php         # Plugins page action link, admin menu, reports page
-│   ├── class-ajax.php          # AJAX handlers: pla_run_audit, pla_get_report
-│   ├── class-cpt.php           # pla_report CPT registration, 20-report cap
-│   ├── class-modal.php         # Asset enqueue, modal shell in admin footer
-│   ├── class-scanner.php       # Static analysis engine — all 13 check categories
-│   └── class-report.php        # Chunked meta storage, HTML report rendering
+│   ├── index.php
+│   ├── class-admin.php             # Plugins page action link, admin menu, reports page
+│   ├── class-ajax.php              # AJAX handlers: pla_run_audit, pla_get_report, pla_download_json, pla_delete_report
+│   ├── class-cpt.php               # pla_report CPT registration
+│   ├── class-file-collector.php    # Recursive PHP/JS file collection
+│   ├── class-modal.php             # Asset enqueue, modal shell in admin footer
+│   ├── class-plugin-validator.php  # Plugin file path resolution and metadata
+│   ├── class-rate-limiter.php      # Transient-based concurrent audit guard
+│   ├── class-report.php            # Chunked meta storage and JSON export
+│   ├── class-report-renderer.php   # Report HTML rendering
+│   ├── class-report-repository.php # Report CPT database queries
+│   ├── class-scanner.php           # Static analysis engine
+│   └── class-score-calculator.php  # Risk score and rating calculation
 ├── assets/
+│   ├── index.php
 │   ├── css/
-│   │   ├── modal.css           # Modal, report, severity badge styles
-│   │   └── print.css           # A4 print stylesheet for PDF download
+│   │   ├── index.php
+│   │   ├── modal.css               # Modal, report, severity badge styles
+│   │   └── print.css               # A4 print stylesheet
 │   └── js/
-│       └── auditor.js          # Modal open/close, focus trap, AJAX, retry, print
+│       ├── index.php
+│       └── auditor.js              # Modal open/close, focus trap, AJAX, retry, download
 ├── templates/
-│   ├── modal.php               # Modal shell with ARIA attributes
-│   └── report.php              # Full report HTML — sections, tables, pass badges
+│   ├── index.php
+│   ├── admin-reports.php           # Tools → Plugin Auditor reports list page
+│   ├── modal.php                   # Modal shell with ARIA attributes
+│   └── report.php                  # Full report HTML — sections, tables, pass badges
 ├── tests/
-│   ├── bootstrap.php           # PHPUnit bootstrap — patchwork + ABSPATH setup
+│   ├── bootstrap.php               # PHPUnit bootstrap
 │   ├── Unit/
-│   │   ├── ScannerTest.php     # 19 scanner behaviour tests
-│   │   └── ReportTest.php      # Report section label tests
-│   └── Integration/            # WP_UnitTestCase tests (requires wp-env)
+│   │   ├── ScannerTest.php
+│   │   └── ReportTest.php
+│   └── Integration/                # WP_UnitTestCase tests (requires wp-env)
 └── languages/
-    └── plugin-auditor.pot      # Translation template
+    ├── index.php
+    └── plugin-auditor.pot          # Translation template
 ```
 
 ---
