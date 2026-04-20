@@ -24,13 +24,33 @@ defined( 'ABSPATH' ) || exit;
 					<td class="pla-col-cb manage-column column-cb check-column">
 						<input type="checkbox" id="pla-select-all" />
 					</td>
-					<th class="pla-col-plugin"><?php esc_html_e( 'Plugin', 'plugin-auditor' ); ?></th>
-					<th class="pla-col-risk"><?php esc_html_e( 'Risk', 'plugin-auditor' ); ?></th>
+					<th class="pla-col-plugin">
+						<span class="pla-th-inner">
+							<svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><rect x="3" y="3" width="14" height="14" rx="2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><rect x="14" y="7" width="4" height="3" rx="1" stroke="currentColor" stroke-width="1.5" fill="white"/><rect x="14" y="13" width="4" height="3" rx="1" stroke="currentColor" stroke-width="1.5" fill="white"/><rect x="7" y="14" width="3" height="4" rx="1" stroke="currentColor" stroke-width="1.5" fill="white"/></svg>
+							<?php esc_html_e( 'Plugin', 'plugin-auditor' ); ?>
+						</span>
+					</th>
+					<th class="pla-col-risk">
+						<span class="pla-th-inner">
+							<svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M12 2 L22 6 L22 13 C22 18 17 22 12 23 C7 22 2 18 2 13 L2 6 Z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><line x1="12" y1="8" x2="12" y2="14" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><circle cx="12" cy="17" r="1" fill="currentColor"/></svg>
+							<?php esc_html_e( 'Risk', 'plugin-auditor' ); ?>
+						</span>
+					</th>
 					<th class="pla-col-count pla-col-high"><?php esc_html_e( 'High', 'plugin-auditor' ); ?></th>
 					<th class="pla-col-count pla-col-medium"><?php esc_html_e( 'Medium', 'plugin-auditor' ); ?></th>
 					<th class="pla-col-count pla-col-low"><?php esc_html_e( 'Low', 'plugin-auditor' ); ?></th>
-					<th class="pla-col-date"><?php esc_html_e( 'Date', 'plugin-auditor' ); ?></th>
-					<th class="pla-col-actions"><?php esc_html_e( 'Actions', 'plugin-auditor' ); ?></th>
+					<th class="pla-col-date">
+						<span class="pla-th-inner">
+							<svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><line x1="3" y1="10" x2="21" y2="10" stroke="currentColor" stroke-width="1.5"/><line x1="8" y1="3" x2="8" y2="7" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><line x1="16" y1="3" x2="16" y2="7" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><rect x="7" y="13" width="3" height="3" rx="0.5" fill="currentColor" opacity="0.6"/><rect x="11" y="13" width="3" height="3" rx="0.5" fill="currentColor" opacity="0.6"/><rect x="15" y="13" width="3" height="3" rx="0.5" fill="currentColor" opacity="0.6"/></svg>
+							<?php esc_html_e( 'Date', 'plugin-auditor' ); ?>
+						</span>
+					</th>
+					<th class="pla-col-actions">
+						<span class="pla-th-inner">
+							<svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><rect x="2" y="6" width="20" height="12" rx="2" stroke="currentColor" stroke-width="1.5"/><circle cx="8" cy="12" r="1.5" fill="currentColor"/><circle cx="12" cy="12" r="1.5" fill="currentColor"/><circle cx="16" cy="12" r="1.5" fill="currentColor"/></svg>
+							<?php esc_html_e( 'Actions', 'plugin-auditor' ); ?>
+						</span>
+					</th>
 				</tr>
 			</thead>
 			<tbody>
