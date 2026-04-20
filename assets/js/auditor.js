@@ -157,12 +157,24 @@
 	}
 
 	function loadReport( reportId, nonce ) {
-		resetModal();
-		openModal();
-
+		if ( progressTimer ) {
+			clearTimeout( progressTimer );
+			progressTimer = null;
+		}
 		if ( activeRequest ) {
 			activeRequest.abort();
 		}
+
+		progressEl.hidden        = true;
+		errorEl.hidden           = true;
+		reportEl.hidden          = true;
+		footerEl.hidden          = true;
+		reportEl.textContent     = '';
+		errorText.textContent    = '';
+		currentReportId          = null;
+		currentDownloadNonce     = null;
+
+		openModal();
 
 		activeRequest = $.ajax( {
 			url:     plaAuditor.ajaxUrl,
