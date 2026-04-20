@@ -328,10 +328,88 @@
 		.then( function ( res ) { return res.json(); } )
 		.then( function ( response ) {
 			if ( response.success ) {
-				btn.closest( 'tr' ).remove();
+				const row = btn.closest( 'tr' );
+				const cb  = row ? row.querySelector( '.pla-report-cb' ) : null;
+				if ( cb && cb.checked ) {
+					cb.checked = false;
+					updateBulkState();
+				}
+				if ( row ) {
+					row.remove();
+				}
 			}
 		} );
 	} );
+
+	// Select all checkbox.
+	const selectAll = document.getElementById( 'pla-select-all' );
+	if ( selectAll ) {
+		selectAll.addEventListener( 'change', function () {
+			document.querySelectorAll( '.pla-report-cb' ).forEach( function ( cb ) {
+				cb.checked = selectAll.checked;
+			} );
+			updateBulkState();
+		} );
+
+		document.addEventListener( 'change', function ( e ) {
+			if ( ! e.target.classList.contains( 'pla-report-cb' ) ) {
+				return;
+			}
+			updateBulkState();
+			const all  = document.querySelectorAll( '.pla-report-cb' );
+			const checked = document.querySelectorAll( '.pla-report-cb:checked' );
+			selectAll.checked       = all.length === checked.length;
+			selectAll.indeterminate = checked.length > 0 && checked.length < all.length;
+		} );
+	}
+
+	function updateBulkState() {
+		const checked   = document.querySelectorAll( '.pla-report-cb:checked' );
+		const bulkBtn   = document.getElementById( 'pla-bulk-delete' );
+		const bulkCount = document.querySelector( '.pla-bulk-count' );
+		if ( bulkBtn ) {
+			bulkBtn.disabled = 0 === checked.length;
+		}
+		if ( bulkCount ) {
+			bulkCount.textContent = checked.length > 0 ? checked.length + ' selected' : '';
+		}
+	}
+
+	const bulkDeleteBtn = document.getElementById( 'pla-bulk-delete' );
+	if ( bulkDeleteBtn ) {
+		bulkDeleteBtn.addEventListener( 'click', function () {
+			const checked = document.querySelectorAll( '.pla-report-cb:checked' );
+			if ( 0 === checked.length ) {
+				return;
+			}
+
+			const ids    = Array.from( checked ).map( function ( cb ) { return cb.value; } );
+			const params = new URLSearchParams( { action: 'pla_bulk_delete', nonce: plaAuditor.bulkDeleteNonce } );
+			ids.forEach( function ( id ) { params.append( 'report_ids[]', id ); } );
+
+			fetch( plaAuditor.ajaxUrl, {
+				method:  'POST',
+				headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+				body:    params,
+			} )
+			.then( function ( res ) { return res.json(); } )
+			.then( function ( response ) {
+				if ( response.success ) {
+					checked.forEach( function ( cb ) {
+						const row = cb.closest( 'tr' );
+						if ( row ) {
+							row.remove();
+						}
+					} );
+					if ( selectAll ) {
+						selectAll.checked       = false;
+						selectAll.indeterminate = false;
+					}
+					updateBulkState();
+				}
+			} );
+		} );
+	}
 
 	// Audit trigger links in plugin rows.
 	document.addEventListener( 'click', function ( e ) {

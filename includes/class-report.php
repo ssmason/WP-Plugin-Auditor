@@ -110,6 +110,7 @@ class Report {
 		update_post_meta( $post_id, '_pla_risk', $findings['rating'] ?? 'UNKNOWN' );
 		update_post_meta( $post_id, '_pla_score', $findings['score'] ?? 0 );
 		update_post_meta( $post_id, '_pla_version', PLUGIN_AUDITOR_VERSION );
+		update_post_meta( $post_id, '_pla_counts', $this->count_severities( $findings ) );
 
 		foreach ( self::SECTION_META_KEYS as $section => $meta_key ) {
 			if ( isset( $findings[ $section ] ) && is_array( $findings[ $section ] ) ) {
@@ -191,6 +192,28 @@ class Report {
 	 * @param string               $plugin_name Plugin display name.
 	 * @param array<string, mixed> $findings    Scan findings.
 	 */
+	/**
+	 * Counts findings by severity across all sections.
+	 *
+	 * @param array<string, mixed> $findings Scan findings.
+	 * @return array<string, int>
+	 */
+	private function count_severities( array $findings ): array {
+		$counts = array( 'critical' => 0, 'high' => 0, 'medium' => 0, 'low' => 0, 'info' => 0 );
+		foreach ( array_keys( self::SECTION_META_KEYS ) as $section ) {
+			if ( ! isset( $findings[ $section ] ) || ! is_array( $findings[ $section ] ) ) {
+				continue;
+			}
+			foreach ( $findings[ $section ] as $finding ) {
+				$sev = strtolower( $finding['severity'] ?? '' );
+				if ( isset( $counts[ $sev ] ) ) {
+					++$counts[ $sev ];
+				}
+			}
+		}
+		return $counts;
+	}
+
 	private function save_json_export( int $post_id, string $plugin_file, string $plugin_name, array $findings ): void {
 		$sections = $findings;
 		unset( $sections['rating'], $sections['score'] );

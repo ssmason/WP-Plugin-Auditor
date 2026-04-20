@@ -322,6 +322,71 @@
 	color: #fff;
 }
 
+/* Admin reports table */
+.pla-reports-table .pla-col-cb { width: 2.2em; }
+.pla-reports-table .pla-col-count { width: 60px; text-align: center; }
+.pla-reports-table .pla-col-risk { width: 90px; }
+.pla-reports-table .pla-col-date { width: 130px; }
+.pla-reports-table .pla-col-actions { width: 200px; }
+
+.pla-delete-link {
+	color: #ff0019;
+	text-decoration: none;
+	font-size: 12px;
+	cursor: pointer;
+	background: none;
+	border: none;
+	padding: 0;
+}
+
+.pla-delete-link:hover,
+.pla-delete-link:focus {
+	color: #cc0014;
+	text-decoration: underline;
+}
+
+.pla-count {
+	display: inline-block;
+	font-weight: 600;
+	font-size: 13px;
+	min-width: 24px;
+	text-align: center;
+}
+
+.pla-count--high   { color: #d67709; }
+.pla-count--medium { color: #dba617; }
+.pla-count--low    { color: #0073aa; }
+
+.pla-bulk-actions {
+	margin-top: 8px;
+	display: flex;
+	align-items: center;
+	gap: 12px;
+}
+
+.pla-bulk-delete-btn {
+	background: #ff0019;
+	border-color: #cc0014;
+	color: #fff;
+}
+
+.pla-bulk-delete-btn:hover,
+.pla-bulk-delete-btn:focus {
+	background: #cc0014;
+	border-color: #990010;
+	color: #fff;
+}
+
+.pla-bulk-delete-btn:disabled {
+	opacity: 0.5;
+	cursor: not-allowed;
+}
+
+.pla-bulk-count {
+	font-size: 13px;
+	color: #666;
+}
+
 /* Risk column in admin list */
 .pla-risk {
 	font-size: 11px;

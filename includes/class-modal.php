@@ -94,8 +94,9 @@ class Modal {
 	 */
 	private function script_data(): array {
 		return array(
-			'ajaxUrl'     => admin_url( 'admin-ajax.php' ),
-			'ajaxTimeout' => 120000,
+			'ajaxUrl'         => admin_url( 'admin-ajax.php' ),
+			'ajaxTimeout'     => 120000,
+			'bulkDeleteNonce' => wp_create_nonce( 'pla_bulk_delete' ),
 			'i18n'        => array(
 				'running'        => esc_html__( 'Audit running…', 'plugin-auditor' ),
 				'complete'       => esc_html__( 'Audit complete', 'plugin-auditor' ),

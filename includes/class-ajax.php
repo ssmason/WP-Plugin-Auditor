@@ -35,10 +35,11 @@ class Ajax {
 	 * Registers WordPress AJAX hooks.
 	 */
 	public function init(): void {
-		add_action( 'wp_ajax_pla_run_audit',     array( $this, 'handle_run_audit' ),     10, 0 );
-		add_action( 'wp_ajax_pla_get_report',    array( $this, 'handle_get_report' ),    10, 0 );
-		add_action( 'wp_ajax_pla_download_json', array( $this, 'handle_download_json' ), 10, 0 );
-		add_action( 'wp_ajax_pla_delete_report', array( $this, 'handle_delete_report' ), 10, 0 );
+		add_action( 'wp_ajax_pla_run_audit',      array( $this, 'handle_run_audit' ),      10, 0 );
+		add_action( 'wp_ajax_pla_get_report',     array( $this, 'handle_get_report' ),     10, 0 );
+		add_action( 'wp_ajax_pla_download_json',  array( $this, 'handle_download_json' ),  10, 0 );
+		add_action( 'wp_ajax_pla_delete_report',  array( $this, 'handle_delete_report' ),  10, 0 );
+		add_action( 'wp_ajax_pla_bulk_delete',    array( $this, 'handle_bulk_delete' ),    10, 0 );
 	}
 
 	/**
@@ -107,6 +108,32 @@ class Ajax {
 		$report_id = $this->validated_report_id( 'pla_delete_report_' );
 		$this->repository->delete( $report_id );
 		wp_send_json_success();
+	}
+
+	/**
+	 * Handles the pla_bulk_delete AJAX action.
+	 */
+	public function handle_bulk_delete(): void {
+		$this->require_capability();
+
+		if ( ! wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST['nonce'] ?? '' ) ), 'pla_bulk_delete' ) ) {
+			wp_send_json_error( array( 'message' => __( 'Security check failed.', 'plugin-auditor' ) ), 403 );
+		}
+
+		$raw_ids = isset( $_POST['report_ids'] ) && is_array( $_POST['report_ids'] )
+			? $_POST['report_ids']
+			: array();
+
+		$deleted = 0;
+		foreach ( $raw_ids as $raw_id ) {
+			$report_id = absint( $raw_id );
+			if ( $report_id && $this->repository->exists( $report_id ) ) {
+				$this->repository->delete( $report_id );
+				++$deleted;
+			}
+		}
+
+		wp_send_json_success( array( 'deleted' => $deleted ) );
 	}
 
 	/**
