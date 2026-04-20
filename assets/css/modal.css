@@ -41,7 +41,8 @@
 	align-items: center;
 	justify-content: space-between;
 	padding: 16px 20px;
-	border-bottom: 1px solid #ddd;
+	background: #006d33;
+	border-radius: 4px 4px 0 0;
 	flex-shrink: 0;
 }
 
@@ -49,6 +50,7 @@
 	margin: 0;
 	font-size: 18px;
 	font-weight: 600;
+	color: #fff;
 }
 
 .pla-modal__close {
@@ -58,13 +60,14 @@
 	line-height: 1;
 	cursor: pointer;
 	padding: 4px 8px;
-	color: #666;
+	color: #fff;
 }
 
 .pla-modal__close:hover,
 .pla-modal__close:focus {
-	color: #000;
-	outline: 2px solid #0073aa;
+	color: #fff;
+	opacity: 0.8;
+	outline: 2px solid #fff;
 	outline-offset: 2px;
 }
 
