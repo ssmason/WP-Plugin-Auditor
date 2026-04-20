@@ -1,5 +1,5 @@
 {
-  "name": "plugin-auditor/plugin-auditor",
+  "name": "ssmason/wp-plugin-auditor",
   "description": "Audits WordPress plugins for security issues and coding standards violations.",
   "type": "wordpress-plugin",
   "license": "GPL-2.0-or-later",
@@ -24,7 +24,8 @@
   },
   "repositories": [
     {
-     
+      "type": "vcs",
+      "url": "https://github.com/ssmason/WP-Plugin-Auditor"
     }
   ],
   "config": {
