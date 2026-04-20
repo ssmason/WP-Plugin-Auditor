@@ -52,6 +52,9 @@ body {
 /* Section headings always on same page as first row */
 .pla-report__section-title {
 	page-break-after: avoid;
+	break-after: avoid;
+	page-break-inside: avoid;
+	break-inside: avoid;
 	border-left: 3pt solid #000 !important;
 	font-size: 11pt;
 }
@@ -96,7 +99,9 @@ body {
 .pla-report__snippet code {
 	font-size: 8pt;
 	font-family: monospace;
-	word-break: break-all;
+	word-break: break-word;
+	overflow-wrap: break-word;
+	white-space: pre-wrap;
 }
 
 .pla-report__pass-badge {

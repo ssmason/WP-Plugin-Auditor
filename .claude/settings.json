@@ -52,16 +52,6 @@
           }
         ]
       }
-    ],
-    "UserPromptSubmit": [
-      {
-        "hooks": [
-          {
-            "type": "prompt",
-            "prompt": "Before responding: do only what was asked. No extra tool calls. No explanations unless asked. No restating the user's message. One question if uncertain."
-          }
-        ]
-      }
     ]
   },
   "env": {},
