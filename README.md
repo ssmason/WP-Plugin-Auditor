@@ -207,7 +207,7 @@ plugin-auditor/
 
 Findings are stored in separate post meta keys per section (`_pla_findings_dangerous`, `_pla_findings_output`, etc.) to avoid hitting the MySQL `max_allowed_packet` limit on large plugins. Retrieved and reassembled by `Report::load()`.
 
-A maximum of 20 reports are retained per audited plugin. The oldest is deleted when a new report is created (`Cpt::enforce_report_cap()`).
+A maximum of 20 reports are retained per audited plugin. The oldest is deleted when a new report is created (`ReportRepository::prune()`).
 
 ### AJAX Security
 

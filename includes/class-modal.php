@@ -45,6 +45,14 @@ class Modal {
 			PLUGIN_AUDITOR_VERSION
 		);
 
+		wp_enqueue_style(
+			'pla-print',
+			PLUGIN_AUDITOR_URL . 'assets/css/print.css',
+			array( 'pla-modal' ),
+			PLUGIN_AUDITOR_VERSION,
+			'print'
+		);
+
 		wp_enqueue_script(
 			'pla-auditor',
 			PLUGIN_AUDITOR_URL . 'assets/js/auditor.js',
@@ -89,14 +97,14 @@ class Modal {
 			'ajaxUrl'     => admin_url( 'admin-ajax.php' ),
 			'ajaxTimeout' => 120000,
 			'i18n'        => array(
-				'running'        => __( 'Audit running…', 'plugin-auditor' ),
-				'complete'       => __( 'Audit complete', 'plugin-auditor' ),
-				'error'          => __( 'Audit failed. Please try again.', 'plugin-auditor' ),
-				'timeout'        => __( 'Audit timed out. The plugin may be too large. Please try again.', 'plugin-auditor' ),
-				'alreadyRunning' => __( 'An audit for this plugin is already in progress.', 'plugin-auditor' ),
-				'close'          => __( 'Close', 'plugin-auditor' ),
-				'download'       => __( 'Download PDF', 'plugin-auditor' ),
-				'retry'          => __( 'Retry', 'plugin-auditor' ),
+				'running'        => esc_html__( 'Audit running…', 'plugin-auditor' ),
+				'complete'       => esc_html__( 'Audit complete', 'plugin-auditor' ),
+				'error'          => esc_html__( 'Audit failed. Please try again.', 'plugin-auditor' ),
+				'timeout'        => esc_html__( 'Audit timed out. The plugin may be too large. Please try again.', 'plugin-auditor' ),
+				'alreadyRunning' => esc_html__( 'An audit for this plugin is already in progress.', 'plugin-auditor' ),
+				'close'          => esc_html__( 'Close', 'plugin-auditor' ),
+				'download'       => esc_html__( 'Download PDF', 'plugin-auditor' ),
+				'retry'          => esc_html__( 'Retry', 'plugin-auditor' ),
 			),
 		);
 	}

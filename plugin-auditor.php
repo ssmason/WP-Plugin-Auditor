@@ -52,6 +52,14 @@ function pla_boot(): void {
 	$modal->init();
 }
 add_action( 'plugins_loaded', 'pla_boot' );
+add_action( 'init', 'pla_load_textdomain', 1, 0 );
+
+/**
+ * Loads the plugin text domain.
+ */
+function pla_load_textdomain(): void {
+	load_plugin_textdomain( 'plugin-auditor', false, dirname( plugin_basename( PLUGIN_AUDITOR_FILE ) ) . '/languages' );
+}
 
 register_activation_hook( __FILE__, 'pla_activate' );
 register_deactivation_hook( __FILE__, 'pla_deactivate' );

@@ -51,7 +51,7 @@ class Cpt {
 					'read_private_posts' => 'manage_options',
 					'delete_posts'       => 'manage_options',
 				),
-				'map_meta_cap'      => false,
+				'map_meta_cap'      => true,
 				'hierarchical'      => false,
 				'supports'          => array( 'title' ),
 				'has_archive'       => false,

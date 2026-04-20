@@ -72,7 +72,7 @@ class Admin {
 	 */
 	public function render_reports_page(): void {
 		if ( ! current_user_can( 'manage_options' ) ) {
-			wp_die( esc_html__( 'You do not have permission to view this page.', 'plugin-auditor' ), 403 );
+			wp_die( esc_html__( 'You do not have permission to view this page.', 'plugin-auditor' ), '', array( 'response' => 403 ) );
 		}
 
 		$reports = $this->repository->all( 50 );
