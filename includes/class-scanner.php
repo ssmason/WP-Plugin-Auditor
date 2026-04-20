@@ -1871,6 +1871,11 @@ class Scanner {
 		$in_class    = 0;
 		$brace_depth = 0;
 
+		$content = implode( "\n", $lines );
+		if ( ! preg_match( '/\b(?:function|class)\s+\w+/', $content ) ) {
+			return $findings;
+		}
+
 		foreach ( $lines as $i => $line ) {
 			$opens  = substr_count( $line, '{' );
 			$closes = substr_count( $line, '}' );
