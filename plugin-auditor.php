@@ -33,7 +33,7 @@ require_once PLUGIN_AUDITOR_DIR . 'vendor/autoload.php';
  */
 function pla_boot(): void {
 	$cpt   = new \PluginAuditor\Cpt();
-	$admin = new \PluginAuditor\Admin( $cpt );
+	$admin = new \PluginAuditor\Admin();
 	$ajax  = new \PluginAuditor\Ajax( new \PluginAuditor\Scanner(), new \PluginAuditor\Report() );
 	$modal = new \PluginAuditor\Modal();
 

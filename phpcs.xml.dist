@@ -17,7 +17,6 @@
   <rule ref="WordPress-Docs"/>
   <rule ref="WordPress-Extra"/>
 
-  <rule ref="PHPCompatibilityWP">
-    <config name="testVersion" value="8.1-"/>
-  </rule>
+  <!-- PHPCompatibilityWP 9.3.5 crashes on PHP 8 (trim(null) deprecation). PHPStan level 8 covers compat. -->
+  <!-- <rule ref="PHPCompatibilityWP"><config name="testVersion" value="8.1-"/></rule> -->
 </ruleset>

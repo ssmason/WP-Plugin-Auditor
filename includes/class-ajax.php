@@ -89,7 +89,7 @@ class Ajax {
 		}
 
 		$plugin_data = get_plugin_data( $plugin_path );
-		$plugin_name = $plugin_data['Name'] ?: basename( dirname( $plugin_file ) );
+		$plugin_name = '' !== $plugin_data['Name'] ? $plugin_data['Name'] : basename( dirname( $plugin_file ) );
 
 		try {
 			$findings = $this->scanner->scan( $plugin_dir );

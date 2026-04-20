@@ -185,11 +185,204 @@ class ScannerTest extends TestCase {
 	}
 
 	// -------------------------------------------------------------------------
+	// Redirect without exit
+	// -------------------------------------------------------------------------
+
+	public function test_flags_wp_redirect_without_exit(): void {
+		$this->write_php( 'redir.php', "<?php\ndefined( 'ABSPATH' ) || exit;\nwp_redirect( home_url() );\ndo_something();" );
+		$findings = $this->scanner->scan( $this->tmp_dir );
+		$this->assertNotEmpty( $findings['redirects'] );
+	}
+
+	public function test_flags_wp_safe_redirect_without_exit(): void {
+		$this->write_php( 'redir.php', "<?php\ndefined( 'ABSPATH' ) || exit;\nwp_safe_redirect( home_url() );\ndo_something();" );
+		$findings = $this->scanner->scan( $this->tmp_dir );
+		$this->assertNotEmpty( $findings['redirects'] );
+	}
+
+	public function test_no_flag_wp_redirect_with_exit_same_line(): void {
+		$this->write_php( 'redir.php', "<?php\ndefined( 'ABSPATH' ) || exit;\nwp_redirect( home_url() ); exit;" );
+		$findings = $this->scanner->scan( $this->tmp_dir );
+		$this->assertEmpty( $findings['redirects'] );
+	}
+
+	public function test_no_flag_wp_redirect_with_exit_next_line(): void {
+		$this->write_php( 'redir.php', "<?php\ndefined( 'ABSPATH' ) || exit;\nwp_redirect( home_url() );\nexit;" );
+		$findings = $this->scanner->scan( $this->tmp_dir );
+		$this->assertEmpty( $findings['redirects'] );
+	}
+
+	// -------------------------------------------------------------------------
+	// Role name in current_user_can()
+	// -------------------------------------------------------------------------
+
+	public function test_flags_role_name_administrator(): void {
+		$this->write_php( 'cap.php', "<?php\ndefined( 'ABSPATH' ) || exit;\nif ( current_user_can( 'administrator' ) ) { echo 'hi'; }" );
+		$findings = $this->scanner->scan( $this->tmp_dir );
+		$this->assertNotEmpty( $findings['role_checks'] );
+	}
+
+	public function test_flags_role_name_editor(): void {
+		$this->write_php( 'cap.php', "<?php\ndefined( 'ABSPATH' ) || exit;\nif ( current_user_can( 'editor' ) ) { echo 'hi'; }" );
+		$findings = $this->scanner->scan( $this->tmp_dir );
+		$this->assertNotEmpty( $findings['role_checks'] );
+	}
+
+	public function test_no_flag_capability_name(): void {
+		$this->write_php( 'cap.php', "<?php\ndefined( 'ABSPATH' ) || exit;\nif ( current_user_can( 'manage_options' ) ) { echo 'hi'; }" );
+		$findings = $this->scanner->scan( $this->tmp_dir );
+		$this->assertEmpty( $findings['role_checks'] );
+	}
+
+	// -------------------------------------------------------------------------
+	// Unescaped shortcode output
+	// -------------------------------------------------------------------------
+
+	public function test_flags_shortcode_returning_unescaped_variable(): void {
+		$code = "<?php\ndefined( 'ABSPATH' ) || exit;\nadd_shortcode( 'foo', function() {\n\$out = get_option('x');\nreturn \$out;\n} );";
+		$this->write_php( 'sc.php', $code );
+		$findings = $this->scanner->scan( $this->tmp_dir );
+		$this->assertNotEmpty( $findings['shortcodes'] );
+	}
+
+	public function test_no_flag_shortcode_returning_escaped_variable(): void {
+		$code = "<?php\ndefined( 'ABSPATH' ) || exit;\nadd_shortcode( 'foo', function() {\n\$out = get_option('x');\nreturn esc_html( \$out );\n} );";
+		$this->write_php( 'sc.php', $code );
+		$findings = $this->scanner->scan( $this->tmp_dir );
+		$this->assertEmpty( $findings['shortcodes'] );
+	}
+
+	// -------------------------------------------------------------------------
+	// Option writes without capability check
+	// -------------------------------------------------------------------------
+
+	public function test_flags_update_option_without_capability(): void {
+		$this->write_php( 'opt.php', "<?php\ndefined( 'ABSPATH' ) || exit;\nupdate_option( 'foo', 'bar' );" );
+		$findings = $this->scanner->scan( $this->tmp_dir );
+		$this->assertNotEmpty( $findings['option_writes'] );
+	}
+
+	public function test_no_flag_update_option_with_capability_check(): void {
+		$code = "<?php\ndefined( 'ABSPATH' ) || exit;\nif ( current_user_can( 'manage_options' ) ) {\nupdate_option( 'foo', 'bar' );\n}";
+		$this->write_php( 'opt.php', $code );
+		$findings = $this->scanner->scan( $this->tmp_dir );
+		$this->assertEmpty( $findings['option_writes'] );
+	}
+
+	public function test_flags_delete_option_without_capability(): void {
+		$this->write_php( 'opt.php', "<?php\ndefined( 'ABSPATH' ) || exit;\ndelete_option( 'foo' );" );
+		$findings = $this->scanner->scan( $this->tmp_dir );
+		$this->assertNotEmpty( $findings['option_writes'] );
+	}
+
+	// -------------------------------------------------------------------------
+	// Wrong wpdb placeholder
+	// -------------------------------------------------------------------------
+
+	public function test_flags_s_placeholder_for_integer(): void {
+		$this->write_php( 'db.php', "<?php\ndefined( 'ABSPATH' ) || exit;\nglobal \$wpdb;\n\$wpdb->prepare( 'SELECT * FROM t WHERE id = %s', absint( \$id ) );" );
+		$findings = $this->scanner->scan( $this->tmp_dir );
+		$this->assertNotEmpty( $findings['wpdb_placeholders'] );
+	}
+
+	public function test_flags_d_placeholder_for_string(): void {
+		$this->write_php( 'db.php', "<?php\ndefined( 'ABSPATH' ) || exit;\nglobal \$wpdb;\n\$wpdb->prepare( 'SELECT * FROM t WHERE slug = %d', 'my-slug' );" );
+		$findings = $this->scanner->scan( $this->tmp_dir );
+		$this->assertNotEmpty( $findings['wpdb_placeholders'] );
+	}
+
+	public function test_no_flag_correct_placeholders(): void {
+		$this->write_php( 'db.php', "<?php\ndefined( 'ABSPATH' ) || exit;\nglobal \$wpdb;\n\$wpdb->prepare( 'SELECT * FROM t WHERE id = %d AND slug = %s', absint( \$id ), \$slug );" );
+		$findings = $this->scanner->scan( $this->tmp_dir );
+		$this->assertEmpty( $findings['wpdb_placeholders'] );
+	}
+
+	// -------------------------------------------------------------------------
+	// Duplicate hook registrations
+	// -------------------------------------------------------------------------
+
+	public function test_flags_duplicate_hook_registration(): void {
+		$code = "<?php\ndefined( 'ABSPATH' ) || exit;\nadd_action( 'init', 'my_func', 10 );\nadd_action( 'init', 'my_func', 10 );";
+		$this->write_php( 'hooks.php', $code );
+		$findings = $this->scanner->scan( $this->tmp_dir );
+		$this->assertNotEmpty( $findings['duplicate_hooks'] );
+	}
+
+	public function test_no_flag_different_priority_hooks(): void {
+		$code = "<?php\ndefined( 'ABSPATH' ) || exit;\nadd_action( 'init', 'my_func', 10 );\nadd_action( 'init', 'my_func', 20 );";
+		$this->write_php( 'hooks.php', $code );
+		$findings = $this->scanner->scan( $this->tmp_dir );
+		$this->assertEmpty( $findings['duplicate_hooks'] );
+	}
+
+	public function test_no_flag_different_callbacks(): void {
+		$code = "<?php\ndefined( 'ABSPATH' ) || exit;\nadd_action( 'init', 'my_func', 10 );\nadd_action( 'init', 'other_func', 10 );";
+		$this->write_php( 'hooks.php', $code );
+		$findings = $this->scanner->scan( $this->tmp_dir );
+		$this->assertEmpty( $findings['duplicate_hooks'] );
+	}
+
+	// -------------------------------------------------------------------------
+	// Unnecessary closures
+	// -------------------------------------------------------------------------
+
+	public function test_flags_closure_returning_true(): void {
+		$this->write_php( 'hooks.php', "<?php\ndefined( 'ABSPATH' ) || exit;\nadd_filter( 'some_filter', function() { return true; } );" );
+		$findings = $this->scanner->scan( $this->tmp_dir );
+		$this->assertNotEmpty( $findings['unnecessary_closures'] );
+	}
+
+	public function test_flags_closure_returning_false(): void {
+		$this->write_php( 'hooks.php', "<?php\ndefined( 'ABSPATH' ) || exit;\nadd_filter( 'some_filter', function() { return false; } );" );
+		$findings = $this->scanner->scan( $this->tmp_dir );
+		$this->assertNotEmpty( $findings['unnecessary_closures'] );
+	}
+
+	public function test_no_flag_closure_with_logic(): void {
+		$this->write_php( 'hooks.php', "<?php\ndefined( 'ABSPATH' ) || exit;\nadd_filter( 'some_filter', function( \$val ) { return \$val . '_suffix'; } );" );
+		$findings = $this->scanner->scan( $this->tmp_dir );
+		$this->assertEmpty( $findings['unnecessary_closures'] );
+	}
+
+	// -------------------------------------------------------------------------
+	// Early translation calls
+	// -------------------------------------------------------------------------
+
+	public function test_flags_translation_at_file_scope(): void {
+		$this->write_php( 'trans.php', "<?php\ndefined( 'ABSPATH' ) || exit;\n\$label = __( 'Hello', 'my-plugin' );" );
+		$findings = $this->scanner->scan( $this->tmp_dir );
+		$this->assertNotEmpty( $findings['early_translations'] );
+	}
+
+	public function test_no_flag_translation_inside_function(): void {
+		$code = "<?php\ndefined( 'ABSPATH' ) || exit;\nfunction my_func() {\n\$label = __( 'Hello', 'my-plugin' );\nreturn \$label;\n}";
+		$this->write_php( 'trans.php', $code );
+		$findings = $this->scanner->scan( $this->tmp_dir );
+		$this->assertEmpty( $findings['early_translations'] );
+	}
+
+	// -------------------------------------------------------------------------
+	// Stats header
+	// -------------------------------------------------------------------------
+
+	public function test_scan_returns_stats(): void {
+		$this->write_php( 'clean.php', "<?php\ndefined( 'ABSPATH' ) || exit;\n// test" );
+		$findings = $this->scanner->scan( $this->tmp_dir );
+		$this->assertArrayHasKey( 'stats', $findings );
+		$this->assertArrayHasKey( 'files', $findings['stats'] );
+		$this->assertArrayHasKey( 'lines', $findings['stats'] );
+		$this->assertArrayHasKey( 'duration', $findings['stats'] );
+		$this->assertGreaterThan( 0, $findings['stats']['files'] );
+		$this->assertGreaterThan( 0, $findings['stats']['lines'] );
+		$this->assertIsInt( $findings['stats']['duration'] );
+	}
+
+	// -------------------------------------------------------------------------
 	// Score / rating
 	// -------------------------------------------------------------------------
 
 	public function test_clean_plugin_has_clean_rating(): void {
-		$this->write_php( 'clean.php', '<?php // nothing dangerous here' );
+		$this->write_php( 'clean.php', "<?php\ndefined( 'ABSPATH' ) || exit;\n// nothing dangerous here" );
 		$findings = $this->scanner->scan( $this->tmp_dir );
 		$this->assertSame( 'CLEAN', $findings['rating'] );
 	}

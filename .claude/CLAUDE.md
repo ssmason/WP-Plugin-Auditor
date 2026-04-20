@@ -215,6 +215,31 @@ Flag any use of: `eval`, `exec`, `shell_exec`, `system`, `passthru`, `popen`, `p
 ### Plugin Header / Metadata
 - Flag missing: `Requires PHP`, `Requires at least`, `License`, `Author URI`, `Plugin URI`
 
+### Redirect Without Exit
+- Flag `wp_redirect()` or `wp_safe_redirect()` not immediately followed (same line or next line) by `exit` or `die`
+
+### Role Name in current_user_can()
+- Flag `current_user_can( 'administrator' | 'editor' | 'author' | 'contributor' | 'subscriber' )` — role names must never be passed, only capability names
+
+### Unescaped Shortcode Output
+- Flag `add_shortcode()` callbacks that `return $var` without an escape function wrapping the variable at the point of return
+
+### Option Writes Without Capability Check
+- Flag `update_option()`, `add_option()`, `delete_option()` called without a `current_user_can()` check in the preceding ~30 lines of scope
+
+### Wrong wpdb Placeholder Type
+- Flag `$wpdb->prepare()` using `%s` for `absint()`/`intval()`/cast integer arguments, or `%d` for string literal arguments
+
+### Duplicate Hook Registrations
+- Flag identical `add_action()` / `add_filter()` calls (same hook, callback, priority) appearing more than once across the plugin
+- Implementation uses a two-pass pattern: `collect_hook_calls()` accumulates per file during the main loop; `check_duplicate_hooks()` runs once after all files are processed
+
+### Unnecessary Closures
+- Flag closures passed to `add_filter()` / `add_action()` that only `return true` or `return false` — recommend `__return_true` / `__return_false`
+
+### Early Translation Calls
+- Flag `__()`, `_e()`, `esc_html__()`, `esc_html_e()`, `esc_attr__()`, `esc_attr_e()` called at file scope (outside any function or class method) — text domain not yet loaded
+
 ### Confirmed Passes
 - For every check above, if no issues found, report explicitly as passed — do not omit
 
@@ -230,6 +255,7 @@ Flag any use of: `eval`, `exec`, `shell_exec`, `system`, `passthru`, `popen`, `p
 - Report stored as `pla_report` CPT with full findings serialized as post meta
 - Report rendered in inline modal on Plugins page
 - PDF download via `window.print()` with dedicated print stylesheet
+- `scan()` returns a `stats` key: `{ files: int, lines: int, duration: int (ms) }` — displayed as report header, not stored in CPT meta
 
 ### Large Findings — Meta Size Strategy
 - Chunk findings by section into separate meta keys: `_pla_findings_dangerous`, `_pla_findings_output`, `_pla_findings_input`, etc.
@@ -260,6 +286,14 @@ Flag any use of: `eval`, `exec`, `shell_exec`, `system`, `passthru`, `popen`, `p
   - `_pla_findings_assets` — asset versioning findings
   - `_pla_findings_errors` — error suppression findings
   - `_pla_findings_obfuscation` — obfuscated call findings
+  - `_pla_findings_redirects` — redirect without exit findings
+  - `_pla_findings_role_checks` — role name in current_user_can() findings
+  - `_pla_findings_shortcodes` — unescaped shortcode output findings
+  - `_pla_findings_option_writes` — option write without capability findings
+  - `_pla_findings_wpdb_placeholders` — wrong wpdb placeholder findings
+  - `_pla_findings_duplicate_hooks` — duplicate hook registration findings
+  - `_pla_findings_unnecessary_closures` — unnecessary closure findings
+  - `_pla_findings_early_translations` — early translation call findings
   - `_pla_risk` — overall risk rating
   - `_pla_score` — numeric risk score
   - `_pla_version` — auditor version that generated the report
@@ -447,7 +481,7 @@ plugin-auditor/
 ## PHPCS — phpcs.xml.dist
 
 - Extends `WordPress-Core`, `WordPress-Docs`, `WordPress-Extra`
-- `PHPCompatibilityWP` with `testVersion` set to `8.1-`
+- `PHPCompatibilityWP` is **excluded** — version 9.3.5 crashes on PHP 8 (`trim(null)` deprecation); PHPStan level 8 covers compatibility analysis instead
 - No blanket exclusions — exclude only with documented justification
 
 ---
@@ -456,6 +490,10 @@ plugin-auditor/
 
 - Level 8
 - Include `szepeviktor/phpstan-wordpress` extension
+- Bootstrap file `tests/phpstan-bootstrap.php` defines plugin constants (`PLUGIN_AUDITOR_*`, `ABSPATH`) so analysis runs without WordPress loaded
+- `treatPhpDocTypesAsCertain: false` — required to suppress false positives from WP stubs' PHPDoc types narrowing control flow
+- Closures that capture variables by reference (`&$var`) confuse PHPStan level-8 control-flow analysis — use private helper methods instead
+- Finding messages that contain `sprintf` placeholders must use `esc_html__()` not `__()` — PHPCS WordPress standard rejects `__()` with printf-style placeholders
 - Baseline only for unavoidable third-party issues — never to suppress own code
 
 ---

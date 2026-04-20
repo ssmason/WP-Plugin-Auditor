@@ -17,22 +17,6 @@ defined( 'ABSPATH' ) || exit;
 class Admin {
 
 	/**
-	 * CPT handler instance.
-	 *
-	 * @var Cpt
-	 */
-	private Cpt $cpt;
-
-	/**
-	 * Constructor.
-	 *
-	 * @param Cpt $cpt CPT handler instance.
-	 */
-	public function __construct( Cpt $cpt ) {
-		$this->cpt = $cpt;
-	}
-
-	/**
 	 * Registers WordPress hooks.
 	 */
 	public function init(): void {
@@ -122,7 +106,7 @@ class Admin {
 			echo '<tr>';
 			echo '<td>' . esc_html( (string) $plugin_name ) . '</td>';
 			echo '<td><span class="pla-risk pla-risk--' . esc_attr( strtolower( (string) $risk ) ) . '">' . esc_html( (string) $risk ) . '</span></td>';
-			echo '<td>' . esc_html( get_the_date( 'Y-m-d H:i', $report ) ) . '</td>';
+			echo '<td>' . esc_html( (string) get_the_date( 'Y-m-d H:i', $report ) ) . '</td>';
 			echo '<td>';
 			printf(
 				'<a href="#" class="pla-view-report" data-report-id="%1$s" data-nonce="%2$s">%3$s</a>',
