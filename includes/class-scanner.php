@@ -913,7 +913,7 @@ class Scanner {
 	private function check_direct_access( string $file, array $lines ): array {
 		$findings = array();
 
-		$preamble = implode( "\n", array_slice( $lines, 0, 10 ) );
+		$preamble = implode( "\n", array_slice( $lines, 0, 25 ) );
 
 		$has_guard = (bool) preg_match( '/defined\s*\(\s*[\'"]ABSPATH[\'"]\s*\)\s*\|\|/', $preamble )
 			|| (bool) preg_match( '/defined\s*\(\s*[\'"]WP_UNINSTALL_PLUGIN[\'"]\s*\)\s*\|\|/', $preamble );
@@ -1074,7 +1074,8 @@ class Scanner {
 			}
 
 			// wpdb::escape() is deprecated since WP 3.6.
-			if ( preg_match( '/\$wpdb->escape\s*\(/', $line ) ) {
+			$stripped_line = (string) preg_replace( '/\'[^\'\\\\]*\'|"[^"\\\\]*"/', "''", $line );
+			if ( preg_match( '/\$wpdb->escape\s*\(/', $stripped_line ) ) {
 				$findings[] = $this->finding(
 					'MEDIUM',
 					$file,
@@ -1489,7 +1490,13 @@ class Scanner {
 		$findings = array();
 
 		foreach ( $lines as $i => $line ) {
-			if ( ! preg_match( '/\bwp_(safe_)?redirect\s*\(/', $line ) ) {
+			if ( $this->is_comment_line( trim( $line ) ) ) {
+				continue;
+			}
+
+			$stripped = (string) preg_replace( '/\'[^\'\\\\]*\'|"[^"\\\\]*"/', "''", $line );
+
+			if ( ! preg_match( '/\bwp_(safe_)?redirect\s*\(/', $stripped ) ) {
 				continue;
 			}
 
@@ -1568,7 +1575,7 @@ class Scanner {
 	private function check_shortcode_escaping( string $file, array $lines, string $content ): array {
 		$findings = array();
 
-		if ( ! str_contains( $content, 'add_shortcode' ) ) {
+		if ( ! preg_match( '/\badd_shortcode\s*\(\s*[\'"]/', $content ) ) {
 			return $findings;
 		}
 
@@ -1594,11 +1601,11 @@ class Scanner {
 			$context_start = max( 0, $i - 20 );
 			$context       = implode( "\n", array_slice( $lines, $context_start, $i - $context_start + 1 ) );
 
-			if ( ! str_contains( $context, 'add_shortcode' ) && ! preg_match( '/function\s+\w+\s*\(/', $context ) ) {
+			if ( ! preg_match( '/\badd_shortcode\s*\(\s*[\'"]/', $context ) && ! preg_match( '/function\s+\w+\s*\(/', $context ) ) {
 				continue;
 			}
 
-			if ( str_contains( $context, 'add_shortcode' ) ) {
+			if ( preg_match( '/\badd_shortcode\s*\(\s*[\'"]/', $context ) ) {
 				$findings[] = $this->finding(
 					'MEDIUM',
 					$file,
@@ -1627,8 +1634,17 @@ class Scanner {
 	private function check_option_writes( string $file, array $lines ): array {
 		$findings    = array();
 		$write_funcs = array( 'update_option', 'add_option', 'delete_option' );
+		$full_file   = implode( "\n", $lines );
+
+		if ( str_contains( $full_file, 'register_activation_hook' ) || str_contains( $full_file, 'register_deactivation_hook' ) ) {
+			return $findings;
+		}
 
 		foreach ( $lines as $i => $line ) {
+			if ( $this->is_comment_line( trim( $line ) ) ) {
+				continue;
+			}
+
 			$matched_func = '';
 			foreach ( $write_funcs as $fn ) {
 				if ( preg_match( '/\b' . $fn . '\s*\(/', $line ) ) {
