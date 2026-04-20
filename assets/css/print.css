@@ -80,10 +80,18 @@ body {
 
 .pla-severity,
 .pla-risk {
+	-webkit-print-color-adjust: exact;
+	print-color-adjust: exact;
 	border: 0.5pt solid #000 !important;
 	padding: 1pt 3pt;
 	font-size: 8pt;
 }
+
+.pla-severity--critical { background: #d63638 !important; color: #fff !important; }
+.pla-severity--high     { background: #d67709 !important; color: #fff !important; }
+.pla-severity--medium   { background: #dba617 !important; color: #fff !important; }
+.pla-severity--low      { background: #0073aa !important; color: #fff !important; }
+.pla-severity--info     { background: #888 !important;    color: #fff !important; }
 
 .pla-report__snippet code {
 	font-size: 8pt;
