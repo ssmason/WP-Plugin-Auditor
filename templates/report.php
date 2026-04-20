@@ -96,7 +96,7 @@ $rating_class = 'pla-rating--' . strtolower( esc_attr( $rating ) );
 								</span>
 							</td>
 							<td class="pla-report__file"><?php echo esc_html( $finding['file'] ); ?></td>
-							<td class="pla-report__line"><?php echo $finding['line'] ? esc_html( (string) $finding['line'] ) : '—'; ?></td>
+							<td class="pla-report__line"><?php echo $finding['line'] ? esc_html( (string) $finding['line'] ) : ''; ?></td>
 							<td class="pla-report__message"><?php echo esc_html( $finding['message'] ); ?></td>
 							<td class="pla-report__snippet">
 								<?php if ( $finding['snippet'] ) : ?>
@@ -117,7 +117,7 @@ $rating_class = 'pla-rating--' . strtolower( esc_attr( $rating ) );
 						<?php foreach ( $info as $finding ) : ?>
 							<tr>
 								<td class="pla-report__file"><?php echo esc_html( $finding['file'] ); ?></td>
-								<td class="pla-report__line"><?php echo $finding['line'] ? esc_html( (string) $finding['line'] ) : '—'; ?></td>
+								<td class="pla-report__line"><?php echo $finding['line'] ? esc_html( (string) $finding['line'] ) : ''; ?></td>
 								<td class="pla-report__message"><?php echo esc_html( $finding['message'] ); ?></td>
 							</tr>
 						<?php endforeach; ?>

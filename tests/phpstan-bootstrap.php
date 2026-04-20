@@ -1,6 +1,6 @@
 <?php
 /**
- * PHPStan bootstrap — defines plugin constants so analysis can proceed without WordPress loaded.
+ * PHPStan bootstrap  defines plugin constants so analysis can proceed without WordPress loaded.
  */
 
 define( 'PLUGIN_AUDITOR_VERSION', '1.0.0' );

@@ -12,23 +12,23 @@ Audits installed WordPress plugins for security issues, coding standards violati
 
 == Description ==
 
-Plugin Auditor performs static analysis on every PHP file in any installed plugin and produces a detailed security report directly inside the WordPress admin — no external service required.
+Plugin Auditor performs static analysis on every PHP file in any installed plugin and produces a detailed security report directly inside the WordPress admin  no external service required.
 
 **What the scanner checks:**
 
 * Dangerous functions (`eval`, `exec`, `shell_exec`, `base64_decode`, and more)
 * Obfuscated calls (variable variables, dynamic function names, `preg_replace /e`)
-* Output escaping — multi-line taint tracking from superglobal to `echo`
-* Input sanitization — missing `sanitize_*` and `wp_unslash()`
-* Nonce verification — forms, AJAX handlers, and GET actions
-* Capability checks — admin pages and write operations
-* Database queries — unprepared statements and raw `mysql_*` calls
-* Hardcoded credentials — passwords, API keys, tokens (value redacted in report)
+* Output escaping  multi-line taint tracking from superglobal to `echo`
+* Input sanitization  missing `sanitize_*` and `wp_unslash()`
+* Nonce verification  forms, AJAX handlers, and GET actions
+* Capability checks  admin pages and write operations
+* Database queries  unprepared statements and raw `mysql_*` calls
+* Hardcoded credentials  passwords, API keys, tokens (value redacted in report)
 * External HTTP requests (informational)
-* Asset versioning — hardcoded version strings or `false` version argument
-* Error suppression — `error_reporting(0)` and `ini_set` on error settings
-* File permissions — world-writable files, PHP files with execute bit
-* Plugin header / metadata — missing required headers
+* Asset versioning  hardcoded version strings or `false` version argument
+* Error suppression  `error_reporting(0)` and `ini_set` on error settings
+* File permissions  world-writable files, PHP files with execute bit
+* Plugin header / metadata  missing required headers
 * Redirect without exit, role names in capability checks, option writes without capability, duplicate hooks, unnecessary closures, early translation calls, and more
 
 Every check reports both findings **and** confirmed passes, so a clean report is just as meaningful as a failing one.
@@ -59,7 +59,7 @@ For most plugins it completes in under 10 seconds. Large plugins with hundreds o
 
 = Can I audit this plugin itself? =
 
-Yes. Plugin Auditor audits itself and reports its own findings — it is held to the same standards it applies to others.
+Yes. Plugin Auditor audits itself and reports its own findings  it is held to the same standards it applies to others.
 
 = Where can I see previous reports? =
 

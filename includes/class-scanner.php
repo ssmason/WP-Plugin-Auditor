@@ -1,6 +1,6 @@
 <?php
 /**
- * Static analysis engine — scans PHP and JS files in a plugin directory.
+ * Static analysis engine  scans PHP and JS files in a plugin directory.
  *
  * @package PluginAuditor
  */
@@ -435,7 +435,7 @@ class Scanner {
 					continue;
 				}
 
-				// Skip isset()/empty() — existence checks, not value reads.
+				// Skip isset()/empty()  existence checks, not value reads.
 				if ( preg_match( '/\b(?:isset|empty)\s*\(\s*\$' . preg_quote( $global, '/' ) . '\[/', $line ) ) {
 					continue;
 				}
@@ -538,7 +538,7 @@ class Scanner {
 				$file,
 				0,
 				'',
-				__( 'HTML form found but no wp_nonce_field() call — form is not CSRF-protected.', 'plugin-auditor' )
+				__( 'HTML form found but no wp_nonce_field() call  form is not CSRF-protected.', 'plugin-auditor' )
 			);
 		}
 
@@ -592,7 +592,7 @@ class Scanner {
 					$file,
 					$i + 1,
 					$line,
-					__( 'Admin page registered — ensure callback checks current_user_can() before rendering.', 'plugin-auditor' )
+					__( 'Admin page registered  ensure callback checks current_user_can() before rendering.', 'plugin-auditor' )
 				);
 			}
 
@@ -644,7 +644,7 @@ class Scanner {
 					$file,
 					$i + 1,
 					$line,
-					__( 'Direct mysql_* or mysqli_* call — use $wpdb methods with prepare() instead.', 'plugin-auditor' )
+					__( 'Direct mysql_* or mysqli_* call  use $wpdb methods with prepare() instead.', 'plugin-auditor' )
 				);
 			}
 
@@ -726,7 +726,7 @@ class Scanner {
 					$file,
 					$i + 1,
 					$line,
-					__( 'error_reporting(0) suppresses all errors — can conceal malicious activity.', 'plugin-auditor' )
+					__( 'error_reporting(0) suppresses all errors  can conceal malicious activity.', 'plugin-auditor' )
 				);
 			}
 
@@ -736,7 +736,7 @@ class Scanner {
 					$file,
 					$i + 1,
 					$line,
-					__( 'ini_set() used to manipulate error reporting — review intent.', 'plugin-auditor' )
+					__( 'ini_set() used to manipulate error reporting  review intent.', 'plugin-auditor' )
 				);
 			}
 		}
@@ -761,7 +761,7 @@ class Scanner {
 					$file,
 					$i + 1,
 					$line,
-					__( 'Variable variable used as callable — potential code execution vector.', 'plugin-auditor' )
+					__( 'Variable variable used as callable  potential code execution vector.', 'plugin-auditor' )
 				);
 			}
 
@@ -772,7 +772,7 @@ class Scanner {
 					$i + 1,
 					$line,
 					/* translators: %s: function name */
-					sprintf( __( 'Dangerous function name \'%s\' assigned to a variable — likely obfuscated call.', 'plugin-auditor' ), $m[1] )
+					sprintf( __( 'Dangerous function name \'%s\' assigned to a variable  likely obfuscated call.', 'plugin-auditor' ), $m[1] )
 				);
 			}
 
@@ -811,7 +811,7 @@ class Scanner {
 				$file,
 				0,
 				'',
-				__( "Missing direct file access guard — add defined( 'ABSPATH' ) || exit; at the top of the file.", 'plugin-auditor' )
+				__( "Missing direct file access guard  add defined( 'ABSPATH' ) || exit; at the top of the file.", 'plugin-auditor' )
 			);
 		}
 
@@ -840,7 +840,7 @@ class Scanner {
 					$i + 1,
 					$line,
 					/* translators: %s: function name */
-					sprintf( __( 'Debug output function %s() found — remove before production.', 'plugin-auditor' ), $m[1] )
+					sprintf( __( 'Debug output function %s() found  remove before production.', 'plugin-auditor' ), $m[1] )
 				);
 			}
 		}
@@ -870,7 +870,7 @@ class Scanner {
 					$i + 1,
 					$line,
 					/* translators: %s: method name */
-					sprintf( __( 'console.%s() debug call found in JS — remove before production.', 'plugin-auditor' ), $m[1] )
+					sprintf( __( 'console.%s() debug call found in JS  remove before production.', 'plugin-auditor' ), $m[1] )
 				);
 			}
 		}
@@ -910,7 +910,7 @@ class Scanner {
 					$rel,
 					0,
 					'',
-					__( 'World-writable file or directory — anyone on the server can modify this.', 'plugin-auditor' )
+					__( 'World-writable file or directory  anyone on the server can modify this.', 'plugin-auditor' )
 				);
 			}
 
@@ -920,7 +920,7 @@ class Scanner {
 					$rel,
 					0,
 					'',
-					__( 'PHP file has execute bit set — unnecessary and potentially dangerous.', 'plugin-auditor' )
+					__( 'PHP file has execute bit set  unnecessary and potentially dangerous.', 'plugin-auditor' )
 				);
 			}
 		}
@@ -955,7 +955,7 @@ class Scanner {
 						$i + 1,
 						$line,
 						/* translators: 1: function name, 2: WordPress version */
-						sprintf( __( 'Deprecated WordPress function %1$s() — deprecated since WP %2$s.', 'plugin-auditor' ), $func, $since )
+						sprintf( __( 'Deprecated WordPress function %1$s()  deprecated since WP %2$s.', 'plugin-auditor' ), $func, $since )
 					);
 				}
 			}
@@ -968,7 +968,7 @@ class Scanner {
 					$file,
 					$i + 1,
 					$line,
-					__( 'Deprecated method $wpdb->escape() — deprecated since WP 3.6. Use $wpdb->prepare() instead.', 'plugin-auditor' )
+					__( 'Deprecated method $wpdb->escape()  deprecated since WP 3.6. Use $wpdb->prepare() instead.', 'plugin-auditor' )
 				);
 			}
 		}
@@ -992,7 +992,7 @@ class Scanner {
 				'index.php',
 				0,
 				'',
-				__( 'Missing index.php in plugin root — prevents directory listing.', 'plugin-auditor' )
+				__( 'Missing index.php in plugin root  prevents directory listing.', 'plugin-auditor' )
 			);
 		}
 
@@ -1014,12 +1014,12 @@ class Scanner {
 					0,
 					'',
 					/* translators: %s: directory name */
-					sprintf( __( 'Missing index.php in %s/ — prevents directory listing.', 'plugin-auditor' ), $rel )
+					sprintf( __( 'Missing index.php in %s/  prevents directory listing.', 'plugin-auditor' ), $rel )
 				);
 			}
 		}
 
-		// Flag presence of readme files — may expose version info.
+		// Flag presence of readme files  may expose version info.
 		foreach ( array( 'readme.txt', 'readme.md', 'README.md', 'README.txt' ) as $readme ) {
 			if ( file_exists( $plugin_dir . '/' . $readme ) ) {
 				$findings[] = $this->finding(
@@ -1028,7 +1028,7 @@ class Scanner {
 					0,
 					'',
 					/* translators: %s: filename */
-					sprintf( __( '%s present in plugin root — may expose version info or known issues.', 'plugin-auditor' ), $readme )
+					sprintf( __( '%s present in plugin root  may expose version info or known issues.', 'plugin-auditor' ), $readme )
 				);
 			}
 		}
@@ -1090,7 +1090,7 @@ class Scanner {
 				0,
 				'',
 				/* translators: %s: license name */
-				sprintf( __( 'License "%s" may not be GPL-compatible — WordPress requires plugins distributed via WordPress.org to use a GPL-compatible license.', 'plugin-auditor' ), $declared_license )
+				sprintf( __( 'License "%s" may not be GPL-compatible  WordPress requires plugins distributed via WordPress.org to use a GPL-compatible license.', 'plugin-auditor' ), $declared_license )
 			);
 		}
 
@@ -1127,7 +1127,7 @@ class Scanner {
 						$i + 1,
 						$line,
 						/* translators: %s: declared PHP version */
-						sprintf( __( 'match expression requires PHP 8.0 — declared minimum is PHP %s.', 'plugin-auditor' ), $required_php )
+						sprintf( __( 'match expression requires PHP 8.0  declared minimum is PHP %s.', 'plugin-auditor' ), $required_php )
 					);
 				}
 
@@ -1138,7 +1138,7 @@ class Scanner {
 						$i + 1,
 						$line,
 						/* translators: %s: declared PHP version */
-						sprintf( __( 'Nullsafe operator (?->) requires PHP 8.0 — declared minimum is PHP %s.', 'plugin-auditor' ), $required_php )
+						sprintf( __( 'Nullsafe operator (?->) requires PHP 8.0  declared minimum is PHP %s.', 'plugin-auditor' ), $required_php )
 					);
 				}
 
@@ -1149,7 +1149,7 @@ class Scanner {
 						$i + 1,
 						$line,
 						/* translators: %s: declared PHP version */
-						sprintf( __( 'str_contains / str_starts_with / str_ends_with require PHP 8.0 — declared minimum is PHP %s.', 'plugin-auditor' ), $required_php )
+						sprintf( __( 'str_contains / str_starts_with / str_ends_with require PHP 8.0  declared minimum is PHP %s.', 'plugin-auditor' ), $required_php )
 					);
 				}
 			}
@@ -1162,7 +1162,7 @@ class Scanner {
 						$i + 1,
 						$line,
 						/* translators: %s: declared PHP version */
-						sprintf( __( 'Enumerations (enum) require PHP 8.1 — declared minimum is PHP %s.', 'plugin-auditor' ), $required_php )
+						sprintf( __( 'Enumerations (enum) require PHP 8.1  declared minimum is PHP %s.', 'plugin-auditor' ), $required_php )
 					);
 				}
 
@@ -1173,7 +1173,7 @@ class Scanner {
 						$i + 1,
 						$line,
 						/* translators: %s: declared PHP version */
-						sprintf( __( 'Readonly properties require PHP 8.1 — declared minimum is PHP %s.', 'plugin-auditor' ), $required_php )
+						sprintf( __( 'Readonly properties require PHP 8.1  declared minimum is PHP %s.', 'plugin-auditor' ), $required_php )
 					);
 				}
 			}
@@ -1243,7 +1243,7 @@ class Scanner {
 			$block_start,
 			'',
 			/* translators: %d: number of lines */
-			sprintf( __( 'Block of %d consecutive commented lines — review for dead code or sensitive content.', 'plugin-auditor' ), $consecutive )
+			sprintf( __( 'Block of %d consecutive commented lines  review for dead code or sensitive content.', 'plugin-auditor' ), $consecutive )
 		);
 	}
 
@@ -1294,7 +1294,7 @@ class Scanner {
 
 		foreach ( $lines as $i => $line ) {
 			if ( preg_match( $pattern, $line, $m ) ) {
-				// Skip file_get_contents() when it has no HTTP URL — local filesystem read.
+				// Skip file_get_contents() when it has no HTTP URL  local filesystem read.
 				if ( 'file_get_contents' === $m[1] && ! preg_match( '/[\'"]https?:\/\//', $line ) ) {
 					continue;
 				}
@@ -1313,7 +1313,7 @@ class Scanner {
 						/* translators: 1: function name, 2: URL or empty */
 						__( 'External HTTP request via %1$s%2$s', 'plugin-auditor' ),
 						$m[1] . '()',
-						$url ? ' — endpoint: ' . $url : ''
+						$url ? '  endpoint: ' . $url : ''
 					)
 				);
 			}
@@ -1344,7 +1344,7 @@ class Scanner {
 					$file,
 					$i + 1,
 					$line,
-					__( 'Asset enqueued with false version — use a version constant or a file hash.', 'plugin-auditor' )
+					__( 'Asset enqueued with false version  use a version constant or a file hash.', 'plugin-auditor' )
 				);
 			}
 
@@ -1354,7 +1354,7 @@ class Scanner {
 					$file,
 					$i + 1,
 					$line,
-					__( 'Asset enqueued with hardcoded version string — use a constant instead.', 'plugin-auditor' )
+					__( 'Asset enqueued with hardcoded version string  use a constant instead.', 'plugin-auditor' )
 				);
 			}
 		}
@@ -1404,7 +1404,7 @@ class Scanner {
 				$file,
 				$i + 1,
 				$line,
-				__( 'wp_redirect() / wp_safe_redirect() called without an immediately following exit or die — redirect may not terminate execution.', 'plugin-auditor' )
+				__( 'wp_redirect() / wp_safe_redirect() called without an immediately following exit or die  redirect may not terminate execution.', 'plugin-auditor' )
 			);
 		}
 
@@ -1438,7 +1438,7 @@ class Scanner {
 						$i + 1,
 						$line,
 						/* translators: %s: role name */
-						sprintf( __( 'current_user_can() called with role name "%s" — pass a capability name instead (e.g. "manage_options").', 'plugin-auditor' ), $role )
+						sprintf( __( 'current_user_can() called with role name "%s"  pass a capability name instead (e.g. "manage_options").', 'plugin-auditor' ), $role )
 					);
 				}
 			}
@@ -1499,7 +1499,7 @@ class Scanner {
 					$i + 1,
 					$line,
 					/* translators: %s: variable name */
-					sprintf( __( 'Shortcode callback returns %s without escaping — wrap in esc_html(), esc_attr(), or wp_kses_post() before returning.', 'plugin-auditor' ), $m[1] )
+					sprintf( __( 'Shortcode callback returns %s without escaping  wrap in esc_html(), esc_attr(), or wp_kses_post() before returning.', 'plugin-auditor' ), $m[1] )
 				);
 			}
 		}
@@ -1611,7 +1611,7 @@ class Scanner {
 						$i + 1,
 						$line,
 						/* translators: 1: %s placeholder, 2: %d placeholder */
-						sprintf( __( '$wpdb->prepare() uses %1$s placeholder for an integer value — use %2$s instead.', 'plugin-auditor' ), '%s', '%d' )
+						sprintf( __( '$wpdb->prepare() uses %1$s placeholder for an integer value  use %2$s instead.', 'plugin-auditor' ), '%s', '%d' )
 					);
 				}
 
@@ -1622,7 +1622,7 @@ class Scanner {
 						$i + 1,
 						$line,
 						/* translators: 1: %d placeholder, 2: %s placeholder */
-						sprintf( __( '$wpdb->prepare() uses %1$s placeholder for a string value — use %2$s instead.', 'plugin-auditor' ), '%d', '%s' )
+						sprintf( __( '$wpdb->prepare() uses %1$s placeholder for a string value  use %2$s instead.', 'plugin-auditor' ), '%d', '%s' )
 					);
 				}
 			}
@@ -1685,7 +1685,7 @@ class Scanner {
 					/* translators: 1: function name e.g. add_action, 2: hook name, 3: file path, 4: line number */
 					sprintf(
 						/* translators: 1: function, 2: hook, 3: file, 4: line */
-						esc_html__( 'Duplicate %1$s() registration — hook "%2$s" with same callback and priority already registered in %3$s on line %4$s.', 'plugin-auditor' ),
+						esc_html__( 'Duplicate %1$s() registration  hook "%2$s" with same callback and priority already registered in %3$s on line %4$s.', 'plugin-auditor' ),
 						$call['function'],
 						$call['hook'],
 						$seen[ $key ]['file'],
@@ -1733,7 +1733,7 @@ class Scanner {
 					$i + 1,
 					$line,
 					/* translators: %s: recommended function name */
-					sprintf( __( 'Unnecessary closure — replace with %s.', 'plugin-auditor' ), $replacement )
+					sprintf( __( 'Unnecessary closure  replace with %s.', 'plugin-auditor' ), $replacement )
 				);
 			}
 		}
@@ -1790,7 +1790,7 @@ class Scanner {
 							$i + 1,
 							$line,
 							/* translators: %s: function name */
-							sprintf( __( '%s() called at file scope before init — text domain may not be loaded yet. Wrap in an init or plugins_loaded hook callback.', 'plugin-auditor' ), $fn )
+							sprintf( __( '%s() called at file scope before init  text domain may not be loaded yet. Wrap in an init or plugins_loaded hook callback.', 'plugin-auditor' ), $fn )
 						);
 					}
 				}

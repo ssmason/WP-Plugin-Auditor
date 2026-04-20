@@ -78,34 +78,34 @@ Every check reports both findings **and** confirmed passes.
 | # | Check | Severity |
 |---|---|---|
 | 1 | Dangerous functions (`eval`, `exec`, `shell_exec`, `base64_decode`, etc.) | CRITICAL |
-| 2 | Output escaping — unescaped echo, wrong escape function, `_e()` / `__()` without escaping | HIGH / MEDIUM |
-| 3 | Input sanitization — unsanitized superglobals, missing `wp_unslash()` | HIGH / MEDIUM |
-| 4 | Nonce verification — forms, AJAX handlers, GET actions | CRITICAL / HIGH |
-| 5 | Capability checks — admin pages, write operations | HIGH |
-| 6 | Database queries — unprepared statements, raw `mysql_*` calls | CRITICAL |
-| 7 | Hardcoded credentials — passwords, API keys, tokens (value redacted in report) | CRITICAL |
-| 8 | Error suppression — `error_reporting(0)`, `ini_set` on error settings | HIGH / MEDIUM |
-| 9 | Obfuscated calls — variable variables, dynamic function names, `preg_replace /e` | CRITICAL |
-| 10 | Direct file access guard — missing `defined('ABSPATH') \|\| exit` | HIGH |
-| 11 | Debug output PHP — `var_dump`, `print_r`, `var_export` | MEDIUM |
-| 12 | Debug output JS — `console.log`, `console.warn`, etc. | LOW |
-| 13 | File permissions — world-writable files, PHP files with execute bit | HIGH / MEDIUM |
+| 2 | Output escaping  unescaped echo, wrong escape function, `_e()` / `__()` without escaping | HIGH / MEDIUM |
+| 3 | Input sanitization  unsanitized superglobals, missing `wp_unslash()` | HIGH / MEDIUM |
+| 4 | Nonce verification  forms, AJAX handlers, GET actions | CRITICAL / HIGH |
+| 5 | Capability checks  admin pages, write operations | HIGH |
+| 6 | Database queries  unprepared statements, raw `mysql_*` calls | CRITICAL |
+| 7 | Hardcoded credentials  passwords, API keys, tokens (value redacted in report) | CRITICAL |
+| 8 | Error suppression  `error_reporting(0)`, `ini_set` on error settings | HIGH / MEDIUM |
+| 9 | Obfuscated calls  variable variables, dynamic function names, `preg_replace /e` | CRITICAL |
+| 10 | Direct file access guard  missing `defined('ABSPATH') \|\| exit` | HIGH |
+| 11 | Debug output PHP  `var_dump`, `print_r`, `var_export` | MEDIUM |
+| 12 | Debug output JS  `console.log`, `console.warn`, etc. | LOW |
+| 13 | File permissions  world-writable files, PHP files with execute bit | HIGH / MEDIUM |
 | 14 | Deprecated WordPress functions | MEDIUM |
-| 15 | Plugin structure — missing `index.php` sentinels, exposed readme files | LOW |
-| 16 | Licensing — LICENSE file present, GPL-compatible license declared | LOW / MEDIUM |
-| 17 | PHP compatibility — PHP 8.0/8.1 features vs declared minimum version | MEDIUM |
-| 18 | Commented-out code — blocks of 5+ consecutive comment lines | LOW / MEDIUM |
-| 19 | Plugin header / metadata — missing required headers | LOW |
-| 20 | External HTTP requests — all outbound calls reported as informational | INFO |
-| 21 | Asset versioning — hardcoded version strings or `false` version argument | LOW |
-| 22 | Redirect without exit — `wp_redirect` / `wp_safe_redirect` not followed by `exit` | HIGH |
-| 23 | Role name in `current_user_can()` — role names passed instead of capability names | HIGH |
-| 24 | Shortcode output escaping — unescaped return values in shortcode callbacks | MEDIUM |
-| 25 | Option writes without capability check — `update_option`, `add_option`, `delete_option` | HIGH |
-| 26 | Wrong `$wpdb->prepare()` placeholder — `%s` for integers, `%d` for strings | MEDIUM |
-| 27 | Duplicate hook registrations — same hook/callback/priority registered more than once | LOW |
-| 28 | Unnecessary closures — `function() { return true; }` instead of `__return_true` | LOW |
-| 29 | Early translation calls — translation functions called at file scope before `init` | LOW |
+| 15 | Plugin structure  missing `index.php` sentinels, exposed readme files | LOW |
+| 16 | Licensing  LICENSE file present, GPL-compatible license declared | LOW / MEDIUM |
+| 17 | PHP compatibility  PHP 8.0/8.1 features vs declared minimum version | MEDIUM |
+| 18 | Commented-out code  blocks of 5+ consecutive comment lines | LOW / MEDIUM |
+| 19 | Plugin header / metadata  missing required headers | LOW |
+| 20 | External HTTP requests  all outbound calls reported as informational | INFO |
+| 21 | Asset versioning  hardcoded version strings or `false` version argument | LOW |
+| 22 | Redirect without exit  `wp_redirect` / `wp_safe_redirect` not followed by `exit` | HIGH |
+| 23 | Role name in `current_user_can()`  role names passed instead of capability names | HIGH |
+| 24 | Shortcode output escaping  unescaped return values in shortcode callbacks | MEDIUM |
+| 25 | Option writes without capability check  `update_option`, `add_option`, `delete_option` | HIGH |
+| 26 | Wrong `$wpdb->prepare()` placeholder  `%s` for integers, `%d` for strings | MEDIUM |
+| 27 | Duplicate hook registrations  same hook/callback/priority registered more than once | LOW |
+| 28 | Unnecessary closures  `function() { return true; }` instead of `__return_true` | LOW |
+| 29 | Early translation calls  translation functions called at file scope before `init` | LOW |
 
 ### Risk Rating
 
@@ -149,10 +149,10 @@ The `tests-cli` container has access to the WordPress test suite at `WP_TESTS_DI
 ### Run a specific test
 
 ```bash
-# Unit — filter by test name
+# Unit  filter by test name
 ./vendor/bin/phpunit --configuration phpunit.xml.dist --testsuite unit --filter test_flags_eval_usage
 
-# Integration — filter by test name
+# Integration  filter by test name
 wp-env run tests-cli phpunit --configuration phpunit.xml.dist --testsuite integration --filter test_audit_stores_report_cpt
 ```
 
@@ -171,7 +171,7 @@ npm run lint:fix
 npm run analyze
 ```
 
-PHPCS runs automatically as a post-edit hook in Claude Code — any violation blocks the edit until resolved.
+PHPCS runs automatically as a post-edit hook in Claude Code  any violation blocks the edit until resolved.
 
 ---
 
@@ -219,7 +219,7 @@ plugin-auditor/
 │   ├── index.php
 │   ├── admin-reports.php           # Tools → Plugin Auditor reports list page
 │   ├── modal.php                   # Modal shell with ARIA attributes
-│   └── report.php                  # Full report HTML — sections, tables, pass badges
+│   └── report.php                  # Full report HTML  sections, tables, pass badges
 ├── tests/
 │   ├── bootstrap.php               # PHPUnit bootstrap
 │   ├── Unit/
@@ -246,7 +246,7 @@ A maximum of 20 reports are retained per audited plugin. The oldest is deleted w
 Every AJAX handler (`pla_run_audit`, `pla_get_report`) verifies:
 1. `current_user_can( 'manage_options' )`
 2. A per-plugin or per-report nonce
-3. Rate limiting via transient (`pla_running_{hash}`) — blocks duplicate concurrent audits
+3. Rate limiting via transient (`pla_running_{hash}`)  blocks duplicate concurrent audits
 
 ### Modal Accessibility
 
@@ -268,7 +268,7 @@ Uses Composer classmap (not PSR-4) because WordPress-style `class-*.php` filenam
 - All output is escaped with context-correct functions at the point of output
 - Every privileged action checks `current_user_can( 'manage_options' )`
 - All nonces are verified before processing
-- No raw SQL — `$wpdb->prepare()` used throughout
+- No raw SQL  `$wpdb->prepare()` used throughout
 - Hardcoded credential values are redacted in the report output
 - `wp_safe_redirect()` + `exit` on all redirects
 - Assets enqueued only on the Plugins page and the auditor admin page
@@ -277,4 +277,4 @@ Uses Composer classmap (not PSR-4) because WordPress-style `class-*.php` filenam
 
 ## License
 
-GPL-2.0-or-later — see [https://www.gnu.org/licenses/gpl-2.0.html](https://www.gnu.org/licenses/gpl-2.0.html)
+GPL-2.0-or-later  see [https://www.gnu.org/licenses/gpl-2.0.html](https://www.gnu.org/licenses/gpl-2.0.html)

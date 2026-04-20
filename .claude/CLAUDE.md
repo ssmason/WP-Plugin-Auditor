@@ -1,13 +1,13 @@
-# WordPress Plugin Auditor — Claude Guidelines
+# WordPress Plugin Auditor  Claude Guidelines
 
 ## Non-Negotiable Rules
 
 - Do not proceed if requirements are ambiguous on any security-critical behaviour
 - Do not write partial implementations and note gaps as "good enough for now"
-- Do not write code and then list its known gaps — resolve them first or stop and ask
+- Do not write code and then list its known gaps  resolve them first or stop and ask
 - Do not skip any rule below "for brevity"
 - If a complete, correct implementation is not possible within the current scope, say so
-- Tests must be written alongside code — never after
+- Tests must be written alongside code  never after
 - No task is complete until the full test cycle passes clean
 - Full test cycle before handover: `composer install` → `npm run lint:php` → `npm run analyze` → `npm run test:unit` → `npm run test:integration`
 - Nothing is handed over with failing, incomplete, or skipped tests
@@ -19,9 +19,9 @@ A WordPress plugin that audits other installed plugins for security issues, codi
 
 ### Key Behaviours
 - "Audit" action link appears in every plugin row on the Plugins page
-- Clicking opens an inline modal immediately — audit runs in background via AJAX
+- Clicking opens an inline modal immediately  audit runs in background via AJAX
 - Progress indicator shown while audit is running
-- Report covers everything — findings AND confirmed passes
+- Report covers everything  findings AND confirmed passes
 - Report saved as `pla_report` CPT post on completion
 - PDF download via dedicated print stylesheet and `window.print()`
 - Previous reports accessible and returnable to
@@ -33,14 +33,14 @@ A WordPress plugin that audits other installed plugins for security issues, codi
 - WordPress Coding Standards (WPCS) at all times
 - PHP >= 8.1
 - `declare( strict_types=1 )` in every PHP file
-- Namespaced: `PluginAuditor\` — PSR-4 autoloading via Composer
+- Namespaced: `PluginAuditor\`  PSR-4 autoloading via Composer
 - Every file begins with `defined( 'ABSPATH' ) || exit;`
 - No `@` error suppression
 - No `extract()`
 - No `eval()`, `exec()`, `shell_exec()`, `passthru()`, `system()`, `proc_open()`, `popen()`
 - No `create_function()`
 - No `base64_decode()` on dynamic input
-- No `unserialize()` on untrusted data — use `maybe_unserialize()` only on data from WP storage
+- No `unserialize()` on untrusted data  use `maybe_unserialize()` only on data from WP storage
 - Early returns over nested conditionals
 - Methods do one thing
 - No helper functions unless used 3+ times
@@ -55,16 +55,16 @@ A WordPress plugin that audits other installed plugins for security issues, codi
 - For arrays: `array_map( 'sanitize_text_field', wp_unslash( $_POST['arr'] ) )`
 - Sanitize at the point of reading, not later
 - Use the most specific sanitizer:
-  - `sanitize_text_field()` — plain text
-  - `sanitize_email()` — email addresses
-  - `sanitize_url()` — URLs
-  - `absint()` / `intval()` — integers
-  - `sanitize_key()` — keys, slugs
-  - `sanitize_html_class()` — CSS classes
-  - `wp_kses_post()` — rich HTML content
-  - `sanitize_file_name()` — file names
+  - `sanitize_text_field()`  plain text
+  - `sanitize_email()`  email addresses
+  - `sanitize_url()`  URLs
+  - `absint()` / `intval()`  integers
+  - `sanitize_key()`  keys, slugs
+  - `sanitize_html_class()`  CSS classes
+  - `wp_kses_post()`  rich HTML content
+  - `sanitize_file_name()`  file names
 
-### Output Escaping — Escape Late, Escape at Output
+### Output Escaping  Escape Late, Escape at Output
 - Escape at the point of output, never at assignment
 - Use context-correct escaping:
   - HTML content → `esc_html()`
@@ -79,23 +79,23 @@ A WordPress plugin that audits other installed plugins for security issues, codi
 - Never `echo $variable` without escaping
 - Never `echo $wpdb->get_var(...)` directly
 
-### Nonces — Forms
+### Nonces  Forms
 - Every form must output `wp_nonce_field( 'action_name', 'nonce_field_name' )`
 - Every form handler must call `check_admin_referer( 'action_name', 'nonce_field_name' )` before anything else
-- Nonce action names must be specific — never generic like `'save'`
+- Nonce action names must be specific  never generic like `'save'`
 
-### Nonces — AJAX
+### Nonces  AJAX
 - Enqueue nonce via `wp_localize_script()` or `wp_add_inline_script()`
 - Every AJAX handler verifies nonce with `wp_verify_nonce()` before processing
 - Both `wp_ajax_{action}` and `wp_ajax_nopriv_{action}` must each verify independently
 
-### Nonces — GET Actions
+### Nonces  GET Actions
 - Any GET-based action must verify a nonce
 - Never trust `$_GET` action parameters without nonce verification
 
 ### Capabilities
 - Check `current_user_can()` before any privileged action
-- Use the most restrictive capability applicable — `manage_options` for all auditor actions
+- Use the most restrictive capability applicable  `manage_options` for all auditor actions
 - Never rely on `is_admin()` alone as a security check
 - Admin pages must check capability in the page callback, not just at registration
 
@@ -107,13 +107,13 @@ A WordPress plugin that audits other installed plugins for security issues, codi
 - No deprecated `mysql_*` or direct `mysqli_*` calls
 
 ### Redirects
-- Always use `wp_safe_redirect()` — never `wp_redirect()` with user-supplied URLs
+- Always use `wp_safe_redirect()`  never `wp_redirect()` with user-supplied URLs
 - Always call `exit` after any redirect
 - Validate redirect URLs against an allowlist if dynamic
 
 ### File Handling
 - Never include files from user-supplied paths
-- Validate file types on upload — use `wp_check_filetype_and_ext()`
+- Validate file types on upload  use `wp_check_filetype_and_ext()`
 - Use `wp_handle_upload()` for all file uploads
 - Never expose upload paths from user input
 
@@ -125,14 +125,14 @@ A WordPress plugin that audits other installed plugins for security issues, codi
 - Rate limit sensitive AJAX endpoints using transients
 - Return `wp_die()` with appropriate HTTP status on failure
 - Always use `wp_send_json_success()` / `wp_send_json_error()` for JSON responses
-- `wp-admin/includes/plugin.php` (and other wp-admin includes) are **not loaded** on `admin-ajax.php` requests — guard with `if ( ! function_exists( 'get_plugin_data' ) ) { require_once ABSPATH . 'wp-admin/includes/plugin.php'; }` before calling any such function
+- `wp-admin/includes/plugin.php` (and other wp-admin includes) are **not loaded** on `admin-ajax.php` requests  guard with `if ( ! function_exists( 'get_plugin_data' ) ) { require_once ABSPATH . 'wp-admin/includes/plugin.php'; }` before calling any such function
 - Wrap scan/processing logic in `try/catch \Throwable` so errors return a clean JSON response rather than a silent hang
 
 ---
 
 ## REST API
 
-- Every route must define a `permission_callback` — never `__return_true` on privileged routes
+- Every route must define a `permission_callback`  never `__return_true` on privileged routes
 - Use `register_rest_route()` with full `args` schema: `type`, `required`, `sanitize_callback`, `validate_callback`
 - Return `WP_Error` on failure
 - Use `rest_ensure_response()` to wrap responses
@@ -141,17 +141,17 @@ A WordPress plugin that audits other installed plugins for security issues, codi
 
 ## JavaScript Security
 
-- Never use `innerHTML` with dynamic data — use `textContent` or `wp.escapeHtml()`
+- Never use `innerHTML` with dynamic data  use `textContent` or `wp.escapeHtml()`
 - Never use `eval()` or `new Function()` with dynamic strings
-- No inline event handlers (`onclick=""`) — use `addEventListener`
+- No inline event handlers (`onclick=""`)  use `addEventListener`
 - All AJAX requests must send the nonce in the request header or body
-- Nonces passed via `wp_localize_script()` — never hardcoded in JS files
+- Nonces passed via `wp_localize_script()`  never hardcoded in JS files
 - Validate and sanitize any data received from REST or AJAX responses before rendering to DOM
 - No direct `document.write()`
 
 ---
 
-## Scanner — What Must Be Checked
+## Scanner  What Must Be Checked
 
 The scanner performs static analysis on every PHP file in the audited plugin. Every check must report both findings AND confirmed passes.
 
@@ -161,17 +161,17 @@ Flag any use of: `eval`, `exec`, `shell_exec`, `system`, `passthru`, `popen`, `p
 ### Obfuscated Function Calls
 - Flag dynamic function calls where a variable is assigned a function name and then invoked: `$a = 'eval'; $a(...)`
 - Flag variable variables used as callables: `$$func()`
-- Flag `preg_replace` with `/e` modifier — executes matched content as PHP
+- Flag `preg_replace` with `/e` modifier  executes matched content as PHP
 
-### Output Escaping — Multi-Line Taint Tracking
+### Output Escaping  Multi-Line Taint Tracking
 - Track variables from assignment through to output across multiple lines
 - Flag any variable echoed or printed without a context-correct escape function at the point of output
-- Flag wrong escape function for context — e.g. `esc_html()` on a URL, `esc_attr()` on HTML content
-- Flag `esc_html( $var )` assigned to `$x` then `echo $x` — escaping must be at output not assignment
-- Flag `_e()` and `__()` used without escaping — require `esc_html_e()` / `esc_attr_e()`
+- Flag wrong escape function for context  e.g. `esc_html()` on a URL, `esc_attr()` on HTML content
+- Flag `esc_html( $var )` assigned to `$x` then `echo $x`  escaping must be at output not assignment
+- Flag `_e()` and `__()` used without escaping  require `esc_html_e()` / `esc_attr_e()`
 - Flag `$_SERVER['PHP_SELF']` or `$_SERVER['REQUEST_URI']` used in form actions without `esc_url()`
 
-### Input Sanitization — Multi-Line Taint Tracking
+### Input Sanitization  Multi-Line Taint Tracking
 - Track `$_GET`, `$_POST`, `$_REQUEST`, `$_COOKIE`, `$_SERVER`, `$_FILES` from point of access through reassignment to use
 - Flag any use of a superglobal-derived value without sanitization applied at point of reading
 - Flag missing `wp_unslash()` before sanitization
@@ -185,7 +185,7 @@ Flag any use of: `eval`, `exec`, `shell_exec`, `system`, `passthru`, `popen`, `p
 ### Capability Checks
 - Flag admin pages registered without `current_user_can()` in the callback
 - Flag any write operation (option save, post save, file write) without a preceding capability check
-- Report all capabilities used — `current_user_can()` calls — as informational
+- Report all capabilities used  `current_user_can()` calls  as informational
 
 ### Database Queries
 - Flag any `$wpdb->query()`, `$wpdb->get_results()`, `$wpdb->get_row()`, `$wpdb->get_var()`, `$wpdb->get_col()` called with a string that is not wrapped in `$wpdb->prepare()`
@@ -194,14 +194,14 @@ Flag any use of: `eval`, `exec`, `shell_exec`, `system`, `passthru`, `popen`, `p
 
 ### Hardcoded Credentials
 - Flag patterns matching hardcoded passwords, API keys, tokens, secrets, private keys
-- Redact the value in the report — never expose the actual credential
+- Redact the value in the report  never expose the actual credential
 
 ### External HTTP Requests
 - Flag all outbound calls: `wp_remote_get`, `wp_remote_post`, `wp_remote_request`, `wp_remote_head`, `curl_exec`, `curl_init`, `file_get_contents` used as HTTP
-- Report URL/endpoint where visible — informational, not necessarily a violation
+- Report URL/endpoint where visible  informational, not necessarily a violation
 
 ### Asset Versioning
-- Flag `wp_enqueue_script()` or `wp_enqueue_style()` calls with hardcoded version strings or `false` as version — potential cache busting failure and version info exposure
+- Flag `wp_enqueue_script()` or `wp_enqueue_style()` calls with hardcoded version strings or `false` as version  potential cache busting failure and version info exposure
 
 ### Error Suppression / Reporting Manipulation
 - Flag `error_reporting(0)` or `error_reporting( false )`
@@ -219,7 +219,7 @@ Flag any use of: `eval`, `exec`, `shell_exec`, `system`, `passthru`, `popen`, `p
 - Flag `wp_redirect()` or `wp_safe_redirect()` not immediately followed (same line or next line) by `exit` or `die`
 
 ### Role Name in current_user_can()
-- Flag `current_user_can( 'administrator' | 'editor' | 'author' | 'contributor' | 'subscriber' )` — role names must never be passed, only capability names
+- Flag `current_user_can( 'administrator' | 'editor' | 'author' | 'contributor' | 'subscriber' )`  role names must never be passed, only capability names
 
 ### Unescaped Shortcode Output
 - Flag `add_shortcode()` callbacks that `return $var` without an escape function wrapping the variable at the point of return
@@ -235,13 +235,13 @@ Flag any use of: `eval`, `exec`, `shell_exec`, `system`, `passthru`, `popen`, `p
 - Implementation uses a two-pass pattern: `collect_hook_calls()` accumulates per file during the main loop; `check_duplicate_hooks()` runs once after all files are processed
 
 ### Unnecessary Closures
-- Flag closures passed to `add_filter()` / `add_action()` that only `return true` or `return false` — recommend `__return_true` / `__return_false`
+- Flag closures passed to `add_filter()` / `add_action()` that only `return true` or `return false`  recommend `__return_true` / `__return_false`
 
 ### Early Translation Calls
-- Flag `__()`, `_e()`, `esc_html__()`, `esc_html_e()`, `esc_attr__()`, `esc_attr_e()` called at file scope (outside any function or class method) — text domain not yet loaded
+- Flag `__()`, `_e()`, `esc_html__()`, `esc_html_e()`, `esc_attr__()`, `esc_attr_e()` called at file scope (outside any function or class method)  text domain not yet loaded
 
 ### Confirmed Passes
-- For every check above, if no issues found, report explicitly as passed — do not omit
+- For every check above, if no issues found, report explicitly as passed  do not omit
 
 ---
 
@@ -255,85 +255,85 @@ Flag any use of: `eval`, `exec`, `shell_exec`, `system`, `passthru`, `popen`, `p
 - Report stored as `pla_report` CPT with full findings serialized as post meta
 - Report rendered in inline modal on Plugins page
 - PDF download via `window.print()` with dedicated print stylesheet
-- `scan()` returns a `stats` key: `{ files: int, lines: int, duration: int (ms) }` — displayed as report header, not stored in CPT meta
+- `scan()` returns a `stats` key: `{ files: int, lines: int, duration: int (ms) }`  displayed as report header, not stored in CPT meta
 
-### Large Findings — Meta Size Strategy
+### Large Findings  Meta Size Strategy
 - Chunk findings by section into separate meta keys: `_pla_findings_dangerous`, `_pla_findings_output`, `_pla_findings_input`, etc.
 - Never store all findings in a single meta key
 - On retrieval, reassemble from individual section keys
 
 ---
 
-## Custom Post Type — `pla_report`
+## Custom Post Type  `pla_report`
 
 - Post type: `pla_report`
-- Not public, not shown in UI nav — admin only
+- Not public, not shown in UI nav  admin only
 - Capability: `manage_options` required to create, read, and delete reports
 - Post title: audited plugin name + datetime
-- Post meta — stored in separate keys per section (see Large Findings strategy above):
-  - `_pla_plugin_file` — relative plugin file path
-  - `_pla_plugin_name` — plugin display name
-  - `_pla_findings_dangerous` — dangerous function findings
-  - `_pla_findings_output` — output escaping findings
-  - `_pla_findings_input` — input sanitization findings
-  - `_pla_findings_nonces` — nonce findings
-  - `_pla_findings_capabilities` — capability findings
-  - `_pla_findings_database` — database query findings
-  - `_pla_findings_credentials` — credential findings
-  - `_pla_findings_requests` — external request findings
-  - `_pla_findings_permissions` — file permission findings
-  - `_pla_findings_meta` — plugin header findings
-  - `_pla_findings_assets` — asset versioning findings
-  - `_pla_findings_errors` — error suppression findings
-  - `_pla_findings_obfuscation` — obfuscated call findings
-  - `_pla_findings_redirects` — redirect without exit findings
-  - `_pla_findings_role_checks` — role name in current_user_can() findings
-  - `_pla_findings_shortcodes` — unescaped shortcode output findings
-  - `_pla_findings_option_writes` — option write without capability findings
-  - `_pla_findings_wpdb_placeholders` — wrong wpdb placeholder findings
-  - `_pla_findings_duplicate_hooks` — duplicate hook registration findings
-  - `_pla_findings_unnecessary_closures` — unnecessary closure findings
-  - `_pla_findings_early_translations` — early translation call findings
-  - `_pla_risk` — overall risk rating
-  - `_pla_score` — numeric risk score
-  - `_pla_version` — auditor version that generated the report
-- Report retention: cap stored reports at 20 per audited plugin — delete oldest on creation of new
+- Post meta  stored in separate keys per section (see Large Findings strategy above):
+  - `_pla_plugin_file`  relative plugin file path
+  - `_pla_plugin_name`  plugin display name
+  - `_pla_findings_dangerous`  dangerous function findings
+  - `_pla_findings_output`  output escaping findings
+  - `_pla_findings_input`  input sanitization findings
+  - `_pla_findings_nonces`  nonce findings
+  - `_pla_findings_capabilities`  capability findings
+  - `_pla_findings_database`  database query findings
+  - `_pla_findings_credentials`  credential findings
+  - `_pla_findings_requests`  external request findings
+  - `_pla_findings_permissions`  file permission findings
+  - `_pla_findings_meta`  plugin header findings
+  - `_pla_findings_assets`  asset versioning findings
+  - `_pla_findings_errors`  error suppression findings
+  - `_pla_findings_obfuscation`  obfuscated call findings
+  - `_pla_findings_redirects`  redirect without exit findings
+  - `_pla_findings_role_checks`  role name in current_user_can() findings
+  - `_pla_findings_shortcodes`  unescaped shortcode output findings
+  - `_pla_findings_option_writes`  option write without capability findings
+  - `_pla_findings_wpdb_placeholders`  wrong wpdb placeholder findings
+  - `_pla_findings_duplicate_hooks`  duplicate hook registration findings
+  - `_pla_findings_unnecessary_closures`  unnecessary closure findings
+  - `_pla_findings_early_translations`  early translation call findings
+  - `_pla_risk`  overall risk rating
+  - `_pla_score`  numeric risk score
+  - `_pla_version`  auditor version that generated the report
+- Report retention: cap stored reports at 20 per audited plugin  delete oldest on creation of new
 - Previous reports listed and accessible from the modal and the auditor admin page
-- Multisite: auditor only audits plugins available on the current site — no cross-site auditing
+- Multisite: auditor only audits plugins available on the current site  no cross-site auditing
 
 ---
 
 ## Modal Behaviour
 
-- Opens immediately on "Audit" link click — no page navigation
+- Opens immediately on "Audit" link click  no page navigation
 - Shows progress indicator while AJAX audit runs
 - On completion replaces progress indicator with full report
 - Report scrollable within modal
-- Modal closeable — report retrievable from CPT afterwards
-- PDF download button visible in modal — triggers `window.print()`
+- Modal closeable  report retrievable from CPT afterwards
+- PDF download button visible in modal  triggers `window.print()`
 - Print stylesheet hides modal chrome, outputs report only
-- AJAX timeout defined explicitly — if audit exceeds timeout, show error message with retry option
+- AJAX timeout defined explicitly  if audit exceeds timeout, show error message with retry option
 - If audit is triggered on a plugin already being audited, block the second request and inform the user
 - Modal element must have `role="dialog"`, `aria-modal="true"`, `aria-labelledby` referencing the report title
 - Focus must be trapped inside modal while open
 - Modal must close on Escape key
 - Focus must return to the triggering element on close
 
-### Print Stylesheet — print.css
+### Print Stylesheet  print.css
 - `@page` rule must define margins and `size: A4`
 - Hide modal chrome, close button, progress indicator, PDF download button
 - Page break rules: avoid breaking inside finding rows, section headings always start on same page as first row
-- Do NOT attempt to preserve colours by overriding the print stylesheet with `print-color-adjust: exact` and complex layout resets — this causes blank pages due to flex container collapse. The working approach hides only modal chrome and lets the browser render the fixed-position modal naturally.
+- Do NOT attempt to preserve colours by overriding the print stylesheet with `print-color-adjust: exact` and complex layout resets  this causes blank pages due to flex container collapse. The working approach hides only modal chrome and lets the browser render the fixed-position modal naturally.
 
 ---
 
 ## WordPress Patterns
 
-- Hook registration inside `init()` method or constructor — never at file scope
+- Hook registration inside `init()` method or constructor  never at file scope
 - Prefix all: global functions, options, transients, post meta keys with `pla_`
-- `add_action` / `add_filter` — always specify `$priority` and `$accepted_args` explicitly when non-default
-- Transients for caching — always set expiry, never indefinite
-- HTTP requests: always `wp_remote_*` — never `curl_*` or `file_get_contents()` for HTTP
+- `add_action` / `add_filter`  always specify `$priority` and `$accepted_args` explicitly when non-default
+- Transients for caching  always set expiry, never indefinite
+- HTTP requests: always `wp_remote_*`  never `curl_*` or `file_get_contents()` for HTTP
 - `wp_die()` with correct HTTP status codes on failure
 
 ---
@@ -343,17 +343,17 @@ Flag any use of: `eval`, `exec`, `shell_exec`, `system`, `passthru`, `popen`, `p
 - Never run queries inside loops
 - Use `'no_found_rows' => true` on WP_Query when pagination not needed
 - Use `'fields' => 'ids'` when only IDs required
-- Cache expensive operations with transients — define clear expiry strategy
+- Cache expensive operations with transients  define clear expiry strategy
 
 ---
 
 ## Enqueue Standards
 
-- Never enqueue assets globally — only on relevant admin screens
-- Always provide version argument — use `PLUGIN_AUDITOR_VERSION` constant
+- Never enqueue assets globally  only on relevant admin screens
+- Always provide version argument  use `PLUGIN_AUDITOR_VERSION` constant
 - Use loading strategy (`defer`) where appropriate
-- Never bundle jQuery — use WP-bundled version via dependency array
-- No inline `<script>` or `<style>` tags — use `wp_add_inline_script()` / `wp_add_inline_style()`
+- Never bundle jQuery  use WP-bundled version via dependency array
+- No inline `<script>` or `<style>` tags  use `wp_add_inline_script()` / `wp_add_inline_style()`
 
 ---
 
@@ -361,7 +361,7 @@ Flag any use of: `eval`, `exec`, `shell_exec`, `system`, `passthru`, `popen`, `p
 
 - Text domain: `plugin-auditor`
 - Every user-facing string wrapped for translation
-- Never concatenate translated strings — use `sprintf()` with placeholders
+- Never concatenate translated strings  use `sprintf()` with placeholders
 - Translator comments required for strings with placeholders
 - Never use variables as text domain
 
@@ -396,11 +396,11 @@ Flag any use of: `eval`, `exec`, `shell_exec`, `system`, `passthru`, `popen`, `p
 
 ## Dependencies / Third-Party Libraries
 
-- Vet every third-party library — check maintenance status, CVE history, license
+- Vet every third-party library  check maintenance status, CVE history, license
 - GPL-compatible licenses only
-- Vendor via Composer — never copy-paste library code
-- Never ship dev dependencies — `composer install --no-dev` for production
-- Pin versions in `composer.lock` — commit the lockfile
+- Vendor via Composer  never copy-paste library code
+- Never ship dev dependencies  `composer install --no-dev` for production
+- Pin versions in `composer.lock`  commit the lockfile
 - Never bundle libraries already provided by WordPress core
 
 ---
@@ -478,23 +478,23 @@ plugin-auditor/
 
 ---
 
-## PHPCS — phpcs.xml.dist
+## PHPCS  phpcs.xml.dist
 
 - Extends `WordPress-Core`, `WordPress-Docs`, `WordPress-Extra`
-- `PHPCompatibilityWP` is **excluded** — version 9.3.5 crashes on PHP 8 (`trim(null)` deprecation); PHPStan level 8 covers compatibility analysis instead
-- No blanket exclusions — exclude only with documented justification
+- `PHPCompatibilityWP` is **excluded**  version 9.3.5 crashes on PHP 8 (`trim(null)` deprecation); PHPStan level 8 covers compatibility analysis instead
+- No blanket exclusions  exclude only with documented justification
 
 ---
 
-## PHPStan — phpstan.neon.dist
+## PHPStan  phpstan.neon.dist
 
 - Level 8
 - Include `szepeviktor/phpstan-wordpress` extension
 - Bootstrap file `tests/phpstan-bootstrap.php` defines plugin constants (`PLUGIN_AUDITOR_*`, `ABSPATH`) so analysis runs without WordPress loaded
-- `treatPhpDocTypesAsCertain: false` — required to suppress false positives from WP stubs' PHPDoc types narrowing control flow
-- Closures that capture variables by reference (`&$var`) confuse PHPStan level-8 control-flow analysis — use private helper methods instead
-- Finding messages that contain `sprintf` placeholders must use `esc_html__()` not `__()` — PHPCS WordPress standard rejects `__()` with printf-style placeholders
-- Baseline only for unavoidable third-party issues — never to suppress own code
+- `treatPhpDocTypesAsCertain: false`  required to suppress false positives from WP stubs' PHPDoc types narrowing control flow
+- Closures that capture variables by reference (`&$var`) confuse PHPStan level-8 control-flow analysis  use private helper methods instead
+- Finding messages that contain `sprintf` placeholders must use `esc_html__()` not `__()`  PHPCS WordPress standard rejects `__()` with printf-style placeholders
+- Baseline only for unavoidable third-party issues  never to suppress own code
 
 ---
 
@@ -502,25 +502,25 @@ plugin-auditor/
 
 ### General Rules
 - Every class must have a corresponding test class
-- Tests must be independent — no shared mutable state
+- Tests must be independent  no shared mutable state
 - No production database, filesystem, or network calls in unit tests
 - Test names describe behaviour: `test_flags_unescaped_echo_on_variable()`
 - Every scanner check must have tests for: finding present, finding absent, edge cases
 
-### Unit Tests — `tests/Unit/`
+### Unit Tests  `tests/Unit/`
 - Brain Monkey for WP function mocking
 - Mockery for class/interface mocking
 - Bootstrap Brain Monkey in `setUp()`, tear down in `tearDown()`
 - One behaviour per test method
 - Cover: happy path, boundary conditions, invalid input, missing input, multi-line taint cases
 
-### Integration Tests — `tests/Integration/`
+### Integration Tests  `tests/Integration/`
 - Extend `WP_UnitTestCase`
 - Use WP factory methods for test data
 - Test actual DB interactions, AJAX handlers, CPT storage, hook firing
 - Clean up all created data in `tearDown()`
 
-### wp-env — `.wp-env.json`
+### wp-env  `.wp-env.json`
 ```json
 {
   "core": "WordPress/WordPress#trunk",

@@ -1,5 +1,5 @@
 /* global plaAuditor, wp */
-/* Plugin Auditor — Modal, AJAX, Progress, Print */
+/* Plugin Auditor  Modal, AJAX, Progress, Print */
 
 ( function ( $ ) {
 	'use strict';

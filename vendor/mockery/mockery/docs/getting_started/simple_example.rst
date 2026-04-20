@@ -61,7 +61,7 @@ mock object for the real service which allows us to test the behaviour of the
     }
 
 We create a mock object which our ``Temperature`` class will use and set some
-expectations for that mock — that it should receive three calls to the ``readTemp``
+expectations for that mock  that it should receive three calls to the ``readTemp``
 method, and these calls will return 10, 12, and 14 as results.
 
 .. note::

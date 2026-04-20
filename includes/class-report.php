@@ -1,6 +1,6 @@
 <?php
 /**
- * Report storage — saving and loading pla_report CPT data.
+ * Report storage  saving and loading pla_report CPT data.
  *
  * @package PluginAuditor
  */
@@ -87,7 +87,7 @@ class Report {
 	public function save( string $plugin_file, string $plugin_name, array $findings ): int|\WP_Error {
 		$title = sprintf(
 			/* translators: 1: plugin name, 2: datetime */
-			__( '%1$s — Audit %2$s', 'plugin-auditor' ),
+			__( '%1$s  Audit %2$s', 'plugin-auditor' ),
 			$plugin_name,
 			current_time( 'Y-m-d H:i:s' )
 		);

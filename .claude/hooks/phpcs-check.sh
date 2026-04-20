@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# 1. Read the JSON Claude passes in — contains the file that was just written
+# 1. Read the JSON Claude passes in  contains the file that was just written
 INPUT=$(cat)
 FILE_PATH=$(echo "$INPUT" | jq -r '.tool_input.file_path // empty')
 

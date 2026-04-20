@@ -1,6 +1,6 @@
 <?php
 /**
- * Uninstall routine — removes all plugin data.
+ * Uninstall routine  removes all plugin data.
  *
  * @package PluginAuditor
  */

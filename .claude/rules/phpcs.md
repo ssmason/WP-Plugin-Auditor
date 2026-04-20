@@ -12,6 +12,6 @@ globs: ["web/app/themes/vanilla/**/*.php"]
 - Proper escaping on all output: `esc_html()`, `esc_attr()`, `esc_url()`
 - Nonces on all forms and AJAX requests
 - Prepared statements for all direct DB queries: `$wpdb->prepare()`
-- No shorthand PHP tags — always `<?php`
+- No shorthand PHP tags  always `<?php`
 - Space inside parentheses: `if ( $condition )`
 
