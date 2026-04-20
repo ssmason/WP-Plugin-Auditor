@@ -99,9 +99,10 @@ class Admin {
 		echo '</tr></thead><tbody>';
 
 		foreach ( $reports as $report ) {
-			$plugin_name = get_post_meta( $report->ID, '_pla_plugin_name', true );
-			$risk        = get_post_meta( $report->ID, '_pla_risk', true );
-			$nonce       = wp_create_nonce( 'pla_view_report_' . $report->ID );
+			$plugin_name    = get_post_meta( $report->ID, '_pla_plugin_name', true );
+			$risk           = get_post_meta( $report->ID, '_pla_risk', true );
+			$view_nonce     = wp_create_nonce( 'pla_view_report_' . $report->ID );
+			$download_nonce = wp_create_nonce( 'pla_download_json_' . $report->ID );
 
 			echo '<tr>';
 			echo '<td>' . esc_html( (string) $plugin_name ) . '</td>';
@@ -109,10 +110,16 @@ class Admin {
 			echo '<td>' . esc_html( (string) get_the_date( 'Y-m-d H:i', $report ) ) . '</td>';
 			echo '<td>';
 			printf(
-				'<a href="#" class="pla-view-report" data-report-id="%1$s" data-nonce="%2$s">%3$s</a>',
+				'<a href="#" class="pla-view-report" data-report-id="%1$s" data-nonce="%2$s">%3$s</a> ',
 				esc_attr( (string) $report->ID ),
-				esc_attr( $nonce ),
-				esc_html__( 'View Report', 'plugin-auditor' )
+				esc_attr( $view_nonce ),
+				esc_html__( 'View', 'plugin-auditor' )
+			);
+			printf(
+				'<button type="button" class="button pla-download-report" data-report-id="%1$s" data-nonce="%2$s">%3$s</button>',
+				esc_attr( (string) $report->ID ),
+				esc_attr( $download_nonce ),
+				esc_html__( 'Download JSON', 'plugin-auditor' )
 			);
 			echo '</td>';
 			echo '</tr>';

@@ -95,6 +95,22 @@ class Report {
 			}
 		}
 
+		$sections = $findings;
+		unset( $sections['rating'], $sections['score'] );
+		update_post_meta(
+			$post_id,
+			'_pla_json',
+			array(
+				'filename'    => sanitize_file_name( 'pla-' . $plugin_name . '-' . gmdate( 'Y-m-d' ) . '.json' ),
+				'plugin_name' => $plugin_name,
+				'plugin_file' => $plugin_file,
+				'risk'        => $findings['rating'] ?? 'UNKNOWN',
+				'score'       => $findings['score'] ?? 0,
+				'generated'   => current_time( 'Y-m-d H:i:s' ),
+				'findings'    => $sections,
+			)
+		);
+
 		return $post_id;
 	}
 

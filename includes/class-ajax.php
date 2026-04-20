@@ -180,17 +180,22 @@ class Ajax {
 			wp_send_json_error( array( 'message' => __( 'Report not found.', 'plugin-auditor' ) ), 404 );
 		}
 
+		$stored = get_post_meta( $report_id, '_pla_json', true );
+
+		if ( is_array( $stored ) && ! empty( $stored ) ) {
+			wp_send_json_success( $stored );
+			return;
+		}
+
 		$findings    = $this->report->load( $report_id );
 		$plugin_name = (string) get_post_meta( $report_id, '_pla_plugin_name', true );
 		$plugin_file = (string) get_post_meta( $report_id, '_pla_plugin_file', true );
 		$sections    = $findings;
 		unset( $sections['rating'], $sections['score'] );
 
-		$filename = sanitize_file_name( 'pla-' . $plugin_name . '-' . gmdate( 'Y-m-d' ) . '.json' );
-
 		wp_send_json_success(
 			array(
-				'filename'    => $filename,
+				'filename'    => sanitize_file_name( 'pla-' . $plugin_name . '-' . gmdate( 'Y-m-d' ) . '.json' ),
 				'plugin_name' => $plugin_name,
 				'plugin_file' => $plugin_file,
 				'risk'        => $findings['rating'],

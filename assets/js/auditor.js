@@ -243,18 +243,14 @@
 		}
 	} );
 
-	printBtn.addEventListener( 'click', function () {
-		if ( ! currentReportId || ! currentDownloadNonce ) {
-			return;
-		}
-
+	function downloadJson( reportId, nonce ) {
 		fetch( plaAuditor.ajaxUrl, {
 			method:  'POST',
 			headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
 			body:    new URLSearchParams( {
 				action:    'pla_download_json',
-				report_id: currentReportId,
-				nonce:     currentDownloadNonce,
+				report_id: reportId,
+				nonce:     nonce,
 			} ),
 		} )
 		.then( function ( res ) { return res.json(); } )
@@ -262,9 +258,9 @@
 			if ( ! response.success ) {
 				return;
 			}
-			const blob     = new Blob( [ JSON.stringify( response.data, null, 2 ) ], { type: 'application/json' } );
-			const url      = URL.createObjectURL( blob );
-			const anchor   = document.createElement( 'a' );
+			const blob   = new Blob( [ JSON.stringify( response.data, null, 2 ) ], { type: 'application/json' } );
+			const url    = URL.createObjectURL( blob );
+			const anchor = document.createElement( 'a' );
 			anchor.href     = url;
 			anchor.download = response.data.filename || 'audit-report.json';
 			document.body.appendChild( anchor );
@@ -272,6 +268,21 @@
 			document.body.removeChild( anchor );
 			URL.revokeObjectURL( url );
 		} );
+	}
+
+	printBtn.addEventListener( 'click', function () {
+		if ( currentReportId && currentDownloadNonce ) {
+			downloadJson( currentReportId, currentDownloadNonce );
+		}
+	} );
+
+	document.addEventListener( 'click', function ( e ) {
+		const btn = e.target.closest( '.pla-download-report' );
+		if ( ! btn ) {
+			return;
+		}
+		e.preventDefault();
+		downloadJson( btn.dataset.reportId, btn.dataset.nonce );
 	} );
 
 	// Audit trigger links in plugin rows.
