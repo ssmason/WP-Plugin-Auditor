@@ -126,7 +126,7 @@ class Scanner {
 	/**
 	 * Directories to skip when collecting files.
 	 */
-	private const SKIP_DIRS = array( 'vendor', 'node_modules', '.git' );
+	private const SKIP_DIRS = array( 'vendor', 'node_modules', '.git', 'tests' );
 
 	/**
 	 * WordPress role names that must never be passed to current_user_can().
@@ -441,7 +441,7 @@ class Scanner {
 			}
 
 			// Flag _e() and __() used without escaping.
-			if ( preg_match( '/\b(echo\s+)?__\s*\(/', $line ) && ! str_contains( $line, 'esc_' ) ) {
+			if ( preg_match( '/\becho\s+__\s*\(/', $line ) && ! str_contains( $line, 'esc_' ) ) {
 				$findings[] = $this->finding(
 					'MEDIUM',
 					$file,
