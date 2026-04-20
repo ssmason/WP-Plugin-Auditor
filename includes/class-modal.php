@@ -72,6 +72,7 @@ class Modal {
 				'ajaxTimeout' => 120000,
 				'i18n'        => array(
 					'running'        => __( 'Audit running…', 'plugin-auditor' ),
+					'complete'       => __( 'Audit complete', 'plugin-auditor' ),
 					'error'          => __( 'Audit failed. Please try again.', 'plugin-auditor' ),
 					'timeout'        => __( 'Audit timed out. The plugin may be too large. Please try again.', 'plugin-auditor' ),
 					'alreadyRunning' => __( 'An audit for this plugin is already in progress.', 'plugin-auditor' ),

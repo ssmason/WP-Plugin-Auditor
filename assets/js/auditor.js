@@ -7,6 +7,8 @@
 	const modal        = document.getElementById( 'pla-modal' );
 	const progressEl   = modal.querySelector( '.pla-modal__progress' );
 	const progressFill = modal.querySelector( '.pla-progress-bar__fill' );
+	const progressText = modal.querySelector( '.pla-modal__progress-text' );
+	const progressHint = modal.querySelector( '.pla-modal__progress-hint' );
 	const errorEl      = modal.querySelector( '.pla-modal__error' );
 	const errorText    = modal.querySelector( '.pla-modal__error-text' );
 	const reportEl     = modal.querySelector( '.pla-modal__report' );
@@ -65,7 +67,9 @@
 	function completeProgress( callback ) {
 		progressFill.style.animation = 'none';
 		progressFill.style.width     = '100%';
-		setTimeout( callback, 300 );
+		progressText.textContent     = plaAuditor.i18n.complete;
+		progressHint.textContent     = '';
+		setTimeout( callback, 600 );
 	}
 
 	function showError( message ) {
