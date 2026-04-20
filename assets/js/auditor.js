@@ -84,16 +84,23 @@
 		errorEl.hidden            = false;
 	}
 
-	function showReport( html, reportId, downloadNonce ) {
+	function showReport( html, reportId, downloadNonce, immediate ) {
 		currentReportId      = reportId || null;
 		currentDownloadNonce = downloadNonce || null;
-		completeProgress( function () {
+
+		function reveal() {
 			progressEl.hidden  = true;
 			errorEl.hidden     = true;
 			reportEl.innerHTML = html;
 			reportEl.hidden    = false;
 			footerEl.hidden    = false;
-		} );
+		}
+
+		if ( immediate ) {
+			reveal();
+		} else {
+			completeProgress( reveal );
+		}
 	}
 
 	// -------------------------------------------------------------------------
@@ -164,7 +171,7 @@
 			success: function ( response ) {
 				activeRequest = null;
 				if ( response.success ) {
-					showReport( response.data.html, response.data.report_id, response.data.download_nonce );
+					showReport( response.data.html, response.data.report_id, response.data.download_nonce, true );
 				} else {
 					const msg = ( response.data && response.data.message )
 						? response.data.message
@@ -283,6 +290,30 @@
 		}
 		e.preventDefault();
 		downloadJson( btn.dataset.reportId, btn.dataset.nonce );
+	} );
+
+	document.addEventListener( 'click', function ( e ) {
+		const btn = e.target.closest( '.pla-delete-report' );
+		if ( ! btn ) {
+			return;
+		}
+		e.preventDefault();
+
+		fetch( plaAuditor.ajaxUrl, {
+			method:  'POST',
+			headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+			body:    new URLSearchParams( {
+				action:    'pla_delete_report',
+				report_id: btn.dataset.reportId,
+				nonce:     btn.dataset.nonce,
+			} ),
+		} )
+		.then( function ( res ) { return res.json(); } )
+		.then( function ( response ) {
+			if ( response.success ) {
+				btn.closest( 'tr' ).remove();
+			}
+		} );
 	} );
 
 	// Audit trigger links in plugin rows.

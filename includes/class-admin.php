@@ -103,6 +103,7 @@ class Admin {
 			$risk           = get_post_meta( $report->ID, '_pla_risk', true );
 			$view_nonce     = wp_create_nonce( 'pla_view_report_' . $report->ID );
 			$download_nonce = wp_create_nonce( 'pla_download_json_' . $report->ID );
+			$delete_nonce   = wp_create_nonce( 'pla_delete_report_' . $report->ID );
 
 			echo '<tr>';
 			echo '<td>' . esc_html( (string) $plugin_name ) . '</td>';
@@ -116,10 +117,16 @@ class Admin {
 				esc_html__( 'View', 'plugin-auditor' )
 			);
 			printf(
-				'<button type="button" class="button pla-download-report" data-report-id="%1$s" data-nonce="%2$s">%3$s</button>',
+				'<button type="button" class="button pla-download-report" data-report-id="%1$s" data-nonce="%2$s">%3$s</button> ',
 				esc_attr( (string) $report->ID ),
 				esc_attr( $download_nonce ),
 				esc_html__( 'Download JSON', 'plugin-auditor' )
+			);
+			printf(
+				'<button type="button" class="button pla-delete-report" data-report-id="%1$s" data-nonce="%2$s">%3$s</button>',
+				esc_attr( (string) $report->ID ),
+				esc_attr( $delete_nonce ),
+				esc_html__( 'Delete', 'plugin-auditor' )
 			);
 			echo '</td>';
 			echo '</tr>';

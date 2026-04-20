@@ -48,6 +48,7 @@ class Ajax {
 		add_action( 'wp_ajax_pla_run_audit', array( $this, 'handle_run_audit' ), 10, 0 );
 		add_action( 'wp_ajax_pla_get_report', array( $this, 'handle_get_report' ), 10, 0 );
 		add_action( 'wp_ajax_pla_download_json', array( $this, 'handle_download_json' ), 10, 0 );
+		add_action( 'wp_ajax_pla_delete_report', array( $this, 'handle_delete_report' ), 10, 0 );
 	}
 
 	/**
@@ -154,6 +155,35 @@ class Ajax {
 				'download_nonce' => wp_create_nonce( 'pla_download_json_' . $report_id ),
 			)
 		);
+	}
+
+	/**
+	 * Handles the pla_delete_report AJAX action.
+	 */
+	public function handle_delete_report(): void {
+		if ( ! current_user_can( 'manage_options' ) ) {
+			wp_send_json_error( array( 'message' => __( 'Insufficient permissions.', 'plugin-auditor' ) ), 403 );
+		}
+
+		$report_id = absint( wp_unslash( $_POST['report_id'] ?? 0 ) );
+
+		if ( ! $report_id ) {
+			wp_send_json_error( array( 'message' => __( 'No report specified.', 'plugin-auditor' ) ), 400 );
+		}
+
+		if ( ! wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST['nonce'] ?? '' ) ), 'pla_delete_report_' . $report_id ) ) {
+			wp_send_json_error( array( 'message' => __( 'Security check failed.', 'plugin-auditor' ) ), 403 );
+		}
+
+		$post = get_post( $report_id );
+
+		if ( ! $post || 'pla_report' !== $post->post_type ) {
+			wp_send_json_error( array( 'message' => __( 'Report not found.', 'plugin-auditor' ) ), 404 );
+		}
+
+		wp_delete_post( $report_id, true );
+
+		wp_send_json_success();
 	}
 
 	/**
