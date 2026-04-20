@@ -329,6 +329,30 @@
 .pla-reports-table .pla-col-date { width: 130px; }
 .pla-reports-table .pla-col-actions { width: 200px; }
 
+.pla-reports-table thead th.pla-col-plugin,
+.pla-reports-table thead th.pla-col-risk,
+.pla-reports-table thead th.pla-col-date,
+.pla-reports-table thead th.pla-col-actions,
+.pla-reports-table thead td.pla-col-cb {
+	background-color: rgba(0, 109, 51, 0.15);
+	color: #004d24;
+}
+
+.pla-reports-table thead th.pla-col-high {
+	background-color: rgba(214, 119, 9, 0.15);
+	color: #7a4200;
+}
+
+.pla-reports-table thead th.pla-col-medium {
+	background-color: rgba(219, 166, 23, 0.15);
+	color: #6b5400;
+}
+
+.pla-reports-table thead th.pla-col-low {
+	background-color: rgba(0, 115, 170, 0.15);
+	color: #004c6a;
+}
+
 .pla-delete-link {
 	color: #ff0019;
 	text-decoration: none;
