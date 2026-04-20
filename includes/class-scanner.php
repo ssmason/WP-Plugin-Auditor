@@ -71,17 +71,6 @@ class Scanner {
 	private const SUPERGLOBALS = array( '_GET', '_POST', '_REQUEST', '_COOKIE', '_SERVER', '_FILES' );
 
 	/**
-	 * Severity weights for score calculation.
-	 */
-	private const SEVERITY_WEIGHTS = array(
-		'CRITICAL' => 25,
-		'HIGH'     => 10,
-		'MEDIUM'   => 4,
-		'LOW'      => 1,
-		'INFO'     => 0,
-	);
-
-	/**
 	 * Deprecated WordPress functions mapped to the version they were deprecated in.
 	 */
 	private const DEPRECATED_FUNCTIONS = array(
@@ -124,11 +113,6 @@ class Scanner {
 	);
 
 	/**
-	 * Directories to skip when collecting files.
-	 */
-	private const SKIP_DIRS = array( 'vendor', 'node_modules', '.git', 'tests' );
-
-	/**
 	 * WordPress role names that must never be passed to current_user_can().
 	 */
 	private const WP_ROLE_NAMES = array(
@@ -152,54 +136,9 @@ class Scanner {
 	);
 
 	/**
-	 * Returns the list of section keys that are classified as security checks.
-	 * These contribute to the overall risk score.
-	 *
-	 * @return string[]
+	 * @param FileCollector $file_collector File collection service.
 	 */
-	public static function security_sections(): array {
-		return array(
-			'dangerous',
-			'output',
-			'input',
-			'nonces',
-			'capabilities',
-			'database',
-			'credentials',
-			'errors',
-			'obfuscation',
-			'permissions',
-			'debug_output',
-			'redirects',
-			'role_checks',
-			'shortcodes',
-			'option_writes',
-			'wpdb_placeholders',
-		);
-	}
-
-	/**
-	 * Returns the list of section keys that are classified as code quality checks.
-	 * These do NOT contribute to the risk score.
-	 *
-	 * @return string[]
-	 */
-	public static function code_quality_sections(): array {
-		return array(
-			'requests',
-			'meta',
-			'assets',
-			'deprecated',
-			'structure',
-			'licensing',
-			'php_compat',
-			'commented_code',
-			'direct_access',
-			'duplicate_hooks',
-			'unnecessary_closures',
-			'early_translations',
-		);
-	}
+	public function __construct( private FileCollector $file_collector = new FileCollector() ) {}
 
 	/**
 	 * Runs the full audit on all PHP files in a directory.
@@ -209,11 +148,11 @@ class Scanner {
 	 */
 	public function scan( string $plugin_dir ): array {
 		$scan_start   = microtime( true );
-		$php_files    = $this->collect_php_files( $plugin_dir );
-		$js_files     = $this->collect_js_files( $plugin_dir );
+		$php_files    = $this->file_collector->php_files( $plugin_dir );
+		$js_files     = $this->file_collector->js_files( $plugin_dir );
 		$required_php = $this->get_required_php_version( $plugin_dir );
 
-		$sections = array_merge( self::security_sections(), self::code_quality_sections() );
+		$sections = array_merge( ScoreCalculator::security_sections(), ScoreCalculator::code_quality_sections() );
 		$findings = array_fill_keys( $sections, array() );
 
 		$total_lines    = 0;
@@ -273,8 +212,8 @@ class Scanner {
 		$findings['structure']       = $this->check_plugin_structure( $plugin_dir );
 		$findings['licensing']       = $this->check_licensing( $plugin_dir );
 
-		$findings['score']  = $this->calculate_score( $findings );
-		$findings['rating'] = $this->calculate_rating( (int) $findings['score'] );
+		$findings['score']  = ScoreCalculator::score( $findings );
+		$findings['rating'] = ScoreCalculator::rating( (int) $findings['score'] );
 		$findings['stats']  = array(
 			'files'    => count( $php_files ),
 			'lines'    => $total_lines,
@@ -282,63 +221,6 @@ class Scanner {
 		);
 
 		return $findings;
-	}
-
-	/**
-	 * Collects all PHP files in the plugin directory recursively, skipping vendor/node_modules.
-	 *
-	 * @param string $dir Absolute path.
-	 * @return string[] Absolute file paths.
-	 */
-	private function collect_php_files( string $dir ): array {
-		return $this->collect_files( $dir, 'php' );
-	}
-
-	/**
-	 * Collects all non-minified JS files in the plugin directory, skipping vendor/node_modules.
-	 *
-	 * @param string $dir Absolute path.
-	 * @return string[] Absolute file paths.
-	 */
-	private function collect_js_files( string $dir ): array {
-		$files = $this->collect_files( $dir, 'js' );
-		return array_filter(
-			$files,
-			static fn( $f ) => ! str_ends_with( $f, '.min.js' )
-		);
-	}
-
-	/**
-	 * Collects files by extension, skipping vendor/node_modules/.git directories.
-	 *
-	 * @param string $dir       Absolute directory path.
-	 * @param string $extension File extension without dot.
-	 * @return string[]
-	 */
-	private function collect_files( string $dir, string $extension ): array {
-		$iterator = new \RecursiveIteratorIterator(
-			new \RecursiveDirectoryIterator( $dir, \RecursiveDirectoryIterator::SKIP_DOTS )
-		);
-
-		$files = array();
-		foreach ( $iterator as $file ) {
-			if ( ! $file->isFile() || $extension !== $file->getExtension() ) {
-				continue;
-			}
-			$path = $file->getPathname();
-			$skip = false;
-			foreach ( self::SKIP_DIRS as $skip_dir ) {
-				if ( str_contains( $path, '/' . $skip_dir . '/' ) ) {
-					$skip = true;
-					break;
-				}
-			}
-			if ( ! $skip ) {
-				$files[] = $path;
-			}
-		}
-
-		return $files;
 	}
 
 	/**
@@ -1920,7 +1802,7 @@ class Scanner {
 	}
 
 	// -------------------------------------------------------------------------
-	// Scoring
+	// Finding builder
 	// -------------------------------------------------------------------------
 
 	/**
@@ -1941,57 +1823,5 @@ class Scanner {
 			'snippet'  => trim( $snippet ),
 			'message'  => $message,
 		);
-	}
-
-	/**
-	 * Calculates a numeric risk score from security section findings only.
-	 *
-	 * @param array<string, mixed> $findings Section findings.
-	 */
-	private function calculate_score( array $findings ): int {
-		return self::score_from_findings( $findings );
-	}
-
-	private function calculate_rating( int $score ): string {
-		return self::rating_from_score( $score );
-	}
-
-	/**
-	 * Calculates a numeric risk score from security section findings.
-	 *
-	 * @param array<string, mixed> $findings Section findings.
-	 */
-	public static function score_from_findings( array $findings ): int {
-		$score = 0;
-		foreach ( self::security_sections() as $section ) {
-			if ( ! isset( $findings[ $section ] ) || ! is_array( $findings[ $section ] ) ) {
-				continue;
-			}
-			foreach ( $findings[ $section ] as $finding ) {
-				$score += self::SEVERITY_WEIGHTS[ $finding['severity'] ] ?? 0;
-			}
-		}
-		return $score;
-	}
-
-	/**
-	 * Converts a numeric score to a risk rating.
-	 *
-	 * @param int $score Numeric score.
-	 */
-	public static function rating_from_score( int $score ): string {
-		if ( $score >= 50 ) {
-			return 'CRITICAL';
-		}
-		if ( $score >= 20 ) {
-			return 'HIGH';
-		}
-		if ( $score >= 8 ) {
-			return 'MEDIUM';
-		}
-		if ( $score >= 1 ) {
-			return 'LOW';
-		}
-		return 'CLEAN';
 	}
 }

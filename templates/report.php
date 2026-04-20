@@ -2,7 +2,7 @@
 /**
  * Report HTML template.
  *
- * Variables available from Report::render():
+ * Variables available from ReportRenderer::render():
  *   $findings    array   All findings keyed by section.
  *   $plugin_name string  Audited plugin display name.
  *   $rating      string  Overall risk rating.

@@ -1,6 +1,6 @@
 <?php
 /**
- * Report storage and rendering.
+ * Report storage — saving and loading pla_report CPT data.
  *
  * @package PluginAuditor
  */
@@ -12,7 +12,7 @@ namespace PluginAuditor;
 defined( 'ABSPATH' ) || exit;
 
 /**
- * Handles saving and rendering audit reports.
+ * Saves and loads audit report findings from CPT post meta.
  */
 class Report {
 
@@ -79,10 +79,10 @@ class Report {
 	/**
 	 * Saves findings as a pla_report CPT post.
 	 *
-	 * @param string               $plugin_file Plugin file path relative to plugins dir.
+	 * @param string               $plugin_file Relative plugin file path.
 	 * @param string               $plugin_name Plugin display name.
 	 * @param array<string, mixed> $findings    Findings from Scanner::scan().
-	 * @return int|\WP_Error Post ID or WP_Error.
+	 * @return int|\WP_Error Post ID on success, WP_Error on failure.
 	 */
 	public function save( string $plugin_file, string $plugin_name, array $findings ): int|\WP_Error {
 		$title = sprintf(
@@ -117,8 +117,84 @@ class Report {
 			}
 		}
 
+		$this->save_json_export( $post_id, $plugin_file, $plugin_name, $findings );
+
+		return $post_id;
+	}
+
+	/**
+	 * Loads findings from post meta for a given report ID.
+	 *
+	 * Score and rating are recalculated from stored findings on every load.
+	 *
+	 * @param int $report_id Post ID.
+	 * @return array<string, mixed>
+	 */
+	public function load( int $report_id ): array {
+		$findings = array();
+
+		foreach ( self::SECTION_META_KEYS as $section => $meta_key ) {
+			$value                = get_post_meta( $report_id, $meta_key, true );
+			$findings[ $section ] = is_array( $value ) ? $value : array();
+		}
+
+		$findings['score']  = ScoreCalculator::score( $findings );
+		$findings['rating'] = ScoreCalculator::rating( (int) $findings['score'] );
+
+		return $findings;
+	}
+
+	/**
+	 * Returns the pre-built JSON export payload for a report, or builds it on demand.
+	 *
+	 * @param int $report_id Post ID.
+	 * @return array<string, mixed>
+	 */
+	public function json_export( int $report_id ): array {
+		$stored = get_post_meta( $report_id, '_pla_json', true );
+		if ( is_array( $stored ) && ! empty( $stored ) ) {
+			return $stored;
+		}
+
+		$findings    = $this->load( $report_id );
+		$plugin_name = (string) get_post_meta( $report_id, '_pla_plugin_name', true );
+		$plugin_file = (string) get_post_meta( $report_id, '_pla_plugin_file', true );
+		$post        = get_post( $report_id );
+		$sections    = $findings;
+		unset( $sections['rating'], $sections['score'] );
+
+		return array(
+			'filename'    => sanitize_file_name( 'pla-' . $plugin_name . '-' . gmdate( 'Y-m-d' ) . '.json' ),
+			'plugin_name' => $plugin_name,
+			'plugin_file' => $plugin_file,
+			'risk'        => $findings['rating'],
+			'score'       => $findings['score'],
+			'generated'   => $post instanceof \WP_Post ? get_the_date( 'Y-m-d H:i:s', $post ) : '',
+			'findings'    => $sections,
+		);
+	}
+
+	/**
+	 * Returns the section display labels map.
+	 *
+	 * @return array<string, string>
+	 */
+	public static function section_labels(): array {
+		return self::SECTION_LABELS;
+	}
+
+	/**
+	 * Builds and stores the JSON export payload as post meta at save time.
+	 *
+	 * @param int                  $post_id     Post ID.
+	 * @param string               $plugin_file Relative plugin file path.
+	 * @param string               $plugin_name Plugin display name.
+	 * @param array<string, mixed> $findings    Scan findings.
+	 */
+	private function save_json_export( int $post_id, string $plugin_file, string $plugin_name, array $findings ): void {
 		$sections = $findings;
 		unset( $sections['rating'], $sections['score'] );
+
 		update_post_meta(
 			$post_id,
 			'_pla_json',
@@ -132,93 +208,5 @@ class Report {
 				'findings'    => $sections,
 			)
 		);
-
-		return $post_id;
-	}
-
-	/**
-	 * Loads findings from post meta for a given report ID.
-	 *
-	 * @param int $report_id Post ID.
-	 * @return array<string, mixed>
-	 */
-	public function load( int $report_id ): array {
-		$findings = array();
-
-		foreach ( self::SECTION_META_KEYS as $section => $meta_key ) {
-			$value                = get_post_meta( $report_id, $meta_key, true );
-			$findings[ $section ] = is_array( $value ) ? $value : array();
-		}
-
-		$findings['score']  = Scanner::score_from_findings( $findings );
-		$findings['rating'] = Scanner::rating_from_score( (int) $findings['score'] );
-
-		$stored_score  = (int) get_post_meta( $report_id, '_pla_score', true );
-		$stored_rating = (string) get_post_meta( $report_id, '_pla_risk', true );
-
-		if ( $stored_score !== $findings['score'] || $stored_rating !== $findings['rating'] ) {
-			update_post_meta( $report_id, '_pla_score', $findings['score'] );
-			update_post_meta( $report_id, '_pla_risk', $findings['rating'] );
-		}
-
-		return $findings;
-	}
-
-	/**
-	 * Renders a full HTML report for a given report post ID.
-	 *
-	 * @param int $report_id Post ID.
-	 * @return string HTML output.
-	 */
-	public function render( int $report_id ): string {
-		$post = get_post( $report_id );
-		if ( ! $post ) {
-			return '';
-		}
-
-		$findings    = $this->load( $report_id );
-		$plugin_name = (string) get_post_meta( $report_id, '_pla_plugin_name', true );
-		$rating      = $findings['rating'];
-		$score       = $findings['score'];
-
-		ob_start();
-
-		include PLUGIN_AUDITOR_DIR . 'templates/report.php';
-
-		return (string) ob_get_clean();
-	}
-
-	/**
-	 * Returns previous reports for a given plugin file.
-	 *
-	 * @param string $plugin_file Relative plugin file path.
-	 * @return \WP_Post[]
-	 */
-	public function get_previous_reports( string $plugin_file ): array {
-		return get_posts(
-			array(
-				'post_type'      => 'pla_report',
-				'post_status'    => 'publish',
-				'posts_per_page' => 20,
-				'no_found_rows'  => true,
-				'orderby'        => 'date',
-				'order'          => 'DESC',
-				'meta_query'     => array( // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_query
-					array(
-						'key'   => '_pla_plugin_file',
-						'value' => $plugin_file,
-					),
-				),
-			)
-		);
-	}
-
-	/**
-	 * Returns the section labels map.
-	 *
-	 * @return array<string, string>
-	 */
-	public static function section_labels(): array {
-		return self::SECTION_LABELS;
 	}
 }

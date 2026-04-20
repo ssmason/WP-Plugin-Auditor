@@ -32,9 +32,18 @@ require_once PLUGIN_AUDITOR_DIR . 'vendor/autoload.php';
  * Bootstraps the plugin.
  */
 function pla_boot(): void {
+	$report     = new \PluginAuditor\Report();
+	$repository = new \PluginAuditor\ReportRepository();
+
 	$cpt   = new \PluginAuditor\Cpt();
-	$admin = new \PluginAuditor\Admin();
-	$ajax  = new \PluginAuditor\Ajax( new \PluginAuditor\Scanner(), new \PluginAuditor\Report() );
+	$admin = new \PluginAuditor\Admin( $repository );
+	$ajax  = new \PluginAuditor\Ajax(
+		new \PluginAuditor\Scanner( new \PluginAuditor\FileCollector() ),
+		$report,
+		new \PluginAuditor\ReportRenderer( $report ),
+		$repository,
+		new \PluginAuditor\RateLimiter()
+	);
 	$modal = new \PluginAuditor\Modal();
 
 	$cpt->init();

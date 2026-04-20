@@ -12,7 +12,7 @@ namespace PluginAuditor;
 defined( 'ABSPATH' ) || exit;
 
 /**
- * Handles CPT registration for pla_report.
+ * Registers the pla_report post type.
  */
 class Cpt {
 
@@ -60,37 +60,5 @@ class Cpt {
 				'delete_with_user'  => false,
 			)
 		);
-	}
-
-	/**
-	 * Enforces the 20-report cap per plugin, deleting oldest first.
-	 *
-	 * @param string $plugin_file Relative plugin file path.
-	 */
-	public function enforce_report_cap( string $plugin_file ): void {
-		$reports = get_posts(
-			array(
-				'post_type'      => 'pla_report',
-				'post_status'    => 'publish',
-				'posts_per_page' => -1,
-				'fields'         => 'ids',
-				'no_found_rows'  => true,
-				'orderby'        => 'date',
-				'order'          => 'ASC',
-				'meta_query'     => array( // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_query
-					array(
-						'key'   => '_pla_plugin_file',
-						'value' => $plugin_file,
-					),
-				),
-			)
-		);
-
-		if ( count( $reports ) >= 20 ) {
-			$to_delete = array_slice( $reports, 0, count( $reports ) - 19 );
-			foreach ( $to_delete as $report_id ) {
-				wp_delete_post( (int) $report_id, true );
-			}
-		}
 	}
 }

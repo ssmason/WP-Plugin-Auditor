@@ -12,41 +12,31 @@ namespace PluginAuditor;
 defined( 'ABSPATH' ) || exit;
 
 /**
- * Handles AJAX requests.
+ * Routes AJAX requests to the appropriate service.
  */
 class Ajax {
 
 	/**
-	 * Scanner instance.
-	 *
-	 * @var Scanner
+	 * @param Scanner          $scanner      File analysis engine.
+	 * @param Report           $report       Report storage.
+	 * @param ReportRenderer   $renderer     Report HTML renderer.
+	 * @param ReportRepository $repository   Report database queries.
+	 * @param RateLimiter      $rate_limiter Concurrent audit guard.
 	 */
-	private Scanner $scanner;
+	public function __construct(
+		private Scanner          $scanner,
+		private Report           $report,
+		private ReportRenderer   $renderer,
+		private ReportRepository $repository,
+		private RateLimiter      $rate_limiter
+	) {}
 
 	/**
-	 * Report instance.
-	 *
-	 * @var Report
-	 */
-	private Report $report;
-
-	/**
-	 * Constructor.
-	 *
-	 * @param Scanner $scanner Scanner instance.
-	 * @param Report  $report  Report instance.
-	 */
-	public function __construct( Scanner $scanner, Report $report ) {
-		$this->scanner = $scanner;
-		$this->report  = $report;
-	}
-
-	/**
-	 * Registers WordPress hooks.
+	 * Registers WordPress AJAX hooks.
 	 */
 	public function init(): void {
-		add_action( 'wp_ajax_pla_run_audit', array( $this, 'handle_run_audit' ), 10, 0 );
-		add_action( 'wp_ajax_pla_get_report', array( $this, 'handle_get_report' ), 10, 0 );
+		add_action( 'wp_ajax_pla_run_audit',     array( $this, 'handle_run_audit' ),     10, 0 );
+		add_action( 'wp_ajax_pla_get_report',    array( $this, 'handle_get_report' ),    10, 0 );
 		add_action( 'wp_ajax_pla_download_json', array( $this, 'handle_download_json' ), 10, 0 );
 		add_action( 'wp_ajax_pla_delete_report', array( $this, 'handle_delete_report' ), 10, 0 );
 	}
@@ -55,10 +45,94 @@ class Ajax {
 	 * Handles the pla_run_audit AJAX action.
 	 */
 	public function handle_run_audit(): void {
+		$this->require_capability();
+		$plugin_file = $this->validated_plugin_file();
+
+		if ( $this->rate_limiter->is_locked( $plugin_file ) ) {
+			wp_send_json_error( array( 'message' => __( 'An audit for this plugin is already in progress.', 'plugin-auditor' ) ), 429 );
+		}
+
+		$plugin = PluginValidator::resolve( $plugin_file );
+		if ( is_wp_error( $plugin ) ) {
+			wp_send_json_error( array( 'message' => $plugin->get_error_message() ), 404 );
+		}
+
+		$this->rate_limiter->lock( $plugin_file );
+
+		try {
+			$findings = $this->scanner->scan( $plugin->dir );
+		} catch ( \Throwable $e ) {
+			$this->rate_limiter->release( $plugin_file );
+			wp_send_json_error( array( 'message' => __( 'Audit failed during scan.', 'plugin-auditor' ) ), 500 );
+		}
+
+		$this->repository->prune( $plugin_file );
+		$report_id = $this->report->save( $plugin_file, $plugin->name, $findings );
+		$this->rate_limiter->release( $plugin_file );
+
+		if ( is_wp_error( $report_id ) ) {
+			wp_send_json_error( array( 'message' => __( 'Failed to save report.', 'plugin-auditor' ) ), 500 );
+		}
+
+		wp_send_json_success(
+			array(
+				'report_id'      => $report_id,
+				'html'           => $this->renderer->render( $report_id ),
+				'download_nonce' => wp_create_nonce( 'pla_download_json_' . $report_id ),
+			)
+		);
+	}
+
+	/**
+	 * Handles the pla_get_report AJAX action.
+	 */
+	public function handle_get_report(): void {
+		$this->require_capability();
+		$report_id = $this->validated_report_id( 'pla_view_report_' );
+
+		wp_send_json_success(
+			array(
+				'report_id'      => $report_id,
+				'html'           => $this->renderer->render( $report_id ),
+				'download_nonce' => wp_create_nonce( 'pla_download_json_' . $report_id ),
+			)
+		);
+	}
+
+	/**
+	 * Handles the pla_delete_report AJAX action.
+	 */
+	public function handle_delete_report(): void {
+		$this->require_capability();
+		$report_id = $this->validated_report_id( 'pla_delete_report_' );
+		$this->repository->delete( $report_id );
+		wp_send_json_success();
+	}
+
+	/**
+	 * Handles the pla_download_json AJAX action.
+	 */
+	public function handle_download_json(): void {
+		$this->require_capability();
+		$report_id = $this->validated_report_id( 'pla_download_json_' );
+		wp_send_json_success( $this->report->json_export( $report_id ) );
+	}
+
+	/**
+	 * Terminates with a 403 JSON error if the current user lacks manage_options.
+	 */
+	private function require_capability(): void {
 		if ( ! current_user_can( 'manage_options' ) ) {
 			wp_send_json_error( array( 'message' => __( 'Insufficient permissions.', 'plugin-auditor' ) ), 403 );
 		}
+	}
 
+	/**
+	 * Reads, sanitizes, and nonce-verifies the plugin_file POST parameter.
+	 *
+	 * Terminates with a JSON error on any validation failure.
+	 */
+	private function validated_plugin_file(): string {
 		$plugin_file = sanitize_text_field( wp_unslash( $_POST['plugin_file'] ?? '' ) );
 
 		if ( empty( $plugin_file ) ) {
@@ -69,170 +143,31 @@ class Ajax {
 			wp_send_json_error( array( 'message' => __( 'Security check failed.', 'plugin-auditor' ) ), 403 );
 		}
 
-		// Rate limiting — one audit per plugin per 30 seconds.
-		$rate_key = 'pla_running_' . md5( $plugin_file );
-		if ( get_transient( $rate_key ) ) {
-			wp_send_json_error( array( 'message' => __( 'An audit for this plugin is already in progress.', 'plugin-auditor' ) ), 429 );
-		}
-
-		set_transient( $rate_key, true, 120 );
-
-		// get_plugin_data() is not available in AJAX context without this include.
-		if ( ! function_exists( 'get_plugin_data' ) ) {
-			require_once ABSPATH . 'wp-admin/includes/plugin.php';
-		}
-
-		$plugin_dir  = WP_PLUGIN_DIR . '/' . dirname( $plugin_file );
-		$plugin_path = WP_PLUGIN_DIR . '/' . $plugin_file;
-
-		if ( ! is_dir( $plugin_dir ) || ! file_exists( $plugin_path ) ) {
-			delete_transient( $rate_key );
-			wp_send_json_error( array( 'message' => __( 'Plugin directory not found.', 'plugin-auditor' ) ), 404 );
-		}
-
-		$plugin_data = get_plugin_data( $plugin_path );
-		$plugin_name = '' !== $plugin_data['Name'] ? $plugin_data['Name'] : basename( dirname( $plugin_file ) );
-
-		try {
-			$findings = $this->scanner->scan( $plugin_dir );
-		} catch ( \Throwable $e ) {
-			delete_transient( $rate_key );
-			wp_send_json_error( array( 'message' => __( 'Audit failed during scan.', 'plugin-auditor' ) ), 500 );
-		}
-
-		$cpt = new Cpt();
-		$cpt->enforce_report_cap( $plugin_file );
-
-		$report_id = $this->report->save( $plugin_file, $plugin_name, $findings );
-
-		delete_transient( $rate_key );
-
-		if ( is_wp_error( $report_id ) ) {
-			wp_send_json_error( array( 'message' => __( 'Failed to save report.', 'plugin-auditor' ) ), 500 );
-		}
-
-		$html = $this->report->render( $report_id );
-
-		wp_send_json_success(
-			array(
-				'report_id'      => $report_id,
-				'html'           => $html,
-				'download_nonce' => wp_create_nonce( 'pla_download_json_' . $report_id ),
-			)
-		);
+		return $plugin_file;
 	}
 
 	/**
-	 * Handles the pla_get_report AJAX action (retrieve a previous report).
+	 * Reads, sanitizes, nonce-verifies, and existence-checks the report_id POST parameter.
+	 *
+	 * Terminates with a JSON error on any validation failure.
+	 *
+	 * @param string $nonce_action_prefix Nonce action prefix; report ID is appended.
 	 */
-	public function handle_get_report(): void {
-		if ( ! current_user_can( 'manage_options' ) ) {
-			wp_send_json_error( array( 'message' => __( 'Insufficient permissions.', 'plugin-auditor' ) ), 403 );
-		}
-
+	private function validated_report_id( string $nonce_action_prefix ): int {
 		$report_id = absint( wp_unslash( $_POST['report_id'] ?? 0 ) );
 
 		if ( ! $report_id ) {
 			wp_send_json_error( array( 'message' => __( 'No report specified.', 'plugin-auditor' ) ), 400 );
 		}
 
-		if ( ! wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST['nonce'] ?? '' ) ), 'pla_view_report_' . $report_id ) ) {
+		if ( ! wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST['nonce'] ?? '' ) ), $nonce_action_prefix . $report_id ) ) {
 			wp_send_json_error( array( 'message' => __( 'Security check failed.', 'plugin-auditor' ) ), 403 );
 		}
 
-		$post = get_post( $report_id );
-
-		if ( ! $post || 'pla_report' !== $post->post_type ) {
+		if ( ! $this->repository->exists( $report_id ) ) {
 			wp_send_json_error( array( 'message' => __( 'Report not found.', 'plugin-auditor' ) ), 404 );
 		}
 
-		$html = $this->report->render( $report_id );
-
-		wp_send_json_success(
-			array(
-				'report_id'      => $report_id,
-				'html'           => $html,
-				'download_nonce' => wp_create_nonce( 'pla_download_json_' . $report_id ),
-			)
-		);
-	}
-
-	/**
-	 * Handles the pla_delete_report AJAX action.
-	 */
-	public function handle_delete_report(): void {
-		if ( ! current_user_can( 'manage_options' ) ) {
-			wp_send_json_error( array( 'message' => __( 'Insufficient permissions.', 'plugin-auditor' ) ), 403 );
-		}
-
-		$report_id = absint( wp_unslash( $_POST['report_id'] ?? 0 ) );
-
-		if ( ! $report_id ) {
-			wp_send_json_error( array( 'message' => __( 'No report specified.', 'plugin-auditor' ) ), 400 );
-		}
-
-		if ( ! wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST['nonce'] ?? '' ) ), 'pla_delete_report_' . $report_id ) ) {
-			wp_send_json_error( array( 'message' => __( 'Security check failed.', 'plugin-auditor' ) ), 403 );
-		}
-
-		$post = get_post( $report_id );
-
-		if ( ! $post || 'pla_report' !== $post->post_type ) {
-			wp_send_json_error( array( 'message' => __( 'Report not found.', 'plugin-auditor' ) ), 404 );
-		}
-
-		wp_delete_post( $report_id, true );
-
-		wp_send_json_success();
-	}
-
-	/**
-	 * Handles the pla_download_json AJAX action — returns report data as JSON for download.
-	 */
-	public function handle_download_json(): void {
-		if ( ! current_user_can( 'manage_options' ) ) {
-			wp_send_json_error( array( 'message' => __( 'Insufficient permissions.', 'plugin-auditor' ) ), 403 );
-		}
-
-		$report_id = absint( wp_unslash( $_POST['report_id'] ?? 0 ) );
-
-		if ( ! $report_id ) {
-			wp_send_json_error( array( 'message' => __( 'No report specified.', 'plugin-auditor' ) ), 400 );
-		}
-
-		if ( ! wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST['nonce'] ?? '' ) ), 'pla_download_json_' . $report_id ) ) {
-			wp_send_json_error( array( 'message' => __( 'Security check failed.', 'plugin-auditor' ) ), 403 );
-		}
-
-		$post = get_post( $report_id );
-
-		if ( ! $post || 'pla_report' !== $post->post_type ) {
-			wp_send_json_error( array( 'message' => __( 'Report not found.', 'plugin-auditor' ) ), 404 );
-		}
-
-		$stored = get_post_meta( $report_id, '_pla_json', true );
-
-		if ( is_array( $stored ) && ! empty( $stored ) ) {
-			wp_send_json_success( $stored );
-			return;
-		}
-
-		$findings    = $this->report->load( $report_id );
-		$plugin_name = (string) get_post_meta( $report_id, '_pla_plugin_name', true );
-		$plugin_file = (string) get_post_meta( $report_id, '_pla_plugin_file', true );
-		$sections    = $findings;
-		unset( $sections['rating'], $sections['score'] );
-
-		wp_send_json_success(
-			array(
-				'filename'    => sanitize_file_name( 'pla-' . $plugin_name . '-' . gmdate( 'Y-m-d' ) . '.json' ),
-				'plugin_name' => $plugin_name,
-				'plugin_file' => $plugin_file,
-				'risk'        => $findings['rating'],
-				'score'       => $findings['score'],
-				'generated'   => get_the_date( 'Y-m-d H:i:s', $post ),
-				'findings'    => $sections,
-			)
-		);
+		return $report_id;
 	}
 }

@@ -12,7 +12,7 @@ namespace PluginAuditor;
 defined( 'ABSPATH' ) || exit;
 
 /**
- * Handles modal rendering and JS/CSS enqueue on the Plugins page.
+ * Enqueues modal assets and renders the modal shell on relevant admin pages.
  */
 class Modal {
 
@@ -25,7 +25,7 @@ class Modal {
 	}
 
 	/**
-	 * Enqueues modal CSS and JS only on the Plugins page.
+	 * Enqueues modal CSS and JS on relevant admin pages.
 	 *
 	 * @param string $hook_suffix Current admin page hook suffix.
 	 */
@@ -45,7 +45,7 @@ class Modal {
 			PLUGIN_AUDITOR_VERSION
 		);
 
-wp_enqueue_script(
+		wp_enqueue_script(
 			'pla-auditor',
 			PLUGIN_AUDITOR_URL . 'assets/js/auditor.js',
 			array( 'jquery' ),
@@ -56,24 +56,7 @@ wp_enqueue_script(
 			)
 		);
 
-		wp_localize_script(
-			'pla-auditor',
-			'plaAuditor',
-			array(
-				'ajaxUrl'     => admin_url( 'admin-ajax.php' ),
-				'ajaxTimeout' => 120000,
-				'i18n'        => array(
-					'running'        => __( 'Audit running…', 'plugin-auditor' ),
-					'complete'       => __( 'Audit complete', 'plugin-auditor' ),
-					'error'          => __( 'Audit failed. Please try again.', 'plugin-auditor' ),
-					'timeout'        => __( 'Audit timed out. The plugin may be too large. Please try again.', 'plugin-auditor' ),
-					'alreadyRunning' => __( 'An audit for this plugin is already in progress.', 'plugin-auditor' ),
-					'close'          => __( 'Close', 'plugin-auditor' ),
-					'download'       => __( 'Download PDF', 'plugin-auditor' ),
-					'retry'          => __( 'Retry', 'plugin-auditor' ),
-				),
-			)
-		);
+		wp_localize_script( 'pla-auditor', 'plaAuditor', $this->script_data() );
 	}
 
 	/**
@@ -94,5 +77,27 @@ wp_enqueue_script(
 		}
 
 		include PLUGIN_AUDITOR_DIR . 'templates/modal.php';
+	}
+
+	/**
+	 * Builds the JavaScript localisation data array.
+	 *
+	 * @return array<string, mixed>
+	 */
+	private function script_data(): array {
+		return array(
+			'ajaxUrl'     => admin_url( 'admin-ajax.php' ),
+			'ajaxTimeout' => 120000,
+			'i18n'        => array(
+				'running'        => __( 'Audit running…', 'plugin-auditor' ),
+				'complete'       => __( 'Audit complete', 'plugin-auditor' ),
+				'error'          => __( 'Audit failed. Please try again.', 'plugin-auditor' ),
+				'timeout'        => __( 'Audit timed out. The plugin may be too large. Please try again.', 'plugin-auditor' ),
+				'alreadyRunning' => __( 'An audit for this plugin is already in progress.', 'plugin-auditor' ),
+				'close'          => __( 'Close', 'plugin-auditor' ),
+				'download'       => __( 'Download PDF', 'plugin-auditor' ),
+				'retry'          => __( 'Retry', 'plugin-auditor' ),
+			),
+		);
 	}
 }

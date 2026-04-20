@@ -1,6 +1,6 @@
 <?php
 /**
- * Admin hooks, action links, and admin menu.
+ * Admin hooks, action links, and menu registration.
  *
  * @package PluginAuditor
  */
@@ -12,9 +12,14 @@ namespace PluginAuditor;
 defined( 'ABSPATH' ) || exit;
 
 /**
- * Handles admin integration.
+ * Registers admin action links and the reports menu page.
  */
 class Admin {
+
+	/**
+	 * @param ReportRepository $repository Report database queries.
+	 */
+	public function __construct( private ReportRepository $repository ) {}
 
 	/**
 	 * Registers WordPress hooks.
@@ -70,69 +75,8 @@ class Admin {
 			wp_die( esc_html__( 'You do not have permission to view this page.', 'plugin-auditor' ), 403 );
 		}
 
-		$reports = get_posts(
-			array(
-				'post_type'      => 'pla_report',
-				'post_status'    => 'publish',
-				'posts_per_page' => 50,
-				'no_found_rows'  => true,
-				'orderby'        => 'date',
-				'order'          => 'DESC',
-			)
-		);
+		$reports = $this->repository->all( 50 );
 
-		echo '<div class="wrap">';
-		echo '<h1>' . esc_html__( 'Plugin Audit Reports', 'plugin-auditor' ) . '</h1>';
-
-		if ( empty( $reports ) ) {
-			echo '<p>' . esc_html__( 'No audit reports yet. Click "Audit" on any plugin to begin.', 'plugin-auditor' ) . '</p>';
-			echo '</div>';
-			return;
-		}
-
-		echo '<table class="wp-list-table widefat fixed striped">';
-		echo '<thead><tr>';
-		echo '<th>' . esc_html__( 'Plugin', 'plugin-auditor' ) . '</th>';
-		echo '<th>' . esc_html__( 'Risk', 'plugin-auditor' ) . '</th>';
-		echo '<th>' . esc_html__( 'Date', 'plugin-auditor' ) . '</th>';
-		echo '<th>' . esc_html__( 'Actions', 'plugin-auditor' ) . '</th>';
-		echo '</tr></thead><tbody>';
-
-		foreach ( $reports as $report ) {
-			$plugin_name    = get_post_meta( $report->ID, '_pla_plugin_name', true );
-			$risk           = get_post_meta( $report->ID, '_pla_risk', true );
-			$view_nonce     = wp_create_nonce( 'pla_view_report_' . $report->ID );
-			$download_nonce = wp_create_nonce( 'pla_download_json_' . $report->ID );
-			$delete_nonce   = wp_create_nonce( 'pla_delete_report_' . $report->ID );
-
-			echo '<tr>';
-			echo '<td>' . esc_html( (string) $plugin_name ) . '</td>';
-			echo '<td><span class="pla-risk pla-risk--' . esc_attr( strtolower( (string) $risk ) ) . '">' . esc_html( (string) $risk ) . '</span></td>';
-			echo '<td>' . esc_html( (string) get_the_date( 'Y-m-d H:i', $report ) ) . '</td>';
-			echo '<td>';
-			printf(
-				'<button type="button" class="button pla-view-report" data-report-id="%1$s" data-nonce="%2$s">%3$s</button> ',
-				esc_attr( (string) $report->ID ),
-				esc_attr( $view_nonce ),
-				esc_html__( 'View', 'plugin-auditor' )
-			);
-			printf(
-				'<button type="button" class="button pla-download-report" data-report-id="%1$s" data-nonce="%2$s">%3$s</button> ',
-				esc_attr( (string) $report->ID ),
-				esc_attr( $download_nonce ),
-				esc_html__( 'Download JSON', 'plugin-auditor' )
-			);
-			printf(
-				'<button type="button" class="button pla-delete-report" data-report-id="%1$s" data-nonce="%2$s">%3$s</button>',
-				esc_attr( (string) $report->ID ),
-				esc_attr( $delete_nonce ),
-				esc_html__( 'Delete', 'plugin-auditor' )
-			);
-			echo '</td>';
-			echo '</tr>';
-		}
-
-		echo '</tbody></table>';
-		echo '</div>';
+		include PLUGIN_AUDITOR_DIR . 'templates/admin-reports.php';
 	}
 }
