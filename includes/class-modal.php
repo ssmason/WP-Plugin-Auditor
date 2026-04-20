@@ -45,15 +45,7 @@ class Modal {
 			PLUGIN_AUDITOR_VERSION
 		);
 
-		wp_enqueue_style(
-			'pla-print',
-			PLUGIN_AUDITOR_URL . 'assets/css/print.css',
-			array( 'pla-modal' ),
-			PLUGIN_AUDITOR_VERSION,
-			'print'
-		);
-
-		wp_enqueue_script(
+wp_enqueue_script(
 			'pla-auditor',
 			PLUGIN_AUDITOR_URL . 'assets/js/auditor.js',
 			array( 'jquery' ),
