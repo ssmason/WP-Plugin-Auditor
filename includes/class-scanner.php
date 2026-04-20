@@ -431,6 +431,11 @@ class Scanner {
 		$tainted_vars = array();
 
 		foreach ( $lines as $i => $line ) {
+			$trimmed = ltrim( $line );
+			if ( str_starts_with( $trimmed, '//' ) || str_starts_with( $trimmed, '*' ) || str_starts_with( $trimmed, '#' ) ) {
+				continue;
+			}
+
 			// Detect tainted variable assignments from superglobals.
 			foreach ( self::SUPERGLOBALS as $global ) {
 				if ( str_contains( $line, '$' . $global ) ) {
@@ -528,8 +533,18 @@ class Scanner {
 		$findings = array();
 
 		foreach ( $lines as $i => $line ) {
+			$trimmed_line = ltrim( $line );
+			if ( str_starts_with( $trimmed_line, '//' ) || str_starts_with( $trimmed_line, '*' ) || str_starts_with( $trimmed_line, '#' ) ) {
+				continue;
+			}
+
 			foreach ( self::SUPERGLOBALS as $global ) {
 				if ( ! str_contains( $line, '$' . $global . '[' ) ) {
+					continue;
+				}
+
+				// Skip if the superglobal appears inside a string literal.
+				if ( str_contains( $line, "'\$" . $global ) || str_contains( $line, '"\$' . $global ) ) {
 					continue;
 				}
 
@@ -660,7 +675,14 @@ class Scanner {
 		$info        = array();
 		$cap_pattern = '/current_user_can\s*\(\s*[\'"]([^\'"]+)[\'"]/';
 
+		$full_file = implode( "\n", $lines );
+
 		foreach ( $lines as $i => $line ) {
+			$trimmed_cap = ltrim( $line );
+			if ( str_starts_with( $trimmed_cap, '//' ) || str_starts_with( $trimmed_cap, '*' ) || str_starts_with( $trimmed_cap, '#' ) ) {
+				continue;
+			}
+
 			if ( preg_match( $cap_pattern, $line, $m ) ) {
 				$info[] = $this->finding(
 					'INFO',
@@ -682,16 +704,19 @@ class Scanner {
 				);
 			}
 
-			if ( preg_match( '/\b(update_option|add_option|wp_insert_post|wp_update_post|delete_option)\s*\(/', $line ) ) {
-				$start   = max( 0, $i - 10 );
+			if ( preg_match( '/\b(update_option|add_option|delete_option)\s*\(/', $line ) ) {
+				$start   = max( 0, $i - 30 );
 				$context = implode( "\n", array_slice( $lines, $start, $i - $start + 1 ) );
-				if ( ! str_contains( $context, 'current_user_can' ) ) {
+				if ( ! str_contains( $context, 'current_user_can' )
+					&& ! str_contains( $full_file, 'register_activation_hook' )
+					&& ! str_contains( $full_file, 'register_deactivation_hook' )
+				) {
 					$findings[] = $this->finding(
 						'HIGH',
 						$file,
 						$i + 1,
 						$line,
-						__( 'Write operation without a visible current_user_can() check in the preceding 10 lines.', 'plugin-auditor' )
+						__( 'Write operation without a visible current_user_can() check in the preceding 30 lines.', 'plugin-auditor' )
 					);
 				}
 			}
@@ -731,7 +756,11 @@ class Scanner {
 				continue;
 			}
 
-			if ( preg_match( '/\.\s*\$/', $line ) || preg_match( '/\$wpdb->' . $m[1] . '\s*\(\s*["\']/', $line ) ) {
+			$has_var_concat      = (bool) preg_match( '/\.\s*\$(?!wpdb)/', $line );
+			$has_string_arg      = (bool) preg_match( '/\$wpdb->' . $m[1] . '\s*\(\s*["\']/', $line );
+			$has_non_wpdb_interp = (bool) preg_match( '/\{\$(?!wpdb->)/', $line );
+
+			if ( $has_var_concat || ( $has_string_arg && $has_non_wpdb_interp ) ) {
 				$findings[] = $this->finding(
 					'CRITICAL',
 					$file,
@@ -785,7 +814,13 @@ class Scanner {
 		$findings = array();
 
 		foreach ( $lines as $i => $line ) {
-			if ( preg_match( '/error_reporting\s*\(\s*(0|false)\s*\)/', $line ) ) {
+			$trimmed_err = ltrim( $line );
+			if ( str_starts_with( $trimmed_err, '//' ) || str_starts_with( $trimmed_err, '*' ) || str_starts_with( $trimmed_err, '#' ) ) {
+				continue;
+			}
+
+			if ( preg_match( '/error_reporting\s*\(\s*(0|false)\s*\)/', $line )
+				&& ! preg_match( '/[\'"].*error_reporting/', $line ) ) {
 				$findings[] = $this->finding(
 					'HIGH',
 					$file,
@@ -956,8 +991,13 @@ class Scanner {
 		);
 
 		foreach ( $iterator as $item ) {
-			$path  = $item->getPathname();
-			$rel   = str_replace( $plugin_dir . '/', '', $path );
+			$path     = $item->getPathname();
+			$rel      = str_replace( $plugin_dir . '/', '', $path );
+			$rel_parts = explode( DIRECTORY_SEPARATOR, $rel );
+			if ( array_intersect( $rel_parts, self::SKIP_DIRS ) ) {
+				continue;
+			}
+
 			$perms = fileperms( $path );
 
 			if ( false === $perms ) {
@@ -1353,6 +1393,11 @@ class Scanner {
 
 		foreach ( $lines as $i => $line ) {
 			if ( preg_match( $pattern, $line, $m ) ) {
+				// Skip file_get_contents() when it has no HTTP URL — local filesystem read.
+				if ( 'file_get_contents' === $m[1] && ! preg_match( '/[\'"]https?:\/\//', $line ) ) {
+					continue;
+				}
+
 				$url = '';
 				if ( preg_match( '/[\'"]https?:\/\/[^\'"]+[\'"]/', $line, $um ) ) {
 					$url = $um[0];

@@ -129,7 +129,7 @@ class Ajax {
 			wp_send_json_error( array( 'message' => __( 'Insufficient permissions.', 'plugin-auditor' ) ), 403 );
 		}
 
-		$report_id = absint( $_POST['report_id'] ?? 0 );
+		$report_id = absint( wp_unslash( $_POST['report_id'] ?? 0 ) );
 
 		if ( ! $report_id ) {
 			wp_send_json_error( array( 'message' => __( 'No report specified.', 'plugin-auditor' ) ), 400 );
@@ -164,7 +164,7 @@ class Ajax {
 			wp_send_json_error( array( 'message' => __( 'Insufficient permissions.', 'plugin-auditor' ) ), 403 );
 		}
 
-		$report_id = absint( $_POST['report_id'] ?? 0 );
+		$report_id = absint( wp_unslash( $_POST['report_id'] ?? 0 ) );
 
 		if ( ! $report_id ) {
 			wp_send_json_error( array( 'message' => __( 'No report specified.', 'plugin-auditor' ) ), 400 );
