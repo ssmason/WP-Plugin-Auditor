@@ -145,7 +145,7 @@
 	}
 
 	function loadReport( reportId, nonce ) {
-		showProgress();
+		resetModal();
 		openModal();
 
 		if ( activeRequest ) {

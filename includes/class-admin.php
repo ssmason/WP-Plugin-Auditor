@@ -110,7 +110,7 @@ class Admin {
 			echo '<td>' . esc_html( (string) get_the_date( 'Y-m-d H:i', $report ) ) . '</td>';
 			echo '<td>';
 			printf(
-				'<a href="#" class="pla-view-report" data-report-id="%1$s" data-nonce="%2$s">%3$s</a> ',
+				'<button type="button" class="button pla-view-report" data-report-id="%1$s" data-nonce="%2$s">%3$s</button> ',
 				esc_attr( (string) $report->ID ),
 				esc_attr( $view_nonce ),
 				esc_html__( 'View', 'plugin-auditor' )
