@@ -47,6 +47,7 @@ class Ajax {
 	public function init(): void {
 		add_action( 'wp_ajax_pla_run_audit', array( $this, 'handle_run_audit' ), 10, 0 );
 		add_action( 'wp_ajax_pla_get_report', array( $this, 'handle_get_report' ), 10, 0 );
+		add_action( 'wp_ajax_pla_download_json', array( $this, 'handle_download_json' ), 10, 0 );
 	}
 
 	/**
@@ -113,8 +114,9 @@ class Ajax {
 
 		wp_send_json_success(
 			array(
-				'report_id' => $report_id,
-				'html'      => $html,
+				'report_id'      => $report_id,
+				'html'           => $html,
+				'download_nonce' => wp_create_nonce( 'pla_download_json_' . $report_id ),
 			)
 		);
 	}
@@ -145,6 +147,57 @@ class Ajax {
 
 		$html = $this->report->render( $report_id );
 
-		wp_send_json_success( array( 'html' => $html ) );
+		wp_send_json_success(
+			array(
+				'report_id'      => $report_id,
+				'html'           => $html,
+				'download_nonce' => wp_create_nonce( 'pla_download_json_' . $report_id ),
+			)
+		);
+	}
+
+	/**
+	 * Handles the pla_download_json AJAX action — returns report data as JSON for download.
+	 */
+	public function handle_download_json(): void {
+		if ( ! current_user_can( 'manage_options' ) ) {
+			wp_send_json_error( array( 'message' => __( 'Insufficient permissions.', 'plugin-auditor' ) ), 403 );
+		}
+
+		$report_id = absint( $_POST['report_id'] ?? 0 );
+
+		if ( ! $report_id ) {
+			wp_send_json_error( array( 'message' => __( 'No report specified.', 'plugin-auditor' ) ), 400 );
+		}
+
+		if ( ! wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST['nonce'] ?? '' ) ), 'pla_download_json_' . $report_id ) ) {
+			wp_send_json_error( array( 'message' => __( 'Security check failed.', 'plugin-auditor' ) ), 403 );
+		}
+
+		$post = get_post( $report_id );
+
+		if ( ! $post || 'pla_report' !== $post->post_type ) {
+			wp_send_json_error( array( 'message' => __( 'Report not found.', 'plugin-auditor' ) ), 404 );
+		}
+
+		$findings    = $this->report->load( $report_id );
+		$plugin_name = (string) get_post_meta( $report_id, '_pla_plugin_name', true );
+		$plugin_file = (string) get_post_meta( $report_id, '_pla_plugin_file', true );
+		$sections    = $findings;
+		unset( $sections['rating'], $sections['score'] );
+
+		$filename = sanitize_file_name( 'pla-' . $plugin_name . '-' . gmdate( 'Y-m-d' ) . '.json' );
+
+		wp_send_json_success(
+			array(
+				'filename'    => $filename,
+				'plugin_name' => $plugin_name,
+				'plugin_file' => $plugin_file,
+				'risk'        => $findings['rating'],
+				'score'       => $findings['score'],
+				'generated'   => get_the_date( 'Y-m-d H:i:s', $post ),
+				'findings'    => $sections,
+			)
+		);
 	}
 }

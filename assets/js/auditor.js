@@ -17,10 +17,12 @@
 	const retryBtn     = modal.querySelector( '.pla-modal__retry' );
 	const printBtn     = modal.querySelector( '.pla-modal__print' );
 
-	let triggerElement = null;
-	let currentPlugin  = null;
-	let currentNonce   = null;
-	let activeRequest  = null;
+	let triggerElement       = null;
+	let currentPlugin        = null;
+	let currentNonce         = null;
+	let activeRequest        = null;
+	let currentReportId      = null;
+	let currentDownloadNonce = null;
 
 	// -------------------------------------------------------------------------
 	// Modal open / close
@@ -52,6 +54,8 @@
 		footerEl.hidden           = true;
 		reportEl.textContent      = '';
 		errorText.textContent     = '';
+		currentReportId           = null;
+		currentDownloadNonce      = null;
 		// Reset progress bar so animation restarts cleanly next time.
 		progressFill.style.animation = 'none';
 		progressFill.style.width     = '0%';
@@ -80,7 +84,9 @@
 		errorEl.hidden            = false;
 	}
 
-	function showReport( html ) {
+	function showReport( html, reportId, downloadNonce ) {
+		currentReportId      = reportId || null;
+		currentDownloadNonce = downloadNonce || null;
 		completeProgress( function () {
 			progressEl.hidden  = true;
 			errorEl.hidden     = true;
@@ -117,7 +123,7 @@
 			success: function ( response ) {
 				activeRequest = null;
 				if ( response.success ) {
-					showReport( response.data.html );
+					showReport( response.data.html, response.data.report_id, response.data.download_nonce );
 				} else {
 					const msg = ( response.data && response.data.message )
 						? response.data.message
@@ -158,7 +164,7 @@
 			success: function ( response ) {
 				activeRequest = null;
 				if ( response.success ) {
-					showReport( response.data.html );
+					showReport( response.data.html, response.data.report_id, response.data.download_nonce );
 				} else {
 					const msg = ( response.data && response.data.message )
 						? response.data.message
@@ -238,7 +244,34 @@
 	} );
 
 	printBtn.addEventListener( 'click', function () {
-		window.print();
+		if ( ! currentReportId || ! currentDownloadNonce ) {
+			return;
+		}
+
+		fetch( plaAuditor.ajaxUrl, {
+			method:  'POST',
+			headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+			body:    new URLSearchParams( {
+				action:    'pla_download_json',
+				report_id: currentReportId,
+				nonce:     currentDownloadNonce,
+			} ),
+		} )
+		.then( function ( res ) { return res.json(); } )
+		.then( function ( response ) {
+			if ( ! response.success ) {
+				return;
+			}
+			const blob     = new Blob( [ JSON.stringify( response.data, null, 2 ) ], { type: 'application/json' } );
+			const url      = URL.createObjectURL( blob );
+			const anchor   = document.createElement( 'a' );
+			anchor.href     = url;
+			anchor.download = response.data.filename || 'audit-report.json';
+			document.body.appendChild( anchor );
+			anchor.click();
+			document.body.removeChild( anchor );
+			URL.revokeObjectURL( url );
+		} );
 	} );
 
 	// Audit trigger links in plugin rows.

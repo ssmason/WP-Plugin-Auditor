@@ -60,7 +60,7 @@ defined( 'ABSPATH' ) || exit;
 
 		<div class="pla-modal__footer" hidden>
 			<button type="button" class="button button-primary pla-modal__print">
-				<?php esc_html_e( 'Download PDF', 'plugin-auditor' ); ?>
+				<?php esc_html_e( 'Download', 'plugin-auditor' ); ?>
 			</button>
 		</div>
 	</div>
