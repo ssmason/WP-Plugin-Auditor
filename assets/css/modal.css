@@ -9,7 +9,11 @@
 	justify-content: center;
 }
 
-.pla-modal[hidden] {
+.pla-modal[hidden],
+.pla-modal__progress[hidden],
+.pla-modal__error[hidden],
+.pla-modal__report[hidden],
+.pla-modal__footer[hidden] {
 	display: none;
 }
 
