@@ -113,6 +113,11 @@ class Scanner {
 	);
 
 	/**
+	 * Directory names to skip during file permission and structure checks.
+	 */
+	private const SKIP_DIRS = array( 'vendor', 'node_modules', '.git', 'tests' );
+
+	/**
 	 * WordPress role names that must never be passed to current_user_can().
 	 */
 	private const WP_ROLE_NAMES = array(
