@@ -36,9 +36,14 @@ defined( 'ABSPATH' ) || exit;
 		<div id="pla-modal-body" class="pla-modal__body">
 
 			<div class="pla-modal__progress" hidden>
-				<div class="pla-spinner" aria-hidden="true"></div>
 				<p class="pla-modal__progress-text">
 					<?php esc_html_e( 'Audit running…', 'plugin-auditor' ); ?>
+				</p>
+				<div class="pla-progress-bar" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-label="<?php esc_attr_e( 'Audit progress', 'plugin-auditor' ); ?>">
+					<div class="pla-progress-bar__fill"></div>
+				</div>
+				<p class="pla-modal__progress-hint">
+					<?php esc_html_e( 'Scanning plugin files for security issues…', 'plugin-auditor' ); ?>
 				</p>
 			</div>
 

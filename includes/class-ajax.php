@@ -73,22 +73,35 @@ class Ajax {
 			wp_send_json_error( array( 'message' => __( 'An audit for this plugin is already in progress.', 'plugin-auditor' ) ), 429 );
 		}
 
-		set_transient( $rate_key, true, 30 );
+		set_transient( $rate_key, true, 120 );
+
+		// get_plugin_data() is not available in AJAX context without this include.
+		if ( ! function_exists( 'get_plugin_data' ) ) {
+			require_once ABSPATH . 'wp-admin/includes/plugin.php';
+		}
 
 		$plugin_dir  = WP_PLUGIN_DIR . '/' . dirname( $plugin_file );
-		$plugin_data = get_plugin_data( WP_PLUGIN_DIR . '/' . $plugin_file );
+		$plugin_path = WP_PLUGIN_DIR . '/' . $plugin_file;
 
-		if ( ! is_dir( $plugin_dir ) ) {
+		if ( ! is_dir( $plugin_dir ) || ! file_exists( $plugin_path ) ) {
 			delete_transient( $rate_key );
 			wp_send_json_error( array( 'message' => __( 'Plugin directory not found.', 'plugin-auditor' ) ), 404 );
 		}
 
-		$findings = $this->scanner->scan( $plugin_dir );
+		$plugin_data = get_plugin_data( $plugin_path );
+		$plugin_name = $plugin_data['Name'] ?: basename( dirname( $plugin_file ) );
+
+		try {
+			$findings = $this->scanner->scan( $plugin_dir );
+		} catch ( \Throwable $e ) {
+			delete_transient( $rate_key );
+			wp_send_json_error( array( 'message' => __( 'Audit failed during scan.', 'plugin-auditor' ) ), 500 );
+		}
 
 		$cpt = new Cpt();
 		$cpt->enforce_report_cap( $plugin_file );
 
-		$report_id = $this->report->save( $plugin_file, $plugin_data['Name'], $findings );
+		$report_id = $this->report->save( $plugin_file, $plugin_name, $findings );
 
 		delete_transient( $rate_key );
 

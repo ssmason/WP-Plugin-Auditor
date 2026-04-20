@@ -112,7 +112,10 @@ class Scanner {
 		);
 
 		foreach ( $php_files as $file ) {
-			$lines   = file( $file, FILE_IGNORE_NEW_LINES );
+			$lines = file( $file, FILE_IGNORE_NEW_LINES );
+			if ( false === $lines ) {
+				continue;
+			}
 			$content = implode( "\n", $lines );
 			$rel     = str_replace( $plugin_dir . '/', '', $file );
 

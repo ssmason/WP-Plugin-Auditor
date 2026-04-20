@@ -6,6 +6,7 @@
 
 	const modal        = document.getElementById( 'pla-modal' );
 	const progressEl   = modal.querySelector( '.pla-modal__progress' );
+	const progressFill = modal.querySelector( '.pla-progress-bar__fill' );
 	const errorEl      = modal.querySelector( '.pla-modal__error' );
 	const errorText    = modal.querySelector( '.pla-modal__error-text' );
 	const reportEl     = modal.querySelector( '.pla-modal__report' );
@@ -43,33 +44,46 @@
 	}
 
 	function resetModal() {
-		progressEl.hidden = true;
-		errorEl.hidden    = true;
-		reportEl.hidden   = true;
-		footerEl.hidden   = true;
-		reportEl.textContent = '';
-		errorText.textContent = '';
+		progressEl.hidden         = true;
+		errorEl.hidden            = true;
+		reportEl.hidden           = true;
+		footerEl.hidden           = true;
+		reportEl.textContent      = '';
+		errorText.textContent     = '';
+		// Reset progress bar so animation restarts cleanly next time.
+		progressFill.style.animation = 'none';
+		progressFill.style.width     = '0%';
+		void progressFill.offsetWidth; // eslint-disable-line no-void
 	}
 
 	function showProgress() {
 		resetModal();
+		progressFill.style.animation = '';
 		progressEl.hidden = false;
 	}
 
+	function completeProgress( callback ) {
+		progressFill.style.animation = 'none';
+		progressFill.style.width     = '100%';
+		setTimeout( callback, 300 );
+	}
+
 	function showError( message ) {
-		progressEl.hidden = true;
-		reportEl.hidden   = true;
-		footerEl.hidden   = true;
-		errorText.textContent = message;
-		errorEl.hidden    = false;
+		progressEl.hidden         = true;
+		reportEl.hidden           = true;
+		footerEl.hidden           = true;
+		errorText.textContent     = message;
+		errorEl.hidden            = false;
 	}
 
 	function showReport( html ) {
-		progressEl.hidden = true;
-		errorEl.hidden    = true;
-		reportEl.innerHTML = html;
-		reportEl.hidden   = false;
-		footerEl.hidden   = false;
+		completeProgress( function () {
+			progressEl.hidden  = true;
+			errorEl.hidden     = true;
+			reportEl.innerHTML = html;
+			reportEl.hidden    = false;
+			footerEl.hidden    = false;
+		} );
 	}
 
 	// -------------------------------------------------------------------------

@@ -125,6 +125,8 @@ A WordPress plugin that audits other installed plugins for security issues, codi
 - Rate limit sensitive AJAX endpoints using transients
 - Return `wp_die()` with appropriate HTTP status on failure
 - Always use `wp_send_json_success()` / `wp_send_json_error()` for JSON responses
+- `wp-admin/includes/plugin.php` (and other wp-admin includes) are **not loaded** on `admin-ajax.php` requests — guard with `if ( ! function_exists( 'get_plugin_data' ) ) { require_once ABSPATH . 'wp-admin/includes/plugin.php'; }` before calling any such function
+- Wrap scan/processing logic in `try/catch \Throwable` so errors return a clean JSON response rather than a silent hang
 
 ---
 
