@@ -548,6 +548,11 @@ class Scanner {
 					continue;
 				}
 
+				// Skip isset()/empty() — existence checks, not value reads.
+				if ( preg_match( '/\b(?:isset|empty)\s*\(\s*\$' . preg_quote( $global, '/' ) . '\[/', $line ) ) {
+					continue;
+				}
+
 				$has_sanitize = $this->is_sanitized( $line );
 				$has_unslash  = str_contains( $line, 'wp_unslash' );
 
@@ -705,9 +710,17 @@ class Scanner {
 			}
 
 			if ( preg_match( '/\b(update_option|add_option|delete_option)\s*\(/', $line ) ) {
-				$start   = max( 0, $i - 30 );
-				$context = implode( "\n", array_slice( $lines, $start, $i - $start + 1 ) );
-				if ( ! str_contains( $context, 'current_user_can' )
+				// Find the enclosing function start to scan its full scope.
+				$func_start = max( 0, $i - 30 );
+				for ( $j = $i - 1; $j >= 0; $j-- ) {
+					if ( preg_match( '/\bfunction\s+\w+/', $lines[ $j ] ) ) {
+						$func_start = $j;
+						break;
+					}
+				}
+				$func_context = implode( "\n", array_slice( $lines, $func_start, $i - $func_start + 1 ) );
+
+				if ( ! str_contains( $func_context, 'current_user_can' )
 					&& ! str_contains( $full_file, 'register_activation_hook' )
 					&& ! str_contains( $full_file, 'register_deactivation_hook' )
 				) {
@@ -716,7 +729,7 @@ class Scanner {
 						$file,
 						$i + 1,
 						$line,
-						__( 'Write operation without a visible current_user_can() check in the preceding 30 lines.', 'plugin-auditor' )
+						__( 'Write operation without a visible current_user_can() check in the preceding scope.', 'plugin-auditor' )
 					);
 				}
 			}
