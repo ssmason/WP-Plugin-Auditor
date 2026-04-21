@@ -65,9 +65,9 @@ npm run env:clean    # destroy and recreate (wipes data)
 1. Go to **Plugins** in the WordPress admin
 2. Click **Audit** in the action row beneath any plugin
 3. The modal opens immediately and shows a progress indicator while the audit runs
-4. On completion the full report is displayed in the modal
-5. Click **Download PDF** to print / save the report
-6. Previous reports are accessible from **Tools → Plugin Auditor**
+4. On completion the full report is displayed in the modal, including a colour-coded risk summary, severity counts table, and per-section findings
+5. Click **Download JSON** to export the raw report data
+6. Previous reports are accessible from **Tools → Plugin Auditor**, which lists all stored reports with High / Medium / Low counts and supports bulk deletion
 
 ---
 
@@ -195,7 +195,7 @@ plugin-auditor/
 ├── includes/
 │   ├── index.php
 │   ├── class-admin.php             # Plugins page action link, admin menu, reports page
-│   ├── class-ajax.php              # AJAX handlers: pla_run_audit, pla_get_report, pla_download_json, pla_delete_report
+│   ├── class-ajax.php              # AJAX handlers: pla_run_audit, pla_get_report, pla_download_json, pla_delete_report, pla_bulk_delete
 │   ├── class-cpt.php               # pla_report CPT registration
 │   ├── class-file-collector.php    # Recursive PHP/JS file collection
 │   ├── class-modal.php             # Asset enqueue, modal shell in admin footer
@@ -243,10 +243,12 @@ A maximum of 20 reports are retained per audited plugin. The oldest is deleted w
 
 ### AJAX Security
 
-Every AJAX handler (`pla_run_audit`, `pla_get_report`) verifies:
+Registered AJAX actions: `pla_run_audit`, `pla_get_report`, `pla_download_json`, `pla_delete_report`, `pla_bulk_delete`
+
+Every handler verifies:
 1. `current_user_can( 'manage_options' )`
-2. A per-plugin or per-report nonce
-3. Rate limiting via transient (`pla_running_{hash}`)  blocks duplicate concurrent audits
+2. A per-action nonce (per-plugin for audits, per-report for single operations, shared for bulk)
+3. Rate limiting via transient (`pla_running_{hash}`) — blocks duplicate concurrent audits
 
 ### Modal Accessibility
 
