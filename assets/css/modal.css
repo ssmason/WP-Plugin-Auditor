@@ -194,75 +194,41 @@
 .pla-rating--low      { background: #eef6fb; color: #004c6a; }
 .pla-rating--clean    { background: #e8f5e9; color: #1b5e20; }
 
-/* Summary bar */
+/* Summary table */
 .pla-report__summary {
-	display: flex;
-	gap: 10px;
-	margin-bottom: 20px;
-	flex-wrap: wrap;
+	margin-bottom: 28px;
 }
 
-.pla-summary-card {
-	flex: 1;
-	min-width: 70px;
-	display: flex;
-	flex-direction: column;
-	align-items: center;
-	padding: 12px 8px;
-	border-radius: 6px;
-	border: 1px solid transparent;
+.pla-summary-table {
+	width: 100%;
+	border-collapse: collapse;
+	font-size: 12px;
 }
 
-.pla-summary-card__count {
-	font-size: 28px;
+.pla-summary-table th {
+	text-align: left;
+	padding: 6px 10px;
+	background: #f6f7f7;
+	font-weight: 600;
+	border: 1px solid #e0e0e0;
+}
+
+.pla-summary-table td {
+	padding: 7px 10px;
+	border: 1px solid #e0e0e0;
+	vertical-align: middle;
+}
+
+.pla-summary-count {
 	font-weight: 700;
-	line-height: 1;
-}
-
-.pla-summary-card__label {
-	font-size: 11px;
-	font-weight: 700;
-	text-transform: uppercase;
-	letter-spacing: 0.05em;
-	margin-top: 4px;
-}
-
-.pla-summary-card__note {
-	font-size: 10px;
-	font-weight: 400;
-	opacity: 0.75;
-	margin-top: 2px;
+	font-size: 14px;
 	text-align: center;
+	width: 60px;
 }
 
-.pla-summary-card--critical {
-	background: rgba(214, 54, 56, 0.1);
-	border-color: rgba(214, 54, 56, 0.3);
-	color: #8a0000;
-}
-
-.pla-summary-card--high {
-	background: rgba(214, 119, 9, 0.1);
-	border-color: rgba(214, 119, 9, 0.3);
-	color: #7a4200;
-}
-
-.pla-summary-card--medium {
-	background: rgba(219, 166, 23, 0.1);
-	border-color: rgba(219, 166, 23, 0.3);
-	color: #6b5400;
-}
-
-.pla-summary-card--low {
-	background: rgba(0, 115, 170, 0.1);
-	border-color: rgba(0, 115, 170, 0.3);
-	color: #004c6a;
-}
-
-.pla-summary-card--info {
-	background: rgba(136, 136, 136, 0.1);
-	border-color: rgba(136, 136, 136, 0.3);
-	color: #444;
+.pla-summary-note {
+	color: #555;
+	font-style: italic;
 }
 
 /* Sections */

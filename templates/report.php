@@ -61,42 +61,57 @@ foreach ( $section_labels as $section => $label ) {
 	</header>
 
 	<div class="pla-report__summary">
-		<?php
-		$summary_items = array(
-			'critical' => array(
-				'label'   => __( 'Critical', 'plugin-auditor' ),
-				'note'    => __( 'Fix immediately', 'plugin-auditor' ),
-				'count'   => $severity_counts['critical'],
-			),
-			'high'     => array(
-				'label'   => __( 'High', 'plugin-auditor' ),
-				'note'    => __( 'Address urgently', 'plugin-auditor' ),
-				'count'   => $severity_counts['high'],
-			),
-			'medium'   => array(
-				'label'   => __( 'Medium', 'plugin-auditor' ),
-				'note'    => __( 'Address when possible', 'plugin-auditor' ),
-				'count'   => $severity_counts['medium'],
-			),
-			'low'      => array(
-				'label'   => __( 'Low', 'plugin-auditor' ),
-				'note'    => __( 'Review and consider', 'plugin-auditor' ),
-				'count'   => $severity_counts['low'],
-			),
-			'info'     => array(
-				'label'   => __( 'Info', 'plugin-auditor' ),
-				'note'    => __( 'Informational only', 'plugin-auditor' ),
-				'count'   => $severity_counts['info'],
-			),
-		);
-		foreach ( $summary_items as $sev => $item ) :
-		?>
-			<div class="pla-summary-card pla-summary-card--<?php echo esc_attr( $sev ); ?>">
-				<span class="pla-summary-card__count"><?php echo esc_html( (string) $item['count'] ); ?></span>
-				<span class="pla-summary-card__label"><?php echo esc_html( $item['label'] ); ?></span>
-				<span class="pla-summary-card__note"><?php echo esc_html( $item['note'] ); ?></span>
-			</div>
-		<?php endforeach; ?>
+		<table class="pla-summary-table">
+			<thead>
+				<tr>
+					<th><?php esc_html_e( 'Severity', 'plugin-auditor' ); ?></th>
+					<th><?php esc_html_e( 'Count', 'plugin-auditor' ); ?></th>
+					<th><?php esc_html_e( 'Guidance', 'plugin-auditor' ); ?></th>
+				</tr>
+			</thead>
+			<tbody>
+				<?php
+				$summary_items = array(
+					'critical' => array(
+						'label' => __( 'Critical', 'plugin-auditor' ),
+						'note'  => __( 'Fix immediately', 'plugin-auditor' ),
+						'count' => $severity_counts['critical'],
+					),
+					'high'     => array(
+						'label' => __( 'High', 'plugin-auditor' ),
+						'note'  => __( 'Address urgently', 'plugin-auditor' ),
+						'count' => $severity_counts['high'],
+					),
+					'medium'   => array(
+						'label' => __( 'Medium', 'plugin-auditor' ),
+						'note'  => __( 'Address when possible', 'plugin-auditor' ),
+						'count' => $severity_counts['medium'],
+					),
+					'low'      => array(
+						'label' => __( 'Low', 'plugin-auditor' ),
+						'note'  => __( 'Review and consider', 'plugin-auditor' ),
+						'count' => $severity_counts['low'],
+					),
+					'info'     => array(
+						'label' => __( 'Info', 'plugin-auditor' ),
+						'note'  => __( 'Informational only', 'plugin-auditor' ),
+						'count' => $severity_counts['info'],
+					),
+				);
+				foreach ( $summary_items as $sev => $item ) :
+				?>
+				<tr>
+					<td>
+						<span class="pla-severity pla-severity--<?php echo esc_attr( $sev ); ?>">
+							<?php echo esc_html( $item['label'] ); ?>
+						</span>
+					</td>
+					<td class="pla-summary-count"><?php echo esc_html( (string) $item['count'] ); ?></td>
+					<td class="pla-summary-note"><?php echo esc_html( $item['note'] ); ?></td>
+				</tr>
+				<?php endforeach; ?>
+			</tbody>
+		</table>
 	</div>
 
 	<?php foreach ( $section_labels as $section => $label ) : ?>
