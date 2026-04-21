@@ -58,6 +58,64 @@ foreach ( $section_labels as $section => $label ) {
 				?>
 			</span>
 		</div>
+
+		<?php
+		$c = $severity_counts['critical'];
+		$h = $severity_counts['high'];
+		$m = $severity_counts['medium'];
+		$l = $severity_counts['low'];
+
+		if ( 'CLEAN' === $rating ) {
+			$summary_text = esc_html__( 'No significant issues found. This plugin passed all security and code quality checks — no action required.', 'plugin-auditor' );
+		} elseif ( 'LOW' === $rating ) {
+			$summary_text = sprintf(
+				/* translators: 1: low count */
+				esc_html__( 'This plugin is largely clean with %1$d minor issue(s) noted. No critical or high severity problems were found. Review the low severity findings at your convenience.', 'plugin-auditor' ),
+				$l
+			);
+		} elseif ( 'MEDIUM' === $rating ) {
+			$parts = array();
+			if ( $h > 0 ) {
+				/* translators: %d: count */
+				$parts[] = sprintf( esc_html__( '%d high', 'plugin-auditor' ), $h );
+			}
+			if ( $m > 0 ) {
+				/* translators: %d: count */
+				$parts[] = sprintf( esc_html__( '%d medium', 'plugin-auditor' ), $m );
+			}
+			$summary_text = sprintf(
+				/* translators: 1: issue list e.g. "2 high and 3 medium" */
+				esc_html__( 'This plugin has %1$s severity issue(s) that should be addressed. No critical vulnerabilities were found, but the items below warrant attention before deploying to production.', 'plugin-auditor' ),
+				implode( esc_html__( ' and ', 'plugin-auditor' ), $parts )
+			);
+		} elseif ( 'HIGH' === $rating ) {
+			$parts = array();
+			if ( $c > 0 ) {
+				/* translators: %d: count */
+				$parts[] = sprintf( esc_html__( '%d critical', 'plugin-auditor' ), $c );
+			}
+			if ( $h > 0 ) {
+				/* translators: %d: count */
+				$parts[] = sprintf( esc_html__( '%d high', 'plugin-auditor' ), $h );
+			}
+			$summary_text = sprintf(
+				/* translators: 1: issue list */
+				esc_html__( 'This plugin has %1$s severity issue(s) that require prompt attention. Address the high severity findings as a priority before this plugin is used in a production environment.', 'plugin-auditor' ),
+				implode( esc_html__( ' and ', 'plugin-auditor' ), $parts )
+			);
+		} else {
+			$summary_text = sprintf(
+				/* translators: 1: critical count, 2: high count, 3: score */
+				esc_html__( 'This plugin has %1$d critical and %2$d high severity issue(s) that require immediate action. With a risk score of %3$d, this plugin should not be used in production until the critical and high findings below have been resolved.', 'plugin-auditor' ),
+				$c,
+				$h,
+				(int) $score
+			);
+		}
+		?>
+		<p class="pla-report__summary-text pla-report__summary-text--<?php echo esc_attr( strtolower( $rating ) ); ?>">
+			<?php echo $summary_text; // Already escaped above via esc_html__ and sprintf. ?>
+		</p>
 	</header>
 
 	<div class="pla-report__summary">
