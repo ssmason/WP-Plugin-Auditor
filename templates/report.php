@@ -20,6 +20,19 @@ defined( 'ABSPATH' ) || exit;
 $section_labels = \PluginAuditor\Report::section_labels();
 
 $rating_class = 'pla-rating--' . strtolower( esc_attr( $rating ) );
+
+$severity_counts = array( 'critical' => 0, 'high' => 0, 'medium' => 0, 'low' => 0, 'info' => 0 );
+foreach ( $section_labels as $section => $label ) {
+	if ( ! isset( $findings[ $section ] ) || ! is_array( $findings[ $section ] ) ) {
+		continue;
+	}
+	foreach ( $findings[ $section ] as $finding ) {
+		$sev = strtolower( $finding['severity'] ?? '' );
+		if ( isset( $severity_counts[ $sev ] ) ) {
+			++$severity_counts[ $sev ];
+		}
+	}
+}
 ?>
 <article class="pla-report">
 
@@ -46,6 +59,24 @@ $rating_class = 'pla-rating--' . strtolower( esc_attr( $rating ) );
 			</span>
 		</div>
 	</header>
+
+	<div class="pla-report__summary">
+		<?php
+		$summary_items = array(
+			'critical' => array( 'label' => __( 'Critical', 'plugin-auditor' ), 'count' => $severity_counts['critical'] ),
+			'high'     => array( 'label' => __( 'High', 'plugin-auditor' ),     'count' => $severity_counts['high'] ),
+			'medium'   => array( 'label' => __( 'Medium', 'plugin-auditor' ),   'count' => $severity_counts['medium'] ),
+			'low'      => array( 'label' => __( 'Low', 'plugin-auditor' ),      'count' => $severity_counts['low'] ),
+			'info'     => array( 'label' => __( 'Info', 'plugin-auditor' ),     'count' => $severity_counts['info'] ),
+		);
+		foreach ( $summary_items as $sev => $item ) :
+		?>
+			<div class="pla-summary-card pla-summary-card--<?php echo esc_attr( $sev ); ?>">
+				<span class="pla-summary-card__count"><?php echo esc_html( (string) $item['count'] ); ?></span>
+				<span class="pla-summary-card__label"><?php echo esc_html( $item['label'] ); ?></span>
+			</div>
+		<?php endforeach; ?>
+	</div>
 
 	<?php foreach ( $section_labels as $section => $label ) : ?>
 

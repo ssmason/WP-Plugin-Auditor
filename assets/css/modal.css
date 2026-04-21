@@ -194,6 +194,69 @@
 .pla-rating--low      { background: #eef6fb; color: #004c6a; }
 .pla-rating--clean    { background: #e8f5e9; color: #1b5e20; }
 
+/* Summary bar */
+.pla-report__summary {
+	display: flex;
+	gap: 10px;
+	margin-bottom: 20px;
+	flex-wrap: wrap;
+}
+
+.pla-summary-card {
+	flex: 1;
+	min-width: 70px;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	padding: 12px 8px;
+	border-radius: 6px;
+	border: 1px solid transparent;
+}
+
+.pla-summary-card__count {
+	font-size: 28px;
+	font-weight: 700;
+	line-height: 1;
+}
+
+.pla-summary-card__label {
+	font-size: 11px;
+	font-weight: 600;
+	text-transform: uppercase;
+	letter-spacing: 0.05em;
+	margin-top: 4px;
+}
+
+.pla-summary-card--critical {
+	background: rgba(214, 54, 56, 0.1);
+	border-color: rgba(214, 54, 56, 0.3);
+	color: #8a0000;
+}
+
+.pla-summary-card--high {
+	background: rgba(214, 119, 9, 0.1);
+	border-color: rgba(214, 119, 9, 0.3);
+	color: #7a4200;
+}
+
+.pla-summary-card--medium {
+	background: rgba(219, 166, 23, 0.1);
+	border-color: rgba(219, 166, 23, 0.3);
+	color: #6b5400;
+}
+
+.pla-summary-card--low {
+	background: rgba(0, 115, 170, 0.1);
+	border-color: rgba(0, 115, 170, 0.3);
+	color: #004c6a;
+}
+
+.pla-summary-card--info {
+	background: rgba(136, 136, 136, 0.1);
+	border-color: rgba(136, 136, 136, 0.3);
+	color: #444;
+}
+
 /* Sections */
 .pla-report__section {
 	margin-bottom: 20px;
