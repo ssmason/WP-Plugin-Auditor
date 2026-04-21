@@ -121,7 +121,7 @@ class Ajax {
 		}
 
 		$raw_ids = isset( $_POST['report_ids'] ) && is_array( $_POST['report_ids'] )
-			? $_POST['report_ids']
+			? array_map( 'absint', wp_unslash( $_POST['report_ids'] ) )
 			: array();
 
 		$deleted = 0;
