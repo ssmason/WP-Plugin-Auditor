@@ -1,0 +1,1088 @@
+{
+  "filename": "pla-Advanced-Custom-Fields-PRO-2026-04-23.json",
+  "plugin_name": "Advanced Custom Fields PRO",
+  "plugin_file": "advanced-custom-fields-pro/acf.php",
+  "risk": "CRITICAL",
+  "score": 768,
+  "generated": "2026-04-23 19:58:11",
+  "findings": {
+    "dangerous": [],
+    "output": [
+      {
+        "severity": "MEDIUM",
+        "file": "pro/blocks.php",
+        "line": 995,
+        "snippet": "echo $result;",
+        "message": "Unescaped output: $result echoed without a context-correct escape function."
+      },
+      {
+        "severity": "MEDIUM",
+        "file": "pro/fields/class-acf-repeater-table.php",
+        "line": 334,
+        "snippet": "echo $before_fields; //phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- string only contains guarenteed safe HTML.",
+        "message": "Unescaped output: $before_fields echoed without a context-correct escape function."
+      },
+      {
+        "severity": "MEDIUM",
+        "file": "pro/fields/class-acf-repeater-table.php",
+        "line": 349,
+        "snippet": "echo $after_fields; //phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- string only contains guarenteed safe HTML.",
+        "message": "Unescaped output: $after_fields echoed without a context-correct escape function."
+      },
+      {
+        "severity": "MEDIUM",
+        "file": "pro/fields/class-acf-repeater-table.php",
+        "line": 393,
+        "snippet": "<?php echo $row_num_html; ?><?php //phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- escaped where necessary on generation. ?>",
+        "message": "Unescaped output: $row_num_html echoed without a context-correct escape function."
+      },
+      {
+        "severity": "MEDIUM",
+        "file": "includes/forms/form-user.php",
+        "line": 253,
+        "snippet": "echo $before; //phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- safe HTML string.",
+        "message": "Unescaped output: $before echoed without a context-correct escape function."
+      },
+      {
+        "severity": "MEDIUM",
+        "file": "includes/forms/form-user.php",
+        "line": 255,
+        "snippet": "echo $after; //phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- safe HTML string.",
+        "message": "Unescaped output: $after echoed without a context-correct escape function."
+      },
+      {
+        "severity": "MEDIUM",
+        "file": "includes/forms/form-post.php",
+        "line": 214,
+        "snippet": "echo '<style type=\"text/css\" id=\"acf-style\">' . wp_strip_all_tags( $style ) . '</style>'; //phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- CSS only, escaped by wp_strip_all_tags.",
+        "message": "Unescaped output: echo with concatenated variable lacks escaping."
+      },
+      {
+        "severity": "MEDIUM",
+        "file": "includes/admin/views/acf-field-group/fields.php",
+        "line": 47,
+        "snippet": "<div class=\"acf-field-list-wrap<?php echo $wrapper_class; ?>\">",
+        "message": "Unescaped output: $wrapper_class echoed without a context-correct escape function."
+      },
+      {
+        "severity": "MEDIUM",
+        "file": "includes/admin/views/acf-field-group/fields.php",
+        "line": 69,
+        "snippet": "<div class=\"acf-field-list<?php echo $wrapper_class; ?>\">",
+        "message": "Unescaped output: $wrapper_class echoed without a context-correct escape function."
+      },
+      {
+        "severity": "MEDIUM",
+        "file": "includes/admin/views/acf-field-group/pro-features.php",
+        "line": 43,
+        "snippet": "<a target=\"_blank\" href=\"<?php echo $acf_pricing_link; ?>\" class=\"acf-btn acf-pro-features-upgrade\"><?php //phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- escaped on generation. ?>",
+        "message": "Unescaped output: $acf_pricing_link echoed without a context-correct escape function."
+      },
+      {
+        "severity": "MEDIUM",
+        "file": "includes/admin/views/global/navigation.php",
+        "line": 182,
+        "snippet": "echo $section_html; //phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- safely built and escaped HTML above.",
+        "message": "Unescaped output: $section_html echoed without a context-correct escape function."
+      },
+      {
+        "severity": "HIGH",
+        "file": "includes/acf-helper-functions.php",
+        "line": 498,
+        "snippet": "if ( isset( $_SERVER['HTTP_HOST'], $_SERVER['REQUEST_URI'] ) ) {",
+        "message": "$_SERVER['PHP_SELF'] or $_SERVER['REQUEST_URI'] used in output without esc_url()."
+      },
+      {
+        "severity": "HIGH",
+        "file": "includes/acf-helper-functions.php",
+        "line": 499,
+        "snippet": "return ( is_ssl() ? 'https' : 'http' ) . '://' . filter_var( $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI'], FILTER_SANITIZE_URL );",
+        "message": "$_SERVER['PHP_SELF'] or $_SERVER['REQUEST_URI'] used in output without esc_url()."
+      },
+      {
+        "severity": "MEDIUM",
+        "file": "includes/api/api-template.php",
+        "line": 138,
+        "snippet": "echo $value; //phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- escaped by logic above.",
+        "message": "Unescaped output: $value echoed without a context-correct escape function."
+      },
+      {
+        "severity": "MEDIUM",
+        "file": "includes/api/api-template.php",
+        "line": 916,
+        "snippet": "echo $value; //phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- escaped inside get_sub_field_object where necessary.",
+        "message": "Unescaped output: $value echoed without a context-correct escape function."
+      },
+      {
+        "severity": "MEDIUM",
+        "file": "includes/fields/class-acf-field-icon_picker.php",
+        "line": 149,
+        "snippet": "echo '<div ' . acf_esc_attrs( $div ) . '>';",
+        "message": "Unescaped output: echo with concatenated variable lacks escaping."
+      },
+      {
+        "severity": "MEDIUM",
+        "file": "includes/fields/class-acf-field-checkbox.php",
+        "line": 124,
+        "snippet": "echo '<ul ' . acf_esc_attrs( $ul ) . '>' . \"n\" . $li . '</ul>' . \"n\"; //phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- escaped by specific render methods above.",
+        "message": "Unescaped output: echo with concatenated variable lacks escaping."
+      },
+      {
+        "severity": "MEDIUM",
+        "file": "includes/fields/class-acf-field-url.php",
+        "line": 77,
+        "snippet": "echo $html; //phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- safe HTML, escaped by acf_get_text_input.",
+        "message": "Unescaped output: $html echoed without a context-correct escape function."
+      },
+      {
+        "severity": "MEDIUM",
+        "file": "includes/fields/class-acf-field-range.php",
+        "line": 144,
+        "snippet": "echo $html; //phpcs:ignore WordPress.Security.EscapeOutput -- Only populated with already escaped HTML.",
+        "message": "Unescaped output: $html echoed without a context-correct escape function."
+      },
+      {
+        "severity": "MEDIUM",
+        "file": "includes/fields/class-acf-field-email.php",
+        "line": 94,
+        "snippet": "echo $html; //phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- safe HTML escaped by acf_get_text_input",
+        "message": "Unescaped output: $html echoed without a context-correct escape function."
+      },
+      {
+        "severity": "MEDIUM",
+        "file": "includes/fields/class-acf-field-radio.php",
+        "line": 176,
+        "snippet": "echo $e; //phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- escaped per attribute above.",
+        "message": "Unescaped output: $e echoed without a context-correct escape function."
+      },
+      {
+        "severity": "MEDIUM",
+        "file": "includes/fields/class-acf-field-button-group.php",
+        "line": 142,
+        "snippet": "echo $html; //phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- safe HTML, escaped by input building functions.",
+        "message": "Unescaped output: $html echoed without a context-correct escape function."
+      },
+      {
+        "severity": "MEDIUM",
+        "file": "includes/fields/class-acf-field-number.php",
+        "line": 102,
+        "snippet": "echo $html; //phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- escaped by individual html functions above.",
+        "message": "Unescaped output: $html echoed without a context-correct escape function."
+      },
+      {
+        "severity": "MEDIUM",
+        "file": "includes/fields/class-acf-field-text.php",
+        "line": 86,
+        "snippet": "echo $html; //phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- only safe HTML output generated and escaped by functions above.",
+        "message": "Unescaped output: $html echoed without a context-correct escape function."
+      },
+      {
+        "severity": "MEDIUM",
+        "file": "src/Pro/AI/GEO/Outputs/Blocks.php",
+        "line": 232,
+        "snippet": "echo '<!-- ACF AI Block JSON-LD: Found ' . count( $field_objects ) . \" ACF fields -->n\";",
+        "message": "Unescaped output: echo with concatenated variable lacks escaping."
+      },
+      {
+        "severity": "MEDIUM",
+        "file": "src/Pro/Fields/FlexibleContent/Layout.php",
+        "line": 118,
+        "snippet": "echo '<div ' . acf_esc_attrs( $div_attrs ) . '>'; // Layout wrapper div.",
+        "message": "Unescaped output: echo with concatenated variable lacks escaping."
+      },
+      {
+        "severity": "MEDIUM",
+        "file": "src/Pro/Fields/FlexibleContent/Layout.php",
+        "line": 192,
+        "snippet": "echo '<th ' . acf_esc_attrs( $th_attrs ) . '>';",
+        "message": "Unescaped output: echo with concatenated variable lacks escaping."
+      },
+      {
+        "severity": "MEDIUM",
+        "file": "src/Pro/Fields/FlexibleContent/Layout.php",
+        "line": 245,
+        "snippet": "(<?php echo $title; //phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- escaped earlier in function. ?>)",
+        "message": "Unescaped output: $title echoed without a context-correct escape function."
+      },
+      {
+        "severity": "MEDIUM",
+        "file": "src/Pro/Fields/FlexibleContent/Render.php",
+        "line": 94,
+        "snippet": "echo '<div ' . acf_esc_attrs( $div_attrs ) . '>'; // Main wrapper div.",
+        "message": "Unescaped output: echo with concatenated variable lacks escaping."
+      },
+      {
+        "severity": "MEDIUM",
+        "file": "src/AI/GEO/Outputs/Posts.php",
+        "line": 153,
+        "snippet": "echo '<!-- ACF AI JSON-LD: Found ' . count( $field_objects ) . \" ACF fields -->n\";",
+        "message": "Unescaped output: echo with concatenated variable lacks escaping."
+      }
+    ],
+    "input": [
+      {
+        "severity": "MEDIUM",
+        "file": "pro/admin/admin-updates.php",
+        "line": 149,
+        "snippet": "acf_pro_activate_license( sanitize_text_field( $_POST['acf_pro_license'] ) ); //phpcs:ignore WordPress.Security.ValidatedSanitizedInput.MissingUnslash -- unslash not needed.",
+        "message": "Missing wp_unslash() before sanitizing $_POST input."
+      },
+      {
+        "severity": "HIGH",
+        "file": "pro/admin/post-types/admin-ui-options-page.php",
+        "line": 315,
+        "snippet": "$_POST['acf_ui_options_page']['ID']    = $post_id;",
+        "message": "Unsanitized input: $_POST accessed without sanitization."
+      },
+      {
+        "severity": "HIGH",
+        "file": "pro/fields/class-acf-field-clone.php",
+        "line": 872,
+        "snippet": "return $this->get_clone_setting_field_choice( acf_sanitize_request_args( $_POST['fields'][ $selector ] ) );",
+        "message": "Unsanitized input: $_POST accessed without sanitization."
+      },
+      {
+        "severity": "HIGH",
+        "file": "includes/forms/form-nav-menu.php",
+        "line": 183,
+        "snippet": "$posted_values = acf_sanitize_request_args( $_POST['menu-item-acf'] );",
+        "message": "Unsanitized input: $_POST accessed without sanitization."
+      },
+      {
+        "severity": "HIGH",
+        "file": "includes/forms/form-nav-menu.php",
+        "line": 248,
+        "snippet": "$posted_values = acf_sanitize_request_args( $_POST['menu-item-acf'] );",
+        "message": "Unsanitized input: $_POST accessed without sanitization."
+      },
+      {
+        "severity": "HIGH",
+        "file": "includes/forms/form-front.php",
+        "line": 342,
+        "snippet": "$form = $this->get_form( acf_sanitize_request_args( $_POST['_acf_form'] ) );",
+        "message": "Unsanitized input: $_POST accessed without sanitization."
+      },
+      {
+        "severity": "MEDIUM",
+        "file": "includes/forms/form-front.php",
+        "line": 346,
+        "snippet": "$form = json_decode( acf_decrypt( sanitize_text_field( $_POST['_acf_form'] ) ), true );",
+        "message": "Missing wp_unslash() before sanitizing $_POST input."
+      },
+      {
+        "severity": "MEDIUM",
+        "file": "includes/third-party.php",
+        "line": 127,
+        "snippet": "$post_type = sanitize_text_field( $_GET['post_type'] );",
+        "message": "Missing wp_unslash() before sanitizing $_GET input."
+      },
+      {
+        "severity": "MEDIUM",
+        "file": "includes/wpml.php",
+        "line": 297,
+        "snippet": "$sitepress->switch_lang( sanitize_text_field( $_REQUEST['lang'] ) );",
+        "message": "Missing wp_unslash() before sanitizing $_REQUEST input."
+      },
+      {
+        "severity": "HIGH",
+        "file": "includes/admin/tools/class-acf-admin-tool-import.php",
+        "line": 156,
+        "snippet": "$import = acf_sanitize_request_args( $_POST['acf_import_cptui'] ); //phpcs:ignore WordPress.Security.ValidatedSanitizedInput.MissingUnslash -- unslash not needed.",
+        "message": "Unsanitized input: $_POST accessed without sanitization."
+      },
+      {
+        "severity": "HIGH",
+        "file": "includes/admin/tools/class-acf-admin-tool-import.php",
+        "line": 165,
+        "snippet": "$file = acf_sanitize_files_array( $_FILES['acf_import_file'] );",
+        "message": "Unsanitized input: $_FILES accessed without sanitization."
+      },
+      {
+        "severity": "MEDIUM",
+        "file": "includes/admin/admin-internal-post-type-list.php",
+        "line": 114,
+        "snippet": "$params .= '&paged=' . intval( $_GET['paged'] ); //phpcs:ignore WordPress.Security.NonceVerification.Recommended -- used as intval to return a page.",
+        "message": "Missing wp_unslash() before sanitizing $_GET input."
+      },
+      {
+        "severity": "HIGH",
+        "file": "includes/admin/post-types/admin-taxonomy.php",
+        "line": 315,
+        "snippet": "$_POST['acf_taxonomy']['ID']    = $post_id;",
+        "message": "Unsanitized input: $_POST accessed without sanitization."
+      },
+      {
+        "severity": "HIGH",
+        "file": "includes/admin/post-types/admin-taxonomy.php",
+        "line": 319,
+        "snippet": "$_POST['acf_taxonomy']['meta_box_cb']          = '';",
+        "message": "Unsanitized input: $_POST accessed without sanitization."
+      },
+      {
+        "severity": "HIGH",
+        "file": "includes/admin/post-types/admin-taxonomy.php",
+        "line": 320,
+        "snippet": "$_POST['acf_taxonomy']['meta_box_sanitize_cb'] = '';",
+        "message": "Unsanitized input: $_POST accessed without sanitization."
+      },
+      {
+        "severity": "HIGH",
+        "file": "includes/admin/post-types/admin-taxonomy.php",
+        "line": 323,
+        "snippet": "$_POST['acf_taxonomy']['meta_box'] = 'default';",
+        "message": "Unsanitized input: $_POST accessed without sanitization."
+      },
+      {
+        "severity": "HIGH",
+        "file": "includes/admin/post-types/admin-taxonomy.php",
+        "line": 329,
+        "snippet": "$_POST['acf_taxonomy']['meta_box'] = $existing_post['meta_box'];",
+        "message": "Unsanitized input: $_POST accessed without sanitization."
+      },
+      {
+        "severity": "HIGH",
+        "file": "includes/admin/post-types/admin-taxonomy.php",
+        "line": 333,
+        "snippet": "$_POST['acf_taxonomy']['meta_box_cb'] = $existing_post['meta_box_cb'];",
+        "message": "Unsanitized input: $_POST accessed without sanitization."
+      },
+      {
+        "severity": "HIGH",
+        "file": "includes/admin/post-types/admin-taxonomy.php",
+        "line": 337,
+        "snippet": "$_POST['acf_taxonomy']['meta_box_sanitize_cb'] = $existing_post['meta_box_sanitize_cb'];",
+        "message": "Unsanitized input: $_POST accessed without sanitization."
+      },
+      {
+        "severity": "HIGH",
+        "file": "includes/admin/post-types/admin-post-type.php",
+        "line": 313,
+        "snippet": "$_POST['acf_post_type']['ID']    = $post_id;",
+        "message": "Unsanitized input: $_POST accessed without sanitization."
+      },
+      {
+        "severity": "HIGH",
+        "file": "includes/admin/post-types/admin-post-type.php",
+        "line": 317,
+        "snippet": "$_POST['acf_post_type']['register_meta_box_cb'] = '';",
+        "message": "Unsanitized input: $_POST accessed without sanitization."
+      },
+      {
+        "severity": "HIGH",
+        "file": "includes/admin/post-types/admin-post-type.php",
+        "line": 321,
+        "snippet": "$_POST['acf_post_type']['register_meta_box_cb'] = $existing_post['register_meta_box_cb'];",
+        "message": "Unsanitized input: $_POST accessed without sanitization."
+      },
+      {
+        "severity": "HIGH",
+        "file": "includes/admin/post-types/admin-field-group.php",
+        "line": 385,
+        "snippet": "$_POST['acf_field_group']['ID'] = $post_id;",
+        "message": "Unsanitized input: $_POST accessed without sanitization."
+      },
+      {
+        "severity": "HIGH",
+        "file": "includes/admin/post-types/admin-field-group.php",
+        "line": 390,
+        "snippet": "acf_update_field_group( $_POST['acf_field_group'] );",
+        "message": "Unsanitized input: $_POST accessed without sanitization."
+      },
+      {
+        "severity": "HIGH",
+        "file": "includes/admin/post-types/admin-field-group.php",
+        "line": 459,
+        "snippet": "$rule = acf_validate_location_rule( acf_sanitize_request_args( $_POST['rule'] ) ); //phpcs:ignore WordPress.Security.ValidatedSanitizedInput.MissingUnslash -- values not saved.",
+        "message": "Unsanitized input: $_POST accessed without sanitization."
+      },
+      {
+        "severity": "HIGH",
+        "file": "includes/acf-form-functions.php",
+        "line": 134,
+        "snippet": "$_POST['acf'] = $values;",
+        "message": "Unsanitized input: $_POST accessed without sanitization."
+      },
+      {
+        "severity": "MEDIUM",
+        "file": "includes/acf-form-functions.php",
+        "line": 147,
+        "snippet": "$_POST['acf'] = wp_kses_post_deep( $_POST['acf'] );",
+        "message": "Missing wp_unslash() before sanitizing $_POST input."
+      },
+      {
+        "severity": "HIGH",
+        "file": "includes/acf-helper-functions.php",
+        "line": 499,
+        "snippet": "return ( is_ssl() ? 'https' : 'http' ) . '://' . filter_var( $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI'], FILTER_SANITIZE_URL );",
+        "message": "Unsanitized input: $_SERVER accessed without sanitization."
+      },
+      {
+        "severity": "HIGH",
+        "file": "includes/api/api-helpers.php",
+        "line": 687,
+        "snippet": "$_POST['_acf_nonce'] = false;",
+        "message": "Unsanitized input: $_POST accessed without sanitization."
+      },
+      {
+        "severity": "HIGH",
+        "file": "includes/api/api-helpers.php",
+        "line": 2360,
+        "snippet": "$file = acf_sanitize_files_array( $_FILES['acf'] ); // phpcs:disable WordPress.Security.NonceVerification.Missing -- Verified upstream.",
+        "message": "Unsanitized input: $_FILES accessed without sanitization."
+      },
+      {
+        "severity": "HIGH",
+        "file": "includes/api/api-helpers.php",
+        "line": 2395,
+        "snippet": "$_POST['_acfuploader'] = $field_key;",
+        "message": "Unsanitized input: $_POST accessed without sanitization."
+      },
+      {
+        "severity": "MEDIUM",
+        "file": "includes/api/api-helpers.php",
+        "line": 3328,
+        "snippet": "$agent = sanitize_text_field( $_SERVER['HTTP_USER_AGENT'] );",
+        "message": "Missing wp_unslash() before sanitizing $_SERVER input."
+      },
+      {
+        "severity": "HIGH",
+        "file": "includes/revisions.php",
+        "line": 399,
+        "snippet": "$preview_id = (int) $_GET['preview_id'];",
+        "message": "Unsanitized input: $_GET accessed without sanitization."
+      },
+      {
+        "severity": "HIGH",
+        "file": "includes/revisions.php",
+        "line": 401,
+        "snippet": "$preview_id = (int) $_GET['p'];",
+        "message": "Unsanitized input: $_GET accessed without sanitization."
+      },
+      {
+        "severity": "HIGH",
+        "file": "includes/revisions.php",
+        "line": 403,
+        "snippet": "$preview_id = (int) $_GET['page_id'];",
+        "message": "Unsanitized input: $_GET accessed without sanitization."
+      },
+      {
+        "severity": "MEDIUM",
+        "file": "includes/fields/class-acf-field-user.php",
+        "line": 380,
+        "snippet": "$_REQUEST['search'] = sanitize_text_field( $_REQUEST['s'] );",
+        "message": "Missing wp_unslash() before sanitizing $_REQUEST input."
+      },
+      {
+        "severity": "MEDIUM",
+        "file": "includes/fields/class-acf-field-user.php",
+        "line": 383,
+        "snippet": "$_REQUEST['page'] = absint( $_REQUEST['paged'] );",
+        "message": "Missing wp_unslash() before sanitizing $_REQUEST input."
+      },
+      {
+        "severity": "MEDIUM",
+        "file": "includes/l10n.php",
+        "line": 49,
+        "snippet": "$determined_locale = sanitize_text_field( $_GET['wp_lang'] );",
+        "message": "Missing wp_unslash() before sanitizing $_GET input."
+      },
+      {
+        "severity": "MEDIUM",
+        "file": "includes/media.php",
+        "line": 155,
+        "snippet": "$field_key = sanitize_text_field( $_POST['query']['_acfuploader'] );",
+        "message": "Missing wp_unslash() before sanitizing $_POST input."
+      },
+      {
+        "severity": "MEDIUM",
+        "file": "includes/media.php",
+        "line": 159,
+        "snippet": "$field_key = sanitize_text_field( $_POST['_acfuploader'] );",
+        "message": "Missing wp_unslash() before sanitizing $_POST input."
+      },
+      {
+        "severity": "MEDIUM",
+        "file": "includes/rest-api/class-acf-rest-request.php",
+        "line": 98,
+        "snippet": "$this->http_method = strtoupper( sanitize_text_field( $_SERVER['REQUEST_METHOD'] ) );",
+        "message": "Missing wp_unslash() before sanitizing $_SERVER input."
+      },
+      {
+        "severity": "MEDIUM",
+        "file": "includes/rest-api/class-acf-rest-request.php",
+        "line": 106,
+        "snippet": "$this->http_method = strtoupper( sanitize_text_field( $_GET['_method'] ) );",
+        "message": "Missing wp_unslash() before sanitizing $_GET input."
+      },
+      {
+        "severity": "MEDIUM",
+        "file": "includes/rest-api/class-acf-rest-request.php",
+        "line": 108,
+        "snippet": "$this->http_method = strtoupper( sanitize_text_field( $_SERVER['HTTP_X_HTTP_METHOD_OVERRIDE'] ) );",
+        "message": "Missing wp_unslash() before sanitizing $_SERVER input."
+      }
+    ],
+    "nonces": [
+      {
+        "severity": "HIGH",
+        "file": "pro/admin/views/acf-ui-options-page/create-options-page-modal.php",
+        "line": 0,
+        "snippet": "",
+        "message": "HTML form found but no wp_nonce_field() call  form is not CSRF-protected."
+      },
+      {
+        "severity": "HIGH",
+        "file": "pro/admin/views/html-settings-updates.php",
+        "line": 0,
+        "snippet": "",
+        "message": "HTML form found but no wp_nonce_field() call  form is not CSRF-protected."
+      },
+      {
+        "severity": "HIGH",
+        "file": "includes/forms/form-front.php",
+        "line": 0,
+        "snippet": "",
+        "message": "HTML form found but no wp_nonce_field() call  form is not CSRF-protected."
+      },
+      {
+        "severity": "HIGH",
+        "file": "includes/admin/admin-tools.php",
+        "line": 0,
+        "snippet": "",
+        "message": "HTML form found but no wp_nonce_field() call  form is not CSRF-protected."
+      },
+      {
+        "severity": "HIGH",
+        "file": "includes/admin/post-types/admin-field-group.php",
+        "line": 0,
+        "snippet": "",
+        "message": "HTML form found but no wp_nonce_field() call  form is not CSRF-protected."
+      },
+      {
+        "severity": "HIGH",
+        "file": "includes/admin/admin-internal-post-type.php",
+        "line": 0,
+        "snippet": "",
+        "message": "HTML form found but no wp_nonce_field() call  form is not CSRF-protected."
+      },
+      {
+        "severity": "HIGH",
+        "file": "includes/local-meta.php",
+        "line": 0,
+        "snippet": "",
+        "message": "HTML form found but no wp_nonce_field() call  form is not CSRF-protected."
+      },
+      {
+        "severity": "HIGH",
+        "file": "includes/fields/class-acf-field-taxonomy.php",
+        "line": 0,
+        "snippet": "",
+        "message": "HTML form found but no wp_nonce_field() call  form is not CSRF-protected."
+      },
+      {
+        "severity": "HIGH",
+        "file": "src/CLI/JsonCommand.php",
+        "line": 0,
+        "snippet": "",
+        "message": "HTML form found but no wp_nonce_field() call  form is not CSRF-protected."
+      }
+    ],
+    "capabilities": [
+      {
+        "severity": "INFO",
+        "file": "pro/options-page.php",
+        "line": 293,
+        "snippet": "function acf_add_options_page( $page = '' ) {",
+        "message": "Admin page registered  ensure callback checks current_user_can() before rendering."
+      },
+      {
+        "severity": "INFO",
+        "file": "pro/admin/admin-options-page.php",
+        "line": 57,
+        "snippet": "$slug = add_menu_page( $page['page_title'], $page['menu_title'], $page['capability'], $page['menu_slug'], array( $this, 'html' ), $page['icon_url'], $page['position'] );",
+        "message": "Admin page registered  ensure callback checks current_user_can() before rendering."
+      },
+      {
+        "severity": "INFO",
+        "file": "pro/admin/admin-options-page.php",
+        "line": 60,
+        "snippet": "$slug = add_submenu_page( $page['parent_slug'], $page['page_title'], $page['menu_title'], $page['capability'], $page['menu_slug'], array( $this, 'html' ), $page['position'] );",
+        "message": "Admin page registered  ensure callback checks current_user_can() before rendering."
+      },
+      {
+        "severity": "INFO",
+        "file": "pro/admin/admin-updates.php",
+        "line": 126,
+        "snippet": "$page = add_submenu_page( 'edit.php?post_type=acf-field-group', __( 'Updates', 'acf' ), __( 'Updates', 'acf' ), acf_get_setting( 'capability' ), 'acf-settings-updates', array( $this, 'html' ) );",
+        "message": "Admin page registered  ensure callback checks current_user_can() before rendering."
+      },
+      {
+        "severity": "INFO",
+        "file": "pro/admin/post-types/admin-ui-options-pages.php",
+        "line": 100,
+        "snippet": "add_submenu_page( $parent_slug, __( 'Options Pages', 'acf' ), __( 'Options Pages', 'acf' ), $cap, 'edit.php?post_type=acf-ui-options-page' );",
+        "message": "Admin page registered  ensure callback checks current_user_can() before rendering."
+      },
+      {
+        "severity": "INFO",
+        "file": "pro/fields/class-acf-field-gallery.php",
+        "line": 156,
+        "snippet": "if ( ! current_user_can( 'edit_post', $id ) ) {",
+        "message": "Capability check: current_user_can( 'edit_post' )"
+      },
+      {
+        "severity": "INFO",
+        "file": "pro/post-types/acf-ui-options-page.php",
+        "line": 145,
+        "snippet": "acf_add_options_page( $options_page );",
+        "message": "Admin page registered  ensure callback checks current_user_can() before rendering."
+      },
+      {
+        "severity": "INFO",
+        "file": "pro/post-types/acf-ui-options-page.php",
+        "line": 343,
+        "snippet": "$return .= \"acf_add_options_page( {$code} );rn\";",
+        "message": "Admin page registered  ensure callback checks current_user_can() before rendering."
+      },
+      {
+        "severity": "INFO",
+        "file": "includes/acf-user-functions.php",
+        "line": 117,
+        "snippet": "$allow_unfiltered_html = current_user_can( 'unfiltered_html' );",
+        "message": "Capability check: current_user_can( 'unfiltered_html' )"
+      },
+      {
+        "severity": "INFO",
+        "file": "includes/admin/admin-tools.php",
+        "line": 121,
+        "snippet": "$page = add_submenu_page( 'edit.php?post_type=acf-field-group', __( 'Tools', 'acf' ), __( 'Tools', 'acf' ), acf_get_setting( 'capability' ), 'acf-tools', array( $this, 'html' ) );",
+        "message": "Admin page registered  ensure callback checks current_user_can() before rendering."
+      },
+      {
+        "severity": "INFO",
+        "file": "includes/admin/admin-options-pages-preview.php",
+        "line": 37,
+        "snippet": "$page = add_submenu_page( 'edit.php?post_type=acf-field-group', __( 'Options Pages', 'acf' ), __( 'Options Pages', 'acf' ), acf_get_setting( 'capability' ), 'acf_options_preview', array( $this, 'render' ) );",
+        "message": "Admin page registered  ensure callback checks current_user_can() before rendering."
+      },
+      {
+        "severity": "INFO",
+        "file": "includes/admin/post-types/admin-field-groups.php",
+        "line": 61,
+        "snippet": "add_submenu_page( $parent_slug, __( 'Field Groups', 'acf' ), __( 'Field Groups', 'acf' ), $cap, $parent_slug );",
+        "message": "Admin page registered  ensure callback checks current_user_can() before rendering."
+      },
+      {
+        "severity": "INFO",
+        "file": "includes/admin/post-types/admin-post-types.php",
+        "line": 93,
+        "snippet": "add_submenu_page( $parent_slug, __( 'Post Types', 'acf' ), __( 'Post Types', 'acf' ), $cap, 'edit.php?post_type=acf-post-type' );",
+        "message": "Admin page registered  ensure callback checks current_user_can() before rendering."
+      },
+      {
+        "severity": "INFO",
+        "file": "includes/admin/post-types/admin-taxonomies.php",
+        "line": 92,
+        "snippet": "add_submenu_page( $parent_slug, __( 'Taxonomies', 'acf' ), __( 'Taxonomies', 'acf' ), $cap, 'edit.php?post_type=acf-taxonomy' );",
+        "message": "Admin page registered  ensure callback checks current_user_can() before rendering."
+      },
+      {
+        "severity": "INFO",
+        "file": "includes/admin/admin.php",
+        "line": 56,
+        "snippet": "add_menu_page( __( 'ACF', 'acf' ), __( 'ACF', 'acf' ), $cap, $parent_slug, false, 'dashicons-welcome-widgets-menus', 80 );",
+        "message": "Admin page registered  ensure callback checks current_user_can() before rendering."
+      },
+      {
+        "severity": "INFO",
+        "file": "includes/admin/admin.php",
+        "line": 219,
+        "snippet": "if ( ! current_user_can( 'edit_others_posts' ) ) {",
+        "message": "Capability check: current_user_can( 'edit_others_posts' )"
+      },
+      {
+        "severity": "INFO",
+        "file": "includes/admin/admin.php",
+        "line": 301,
+        "snippet": "if ( ! current_user_can( 'edit_others_posts' ) ) {",
+        "message": "Capability check: current_user_can( 'edit_others_posts' )"
+      },
+      {
+        "severity": "INFO",
+        "file": "includes/admin/admin-upgrade.php",
+        "line": 68,
+        "snippet": "$page = add_submenu_page( 'index.php', __( 'Upgrade Database', 'acf' ), __( 'Upgrade Database', 'acf' ), acf_get_setting( 'capability' ), 'acf-upgrade', array( $this, 'admin_html' ) );",
+        "message": "Admin page registered  ensure callback checks current_user_can() before rendering."
+      },
+      {
+        "severity": "INFO",
+        "file": "includes/admin/admin-upgrade.php",
+        "line": 97,
+        "snippet": "$page = add_submenu_page(",
+        "message": "Admin page registered  ensure callback checks current_user_can() before rendering."
+      },
+      {
+        "severity": "INFO",
+        "file": "includes/api/api-helpers.php",
+        "line": 2774,
+        "snippet": "$user_can_edit = current_user_can( 'edit_post', $post_id );",
+        "message": "Capability check: current_user_can( 'edit_post' )"
+      },
+      {
+        "severity": "INFO",
+        "file": "includes/api/api-helpers.php",
+        "line": 2799,
+        "snippet": "return current_user_can( 'edit_user', (int) $id );",
+        "message": "Capability check: current_user_can( 'edit_user' )"
+      },
+      {
+        "severity": "INFO",
+        "file": "includes/api/api-helpers.php",
+        "line": 2802,
+        "snippet": "return current_user_can( 'edit_term', (int) $id );",
+        "message": "Capability check: current_user_can( 'edit_term' )"
+      },
+      {
+        "severity": "INFO",
+        "file": "includes/api/api-helpers.php",
+        "line": 2805,
+        "snippet": "return current_user_can( 'edit_comment', (int) $id );",
+        "message": "Capability check: current_user_can( 'edit_comment' )"
+      },
+      {
+        "severity": "INFO",
+        "file": "includes/api/api-helpers.php",
+        "line": 2811,
+        "snippet": "return current_user_can( 'edit_posts' );",
+        "message": "Capability check: current_user_can( 'edit_posts' )"
+      },
+      {
+        "severity": "INFO",
+        "file": "includes/api/api-helpers.php",
+        "line": 2827,
+        "snippet": "return current_user_can( 'manage_options' );",
+        "message": "Capability check: current_user_can( 'manage_options' )"
+      },
+      {
+        "severity": "INFO",
+        "file": "includes/api/api-helpers.php",
+        "line": 3115,
+        "snippet": "if ( ! current_user_can( 'upload_files' ) ) {",
+        "message": "Capability check: current_user_can( 'upload_files' )"
+      },
+      {
+        "severity": "INFO",
+        "file": "includes/fields/class-acf-field-icon_picker.php",
+        "line": 56,
+        "snippet": "if ( current_user_can( 'upload_files' ) ) {",
+        "message": "Capability check: current_user_can( 'upload_files' )"
+      },
+      {
+        "severity": "INFO",
+        "file": "includes/fields/class-acf-field-wysiwyg.php",
+        "line": 219,
+        "snippet": "if ( ! current_user_can( 'upload_files' ) ) {",
+        "message": "Capability check: current_user_can( 'upload_files' )"
+      },
+      {
+        "severity": "INFO",
+        "file": "includes/ajax/class-acf-ajax-query-users.php",
+        "line": 299,
+        "snippet": "if ( ! current_user_can( 'edit_users' ) ) {",
+        "message": "Capability check: current_user_can( 'edit_users' )"
+      },
+      {
+        "severity": "INFO",
+        "file": "includes/assets.php",
+        "line": 315,
+        "snippet": "if ( current_user_can( 'upload_files' ) ) {",
+        "message": "Capability check: current_user_can( 'upload_files' )"
+      },
+      {
+        "severity": "INFO",
+        "file": "src/AI/Abilities/Taxonomy.php",
+        "line": 298,
+        "snippet": "return current_user_can( 'read' );",
+        "message": "Capability check: current_user_can( 'read' )"
+      },
+      {
+        "severity": "INFO",
+        "file": "src/AI/Abilities/Taxonomy.php",
+        "line": 366,
+        "snippet": "return current_user_can( 'read' );",
+        "message": "Capability check: current_user_can( 'read' )"
+      },
+      {
+        "severity": "INFO",
+        "file": "src/AI/Abilities/PostType.php",
+        "line": 296,
+        "snippet": "return current_user_can( 'read' ) || current_user_can( $post_type_object->cap->read_private_posts );",
+        "message": "Capability check: current_user_can( 'read' )"
+      },
+      {
+        "severity": "INFO",
+        "file": "src/AI/Abilities/PostType.php",
+        "line": 364,
+        "snippet": "return current_user_can( 'read' );",
+        "message": "Capability check: current_user_can( 'read' )"
+      }
+    ],
+    "database": [],
+    "credentials": [],
+    "errors": [],
+    "obfuscation": [],
+    "permissions": [
+      {
+        "severity": "MEDIUM",
+        "file": "pro/blocks.php",
+        "line": 0,
+        "snippet": "",
+        "message": "PHP file has execute bit set  unnecessary and potentially dangerous."
+      },
+      {
+        "severity": "MEDIUM",
+        "file": "pro/locations/class-acf-location-block.php",
+        "line": 0,
+        "snippet": "",
+        "message": "PHP file has execute bit set  unnecessary and potentially dangerous."
+      },
+      {
+        "severity": "MEDIUM",
+        "file": "pro/blocks-auto-inline-editing.php",
+        "line": 0,
+        "snippet": "",
+        "message": "PHP file has execute bit set  unnecessary and potentially dangerous."
+      },
+      {
+        "severity": "MEDIUM",
+        "file": "includes/fields.php",
+        "line": 0,
+        "snippet": "",
+        "message": "PHP file has execute bit set  unnecessary and potentially dangerous."
+      },
+      {
+        "severity": "MEDIUM",
+        "file": "includes/local-meta.php",
+        "line": 0,
+        "snippet": "",
+        "message": "PHP file has execute bit set  unnecessary and potentially dangerous."
+      },
+      {
+        "severity": "MEDIUM",
+        "file": "includes/fields/class-acf-field.php",
+        "line": 0,
+        "snippet": "",
+        "message": "PHP file has execute bit set  unnecessary and potentially dangerous."
+      }
+    ],
+    "debug_output": [
+      {
+        "severity": "MEDIUM",
+        "file": "includes/api/api-helpers.php",
+        "line": 3437,
+        "snippet": "$arg = print_r( $arg, true );",
+        "message": "Debug output function print_r() found  remove before production."
+      }
+    ],
+    "redirects": [],
+    "role_checks": [],
+    "shortcodes": [],
+    "option_writes": [
+      {
+        "severity": "HIGH",
+        "file": "pro/updates.php",
+        "line": 1024,
+        "snippet": "$return = update_option( $option_name, $value, $autoload );",
+        "message": "update_option() called without a preceding current_user_can() check in scope."
+      },
+      {
+        "severity": "HIGH",
+        "file": "pro/updates.php",
+        "line": 1030,
+        "snippet": "return update_option( $option_name, $value, $autoload );",
+        "message": "update_option() called without a preceding current_user_can() check in scope."
+      },
+      {
+        "severity": "HIGH",
+        "file": "pro/updates.php",
+        "line": 1047,
+        "snippet": "return delete_option( $option_name );",
+        "message": "delete_option() called without a preceding current_user_can() check in scope."
+      },
+      {
+        "severity": "HIGH",
+        "file": "includes/acf-meta-functions.php",
+        "line": 180,
+        "snippet": "return update_option( \"{$prefix}{$id}_{$name}\", $value, $autoload );",
+        "message": "update_option() called without a preceding current_user_can() check in scope."
+      },
+      {
+        "severity": "HIGH",
+        "file": "includes/acf-meta-functions.php",
+        "line": 222,
+        "snippet": "return delete_option( \"{$prefix}{$id}_{$name}\" );",
+        "message": "delete_option() called without a preceding current_user_can() check in scope."
+      },
+      {
+        "severity": "HIGH",
+        "file": "includes/upgrades.php",
+        "line": 111,
+        "snippet": "update_option( 'acf_version', $version );",
+        "message": "update_option() called without a preceding current_user_can() check in scope."
+      },
+      {
+        "severity": "HIGH",
+        "file": "includes/api/api-template.php",
+        "line": 212,
+        "snippet": "return update_option( 'acf_escaped_html_log', (array) $escaped, false );",
+        "message": "update_option() called without a preceding current_user_can() check in scope."
+      },
+      {
+        "severity": "HIGH",
+        "file": "includes/api/api-template.php",
+        "line": 224,
+        "snippet": "delete_option( 'acf_will_escape_html_log' );",
+        "message": "delete_option() called without a preceding current_user_can() check in scope."
+      },
+      {
+        "severity": "HIGH",
+        "file": "includes/api/api-template.php",
+        "line": 225,
+        "snippet": "return delete_option( 'acf_escaped_html_log' );",
+        "message": "delete_option() called without a preceding current_user_can() check in scope."
+      },
+      {
+        "severity": "HIGH",
+        "file": "includes/deprecated.php",
+        "line": 111,
+        "snippet": "_deprecated_function( __FUNCTION__, '5.7.11', 'update_option()' );",
+        "message": "update_option() called without a preceding current_user_can() check in scope."
+      },
+      {
+        "severity": "HIGH",
+        "file": "includes/deprecated.php",
+        "line": 117,
+        "snippet": "return update_option( $option, $value, $autoload );",
+        "message": "update_option() called without a preceding current_user_can() check in scope."
+      },
+      {
+        "severity": "HIGH",
+        "file": "src/Meta/Option.php",
+        "line": 90,
+        "snippet": "update_option( $object_id . '_' . $name, $value, $autoload );",
+        "message": "update_option() called without a preceding current_user_can() check in scope."
+      },
+      {
+        "severity": "HIGH",
+        "file": "src/Meta/Option.php",
+        "line": 108,
+        "snippet": "return update_option( $object_id . '_' . $field['name'], $value, $autoload );",
+        "message": "update_option() called without a preceding current_user_can() check in scope."
+      },
+      {
+        "severity": "HIGH",
+        "file": "src/Meta/Option.php",
+        "line": 123,
+        "snippet": "return update_option( $this->reference_prefix . $object_id . '_' . $field_name, $value, $autoload );",
+        "message": "update_option() called without a preceding current_user_can() check in scope."
+      },
+      {
+        "severity": "HIGH",
+        "file": "src/Meta/Option.php",
+        "line": 136,
+        "snippet": "return delete_option( $object_id . '_' . $field['name'] );",
+        "message": "delete_option() called without a preceding current_user_can() check in scope."
+      },
+      {
+        "severity": "HIGH",
+        "file": "src/Meta/Option.php",
+        "line": 149,
+        "snippet": "return delete_option( $this->reference_prefix . $object_id . '_' . $field_name );",
+        "message": "delete_option() called without a preceding current_user_can() check in scope."
+      },
+      {
+        "severity": "HIGH",
+        "file": "src/Site_Health/Site_Health.php",
+        "line": 92,
+        "snippet": "return update_option( $this->option_name, wp_json_encode( $data ), false );",
+        "message": "update_option() called without a preceding current_user_can() check in scope."
+      }
+    ],
+    "wpdb_placeholders": [
+      {
+        "severity": "MEDIUM",
+        "file": "includes/upgrades.php",
+        "line": 266,
+        "snippet": "$rows = $wpdb->get_results( $wpdb->prepare( \"SELECT * FROM $wpdb->postmeta WHERE post_id = %d AND meta_key LIKE %s\", $ofg->ID, 'field_%' ), ARRAY_A );",
+        "message": "$wpdb->prepare() uses %d placeholder for a string value  use %s instead."
+      },
+      {
+        "severity": "MEDIUM",
+        "file": "includes/api/api-helpers.php",
+        "line": 1028,
+        "snippet": "$data['taxonomy'] = $wpdb->get_var( $wpdb->prepare( \"SELECT taxonomy FROM $wpdb->term_taxonomy WHERE term_id = %d LIMIT 1\", $data['term'] ) );",
+        "message": "$wpdb->prepare() uses %d placeholder for a string value  use %s instead."
+      }
+    ],
+    "deprecated": [],
+    "structure": [
+      {
+        "severity": "LOW",
+        "file": "schemas/index.php",
+        "line": 0,
+        "snippet": "",
+        "message": "Missing index.php in schemas/  prevents directory listing."
+      },
+      {
+        "severity": "LOW",
+        "file": "assets/index.php",
+        "line": 0,
+        "snippet": "",
+        "message": "Missing index.php in assets/  prevents directory listing."
+      },
+      {
+        "severity": "LOW",
+        "file": "src/index.php",
+        "line": 0,
+        "snippet": "",
+        "message": "Missing index.php in src/  prevents directory listing."
+      },
+      {
+        "severity": "LOW",
+        "file": "readme.txt",
+        "line": 0,
+        "snippet": "",
+        "message": "readme.txt present in plugin root  may expose version info or known issues."
+      },
+      {
+        "severity": "LOW",
+        "file": "readme.md",
+        "line": 0,
+        "snippet": "",
+        "message": "readme.md present in plugin root  may expose version info or known issues."
+      },
+      {
+        "severity": "LOW",
+        "file": "README.md",
+        "line": 0,
+        "snippet": "",
+        "message": "README.md present in plugin root  may expose version info or known issues."
+      },
+      {
+        "severity": "LOW",
+        "file": "README.txt",
+        "line": 0,
+        "snippet": "",
+        "message": "README.txt present in plugin root  may expose version info or known issues."
+      }
+    ],
+    "licensing": [],
+    "php_compat": [],
+    "unnecessary_closures": [],
+    "stats": {
+      "files": 323,
+      "lines": 96282,
+      "duration": 1040
+    }
+  }
+}
