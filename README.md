@@ -77,35 +77,28 @@ Every check reports both findings **and** confirmed passes.
 
 | # | Check | Severity |
 |---|---|---|
-| 1 | Dangerous functions (`eval`, `exec`, `shell_exec`, `base64_decode`, etc.) | CRITICAL |
-| 2 | Output escaping  unescaped echo, wrong escape function, `_e()` / `__()` without escaping | HIGH / MEDIUM |
-| 3 | Input sanitization  unsanitized superglobals, missing `wp_unslash()` | HIGH / MEDIUM |
-| 4 | Nonce verification  forms, AJAX handlers, GET actions | CRITICAL / HIGH |
-| 5 | Capability checks  admin pages, write operations | HIGH |
-| 6 | Database queries  unprepared statements, raw `mysql_*` calls | CRITICAL |
-| 7 | Hardcoded credentials  passwords, API keys, tokens (value redacted in report) | CRITICAL |
-| 8 | Error suppression  `error_reporting(0)`, `ini_set` on error settings | HIGH / MEDIUM |
-| 9 | Obfuscated calls  variable variables, dynamic function names, `preg_replace /e` | CRITICAL |
-| 10 | Direct file access guard  missing `defined('ABSPATH') \|\| exit` | HIGH |
+| 1 | Dangerous functions (`eval`, `exec`, `shell_exec`, `system`, `passthru`, `popen`, `proc_open`, `str_rot13`, `gzinflate`, `gzuncompress`, `assert`, `create_function`) | CRITICAL |
+| 2 | Obfuscated calls  variable variables, dynamic function names, `preg_replace /e` | CRITICAL |
+| 3 | Output escaping  unescaped echo, wrong escape function, `_e()` / `__()` without escaping | HIGH / MEDIUM |
+| 4 | Input sanitization  unsanitized superglobals, missing `wp_unslash()` | HIGH / MEDIUM |
+| 5 | Nonce verification  forms without `wp_nonce_field`, GET actions without nonce | HIGH |
+| 6 | Capability checks  admin page registrations reported as informational | INFO |
+| 7 | Database queries  unprepared statements, raw `mysql_*` calls | CRITICAL |
+| 8 | Hardcoded credentials  passwords, API keys, tokens (value redacted in report) | CRITICAL |
+| 9 | Error suppression  `error_reporting(0)`, `ini_set` on error settings | HIGH / MEDIUM |
+| 10 | File permissions  world-writable files, PHP files with execute bit | HIGH / MEDIUM |
 | 11 | Debug output PHP  `var_dump`, `print_r`, `var_export` | MEDIUM |
-| 12 | Debug output JS  `console.log`, `console.warn`, etc. | LOW |
-| 13 | File permissions  world-writable files, PHP files with execute bit | HIGH / MEDIUM |
-| 14 | Deprecated WordPress functions | MEDIUM |
-| 15 | Plugin structure  missing `index.php` sentinels, exposed readme files | LOW |
-| 16 | Licensing  LICENSE file present, GPL-compatible license declared | LOW / MEDIUM |
-| 17 | PHP compatibility  PHP 8.0/8.1 features vs declared minimum version | MEDIUM |
-| 18 | Commented-out code  blocks of 5+ consecutive comment lines | LOW / MEDIUM |
-| 19 | Plugin header / metadata  missing required headers | LOW |
-| 20 | External HTTP requests  all outbound calls reported as informational | INFO |
-| 21 | Asset versioning  hardcoded version strings or `false` version argument | LOW |
-| 22 | Redirect without exit  `wp_redirect` / `wp_safe_redirect` not followed by `exit` | HIGH |
-| 23 | Role name in `current_user_can()`  role names passed instead of capability names | HIGH |
-| 24 | Shortcode output escaping  unescaped return values in shortcode callbacks | MEDIUM |
-| 25 | Option writes without capability check  `update_option`, `add_option`, `delete_option` | HIGH |
-| 26 | Wrong `$wpdb->prepare()` placeholder  `%s` for integers, `%d` for strings | MEDIUM |
-| 27 | Duplicate hook registrations  same hook/callback/priority registered more than once | LOW |
-| 28 | Unnecessary closures  `function() { return true; }` instead of `__return_true` | LOW |
-| 29 | Early translation calls  translation functions called at file scope before `init` | LOW |
+| 12 | Debug output JS  `console.log`, `console.debug`, `console.info` | LOW |
+| 13 | Deprecated WordPress functions and `$wpdb->escape()` | MEDIUM |
+| 14 | Plugin structure  missing `index.php` sentinels, exposed readme files | LOW |
+| 15 | Licensing  LICENSE file present, GPL-compatible license declared | LOW / MEDIUM |
+| 16 | PHP compatibility  PHP 8.0/8.1 features vs declared minimum version | MEDIUM |
+| 17 | Redirect without exit  `wp_redirect` / `wp_safe_redirect` not followed by `exit` | HIGH |
+| 18 | Role name in `current_user_can()`  role names passed instead of capability names | HIGH |
+| 19 | Shortcode output escaping  unescaped return values in shortcode callbacks | MEDIUM |
+| 20 | Option writes without capability check  `update_option`, `add_option`, `delete_option` | HIGH |
+| 21 | Wrong `$wpdb->prepare()` placeholder  `%s` for integers, `%d` for strings | MEDIUM |
+| 22 | Unnecessary closures  `function() { return true; }` instead of `__return_true` | LOW |
 
 ### Risk Rating
 

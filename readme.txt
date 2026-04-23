@@ -16,20 +16,22 @@ Plugin Auditor performs static analysis on every PHP file in any installed plugi
 
 **What the scanner checks:**
 
-* Dangerous functions (`eval`, `exec`, `shell_exec`, `base64_decode`, and more)
+* Dangerous functions (`eval`, `exec`, `shell_exec`, `system`, `passthru`, `str_rot13`, `gzinflate`, and more)
 * Obfuscated calls (variable variables, dynamic function names, `preg_replace /e`)
 * Output escaping  multi-line taint tracking from superglobal to `echo`
 * Input sanitization  missing `sanitize_*` and `wp_unslash()`
-* Nonce verification  forms, AJAX handlers, and GET actions
-* Capability checks  admin pages and write operations
+* Nonce verification  forms without `wp_nonce_field`, GET actions without nonce
+* Capability checks  admin page registrations flagged for review
 * Database queries  unprepared statements and raw `mysql_*` calls
 * Hardcoded credentials  passwords, API keys, tokens (value redacted in report)
-* External HTTP requests (informational)
-* Asset versioning  hardcoded version strings or `false` version argument
 * Error suppression  `error_reporting(0)` and `ini_set` on error settings
 * File permissions  world-writable files, PHP files with execute bit
-* Plugin header / metadata  missing required headers
-* Redirect without exit, role names in capability checks, option writes without capability, duplicate hooks, unnecessary closures, early translation calls, and more
+* Debug output  PHP (`var_dump`, `print_r`) and JS (`console.log`, `console.info`)
+* Deprecated WordPress functions
+* Plugin structure  missing `index.php` sentinels, exposed readme files
+* Licensing  LICENSE file present, GPL-compatible license declared
+* PHP compatibility  PHP 8.0/8.1 features vs declared minimum version
+* Redirect without exit, role names in capability checks, option writes without capability, unnecessary closures, and more
 
 Every check reports both findings **and** confirmed passes, so a clean report is just as meaningful as a failing one.
 
