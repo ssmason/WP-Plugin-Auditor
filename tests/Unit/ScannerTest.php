@@ -298,31 +298,6 @@ class ScannerTest extends TestCase {
 	}
 
 	// -------------------------------------------------------------------------
-	// Duplicate hook registrations
-	// -------------------------------------------------------------------------
-
-	public function test_flags_duplicate_hook_registration(): void {
-		$code = "<?php\ndefined( 'ABSPATH' ) || exit;\nadd_action( 'init', 'my_func', 10 );\nadd_action( 'init', 'my_func', 10 );";
-		$this->write_php( 'hooks.php', $code );
-		$findings = $this->scanner->scan( $this->tmp_dir );
-		$this->assertNotEmpty( $findings['duplicate_hooks'] );
-	}
-
-	public function test_no_flag_different_priority_hooks(): void {
-		$code = "<?php\ndefined( 'ABSPATH' ) || exit;\nadd_action( 'init', 'my_func', 10 );\nadd_action( 'init', 'my_func', 20 );";
-		$this->write_php( 'hooks.php', $code );
-		$findings = $this->scanner->scan( $this->tmp_dir );
-		$this->assertEmpty( $findings['duplicate_hooks'] );
-	}
-
-	public function test_no_flag_different_callbacks(): void {
-		$code = "<?php\ndefined( 'ABSPATH' ) || exit;\nadd_action( 'init', 'my_func', 10 );\nadd_action( 'init', 'other_func', 10 );";
-		$this->write_php( 'hooks.php', $code );
-		$findings = $this->scanner->scan( $this->tmp_dir );
-		$this->assertEmpty( $findings['duplicate_hooks'] );
-	}
-
-	// -------------------------------------------------------------------------
 	// Unnecessary closures
 	// -------------------------------------------------------------------------
 
@@ -342,23 +317,6 @@ class ScannerTest extends TestCase {
 		$this->write_php( 'hooks.php', "<?php\ndefined( 'ABSPATH' ) || exit;\nadd_filter( 'some_filter', function( \$val ) { return \$val . '_suffix'; } );" );
 		$findings = $this->scanner->scan( $this->tmp_dir );
 		$this->assertEmpty( $findings['unnecessary_closures'] );
-	}
-
-	// -------------------------------------------------------------------------
-	// Early translation calls
-	// -------------------------------------------------------------------------
-
-	public function test_flags_translation_at_file_scope(): void {
-		$this->write_php( 'trans.php', "<?php\ndefined( 'ABSPATH' ) || exit;\n\$label = __( 'Hello', 'my-plugin' );" );
-		$findings = $this->scanner->scan( $this->tmp_dir );
-		$this->assertNotEmpty( $findings['early_translations'] );
-	}
-
-	public function test_no_flag_translation_inside_function(): void {
-		$code = "<?php\ndefined( 'ABSPATH' ) || exit;\nfunction my_func() {\n\$label = __( 'Hello', 'my-plugin' );\nreturn \$label;\n}";
-		$this->write_php( 'trans.php', $code );
-		$findings = $this->scanner->scan( $this->tmp_dir );
-		$this->assertEmpty( $findings['early_translations'] );
 	}
 
 	// -------------------------------------------------------------------------

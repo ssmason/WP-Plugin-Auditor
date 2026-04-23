@@ -33,7 +33,6 @@ class Report {
 		'assets'                => '_pla_findings_assets',
 		'errors'                => '_pla_findings_errors',
 		'obfuscation'           => '_pla_findings_obfuscation',
-		'direct_access'         => '_pla_findings_direct_access',
 		'debug_output'          => '_pla_findings_debug_output',
 		'redirects'             => '_pla_findings_redirects',
 		'role_checks'           => '_pla_findings_role_checks',
@@ -41,9 +40,7 @@ class Report {
 		'option_writes'         => '_pla_findings_option_writes',
 		'wpdb_placeholders'     => '_pla_findings_wpdb_placeholders',
 		'deprecated'            => '_pla_findings_deprecated',
-		'duplicate_hooks'       => '_pla_findings_duplicate_hooks',
 		'unnecessary_closures'  => '_pla_findings_unnecessary_closures',
-		'early_translations'    => '_pla_findings_early_translations',
 	);
 
 	/**
@@ -63,7 +60,6 @@ class Report {
 		'assets'               => 'Asset Versioning',
 		'errors'               => 'Error Suppression',
 		'obfuscation'          => 'Obfuscated Calls',
-		'direct_access'        => 'Direct File Access Guard',
 		'debug_output'         => 'Debug Output',
 		'redirects'            => 'Redirect Without Exit',
 		'role_checks'          => 'Role Name in Capability Checks',
@@ -71,9 +67,7 @@ class Report {
 		'option_writes'        => 'Option Writes Without Capability',
 		'wpdb_placeholders'    => 'Database Placeholder Types',
 		'deprecated'           => 'Deprecated Functions',
-		'duplicate_hooks'      => 'Duplicate Hook Registrations',
 		'unnecessary_closures' => 'Unnecessary Closures',
-		'early_translations'   => 'Early Translation Calls',
 	);
 
 	/**

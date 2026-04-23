@@ -67,11 +67,7 @@ class ScoreCalculator {
 			'structure',
 			'licensing',
 			'php_compat',
-			'commented_code',
-			'direct_access',
-			'duplicate_hooks',
 			'unnecessary_closures',
-			'early_translations',
 		);
 	}
 

@@ -27,15 +27,11 @@ class Scanner {
 		'passthru',
 		'popen',
 		'proc_open',
-		'base64_decode',
-		'base64_encode',
 		'str_rot13',
 		'gzinflate',
 		'gzuncompress',
 		'assert',
 		'create_function',
-		'call_user_func',
-		'call_user_func_array',
 	);
 
 	/**
@@ -129,18 +125,6 @@ class Scanner {
 	);
 
 	/**
-	 * Translation functions that must not be called before init.
-	 */
-	private const EARLY_TRANSLATION_FUNCTIONS = array(
-		'__',
-		'_e',
-		'esc_html__',
-		'esc_html_e',
-		'esc_attr__',
-		'esc_attr_e',
-	);
-
-	/**
 	 * @param FileCollector $file_collector File collection service.
 	 */
 	public function __construct( private FileCollector $file_collector = new FileCollector() ) {}
@@ -160,8 +144,7 @@ class Scanner {
 		$sections = array_merge( ScoreCalculator::security_sections(), ScoreCalculator::code_quality_sections() );
 		$findings = array_fill_keys( $sections, array() );
 
-		$total_lines    = 0;
-		$all_hook_calls = array();
+		$total_lines = 0;
 
 		foreach ( $php_files as $file ) {
 			$lines = file( $file, FILE_IGNORE_NEW_LINES );
@@ -183,19 +166,14 @@ class Scanner {
 			$findings['assets']               = array_merge( $findings['assets'], $this->check_asset_versioning( $rel, $lines ) );
 			$findings['errors']               = array_merge( $findings['errors'], $this->check_error_suppression( $rel, $lines ) );
 			$findings['obfuscation']          = array_merge( $findings['obfuscation'], $this->check_obfuscation( $rel, $lines ) );
-			$findings['direct_access']        = array_merge( $findings['direct_access'], $this->check_direct_access( $rel, $lines ) );
 			$findings['debug_output']         = array_merge( $findings['debug_output'], $this->check_debug_output( $rel, $lines ) );
 			$findings['deprecated']           = array_merge( $findings['deprecated'], $this->check_deprecated_functions( $rel, $lines ) );
-			$findings['commented_code']       = array_merge( $findings['commented_code'], $this->check_commented_code( $rel, $lines ) );
 			$findings['redirects']            = array_merge( $findings['redirects'], $this->check_redirect_without_exit( $rel, $lines ) );
 			$findings['role_checks']          = array_merge( $findings['role_checks'], $this->check_role_checks( $rel, $lines ) );
 			$findings['shortcodes']           = array_merge( $findings['shortcodes'], $this->check_shortcode_escaping( $rel, $lines, $content ) );
 			$findings['option_writes']        = array_merge( $findings['option_writes'], $this->check_option_writes( $rel, $lines ) );
 			$findings['wpdb_placeholders']    = array_merge( $findings['wpdb_placeholders'], $this->check_wpdb_placeholders( $rel, $lines ) );
 			$findings['unnecessary_closures'] = array_merge( $findings['unnecessary_closures'], $this->check_unnecessary_closures( $rel, $lines ) );
-			$findings['early_translations']   = array_merge( $findings['early_translations'], $this->check_early_translations( $rel, $lines ) );
-
-			$all_hook_calls = array_merge( $all_hook_calls, $this->collect_hook_calls( $rel, $lines ) );
 
 			if ( '' !== $required_php ) {
 				$findings['php_compat'] = array_merge( $findings['php_compat'], $this->check_php_compat( $rel, $lines, $required_php ) );
@@ -211,8 +189,7 @@ class Scanner {
 			$findings['debug_output'] = array_merge( $findings['debug_output'], $this->check_debug_js( $rel, $lines ) );
 		}
 
-		$findings['duplicate_hooks'] = $this->check_duplicate_hooks( $all_hook_calls );
-		$findings['permissions']     = $this->check_file_permissions( $plugin_dir );
+		$findings['permissions'] = $this->check_file_permissions( $plugin_dir );
 		$findings['meta']            = $this->check_plugin_header( $plugin_dir );
 		$findings['structure']       = $this->check_plugin_structure( $plugin_dir );
 		$findings['licensing']       = $this->check_licensing( $plugin_dir );
@@ -516,21 +493,10 @@ class Scanner {
 	private function check_nonces( string $file, array $lines, string $content ): array {
 		$findings = array();
 
-		$has_post_handling = str_contains( $content, '$_POST' );
-		$has_nonce_check   = str_contains( $content, 'wp_verify_nonce' ) || str_contains( $content, 'check_admin_referer' );
-		$has_nonce_field   = str_contains( $content, 'wp_nonce_field' );
-		$has_form          = str_contains( $content, '<form' );
-		$has_get_action    = (bool) preg_match( '/\$_GET\[.action.\]/', $content );
-
-		if ( $has_post_handling && ! $has_nonce_check ) {
-			$findings[] = $this->finding(
-				'CRITICAL',
-				$file,
-				0,
-				'',
-				__( 'File handles $_POST data but has no wp_verify_nonce() or check_admin_referer() call.', 'plugin-auditor' )
-			);
-		}
+		$has_nonce_check = str_contains( $content, 'wp_verify_nonce' ) || str_contains( $content, 'check_admin_referer' );
+		$has_nonce_field = str_contains( $content, 'wp_nonce_field' );
+		$has_form        = str_contains( $content, '<form' );
+		$has_get_action  = (bool) preg_match( '/\$_GET\[.action.\]/', $content );
 
 		if ( $has_form && ! $has_nonce_field ) {
 			$findings[] = $this->finding(
@@ -785,34 +751,6 @@ class Scanner {
 					__( 'preg_replace() with /e modifier executes matched content as PHP code.', 'plugin-auditor' )
 				);
 			}
-		}
-
-		return $findings;
-	}
-
-	/**
-	 * Checks each PHP file for a direct file access guard at the top.
-	 *
-	 * @param string   $file  Relative file path.
-	 * @param string[] $lines File lines.
-	 * @return array<int, array<string, mixed>>
-	 */
-	private function check_direct_access( string $file, array $lines ): array {
-		$findings = array();
-
-		$preamble = implode( "\n", array_slice( $lines, 0, 25 ) );
-
-		$has_guard = (bool) preg_match( '/defined\s*\(\s*[\'"]ABSPATH[\'"]\s*\)\s*\|\|/', $preamble )
-			|| (bool) preg_match( '/defined\s*\(\s*[\'"]WP_UNINSTALL_PLUGIN[\'"]\s*\)\s*\|\|/', $preamble );
-
-		if ( ! $has_guard ) {
-			$findings[] = $this->finding(
-				'HIGH',
-				$file,
-				0,
-				'',
-				__( "Missing direct file access guard  add defined( 'ABSPATH' ) || exit; at the top of the file.", 'plugin-auditor' )
-			);
 		}
 
 		return $findings;
@@ -1180,71 +1118,6 @@ class Scanner {
 		}
 
 		return $findings;
-	}
-
-	/**
-	 * Flags blocks of 5 or more consecutive commented lines.
-	 *
-	 * @param string   $file  Relative file path.
-	 * @param string[] $lines File lines.
-	 * @return array<int, array<string, mixed>>
-	 */
-	private function check_commented_code( string $file, array $lines ): array {
-		$findings    = array();
-		$consecutive = 0;
-		$block_start = 0;
-		$block_lines = array();
-
-		foreach ( $lines as $i => $line ) {
-			if ( $this->is_comment_line( trim( $line ) ) ) {
-				if ( 0 === $consecutive ) {
-					$block_start = $i + 1;
-					$block_lines = array();
-				}
-				$block_lines[] = trim( $line );
-				++$consecutive;
-			} else {
-				if ( $consecutive >= 5 ) {
-					$findings[] = $this->make_commented_block_finding( $file, $block_start, $consecutive, $block_lines );
-				}
-				$consecutive = 0;
-				$block_lines = array();
-			}
-		}
-		if ( $consecutive >= 5 ) {
-			$findings[] = $this->make_commented_block_finding( $file, $block_start, $consecutive, $block_lines );
-		}
-
-		return $findings;
-	}
-
-	/**
-	 * Builds a finding for a block of commented-out code.
-	 *
-	 * @param string   $file        Relative file path.
-	 * @param int      $block_start Starting line number.
-	 * @param int      $consecutive Number of consecutive comment lines.
-	 * @param string[] $block_lines The comment lines.
-	 * @return array<string, mixed>
-	 */
-	private function make_commented_block_finding( string $file, int $block_start, int $consecutive, array $block_lines ): array {
-		$sensitive_keys = array( 'password', 'secret', 'api_key', 'select ', 'insert ', 'update ', 'delete ', 'drop ', 'token', 'credential' );
-		$block_text     = strtolower( implode( "\n", $block_lines ) );
-		$severity       = 'LOW';
-		foreach ( $sensitive_keys as $key ) {
-			if ( str_contains( $block_text, $key ) ) {
-				$severity = 'MEDIUM';
-				break;
-			}
-		}
-		return $this->finding(
-			$severity,
-			$file,
-			$block_start,
-			'',
-			/* translators: %d: number of lines */
-			sprintf( __( 'Block of %d consecutive commented lines  review for dead code or sensitive content.', 'plugin-auditor' ), $consecutive )
-		);
 	}
 
 	/**
@@ -1632,75 +1505,6 @@ class Scanner {
 	}
 
 	// -------------------------------------------------------------------------
-	// Duplicate hook registrations (cross-file, collected then checked)
-	// -------------------------------------------------------------------------
-
-	/**
-	 * Collects all add_action() / add_filter() calls from a file for cross-file duplicate detection.
-	 *
-	 * @param string   $file  Relative file path.
-	 * @param string[] $lines File lines.
-	 * @return array<int, array<string, mixed>>
-	 */
-	private function collect_hook_calls( string $file, array $lines ): array {
-		$calls = array();
-
-		foreach ( $lines as $i => $line ) {
-			if ( ! preg_match( '/\b(add_action|add_filter)\s*\(\s*([\'"][^\'"]+[\'"])\s*,\s*([^,)]+)(?:,\s*(\d+))?/', $line, $m ) ) {
-				continue;
-			}
-
-			$calls[] = array(
-				'file'     => $file,
-				'line'     => $i + 1,
-				'snippet'  => $line,
-				'function' => $m[1],
-				'hook'     => trim( $m[2], '\'"' ),
-				'callback' => trim( $m[3] ),
-				'priority' => isset( $m[4] ) ? $m[4] : '10',
-			);
-		}
-
-		return $calls;
-	}
-
-	/**
-	 * Flags identical add_action/add_filter registrations (same hook, callback, priority) appearing more than once.
-	 *
-	 * @param array<int, array<string, mixed>> $all_calls Collected hook calls from all files.
-	 * @return array<int, array<string, mixed>>
-	 */
-	private function check_duplicate_hooks( array $all_calls ): array {
-		$findings = array();
-		$seen     = array();
-
-		foreach ( $all_calls as $call ) {
-			$key = $call['function'] . '|' . $call['hook'] . '|' . $call['callback'] . '|' . $call['priority'];
-			if ( isset( $seen[ $key ] ) ) {
-				$findings[] = $this->finding(
-					'LOW',
-					$call['file'],
-					$call['line'],
-					$call['snippet'],
-					/* translators: 1: function name e.g. add_action, 2: hook name, 3: file path, 4: line number */
-					sprintf(
-						/* translators: 1: function, 2: hook, 3: file, 4: line */
-						esc_html__( 'Duplicate %1$s() registration  hook "%2$s" with same callback and priority already registered in %3$s on line %4$s.', 'plugin-auditor' ),
-						$call['function'],
-						$call['hook'],
-						$seen[ $key ]['file'],
-						(string) $seen[ $key ]['line']
-					)
-				);
-			} else {
-				$seen[ $key ] = $call;
-			}
-		}
-
-		return $findings;
-	}
-
-	// -------------------------------------------------------------------------
 	// Unnecessary closures
 	// -------------------------------------------------------------------------
 
@@ -1735,71 +1539,6 @@ class Scanner {
 					/* translators: %s: recommended function name */
 					sprintf( __( 'Unnecessary closure  replace with %s.', 'plugin-auditor' ), $replacement )
 				);
-			}
-		}
-
-		return $findings;
-	}
-
-	// -------------------------------------------------------------------------
-	// Early translation calls
-	// -------------------------------------------------------------------------
-
-	/**
-	 * Flags translation functions called at file scope or before init fires.
-	 *
-	 * @param string   $file  Relative file path.
-	 * @param string[] $lines File lines.
-	 * @return array<int, array<string, mixed>>
-	 */
-	private function check_early_translations( string $file, array $lines ): array {
-		$findings    = array();
-		$in_function = 0;
-		$in_class    = 0;
-		$brace_depth = 0;
-
-		$content = implode( "\n", $lines );
-		if ( ! preg_match( '/\b(?:function|class)\s+\w+/', $content ) ) {
-			return $findings;
-		}
-
-		foreach ( $lines as $i => $line ) {
-			$opens  = substr_count( $line, '{' );
-			$closes = substr_count( $line, '}' );
-
-			if ( preg_match( '/^\s*class\s+\w+/', $line ) ) {
-				++$in_class;
-			}
-
-			if ( preg_match( '/\bfunction\s+\w+\s*\(/', $line ) || preg_match( '/\bfunction\s*\(/', $line ) ) {
-				++$in_function;
-			}
-
-			$brace_depth += $opens - $closes;
-
-			if ( $brace_depth < 0 ) {
-				$brace_depth = 0;
-			}
-
-			if ( 0 === $in_function && 0 === $in_class ) {
-				foreach ( self::EARLY_TRANSLATION_FUNCTIONS as $fn ) {
-					if ( preg_match( '/\b' . preg_quote( $fn, '/' ) . '\s*\(/', $line ) ) {
-						$findings[] = $this->finding(
-							'LOW',
-							$file,
-							$i + 1,
-							$line,
-							/* translators: %s: function name */
-							sprintf( __( '%s() called at file scope before init  text domain may not be loaded yet. Wrap in an init or plugins_loaded hook callback.', 'plugin-auditor' ), $fn )
-						);
-					}
-				}
-			}
-
-			if ( $closes > 0 && $brace_depth <= ( $in_class > 0 ? 1 : 0 ) ) {
-				if ( $in_function > 0 ) {
-					--$in_function;
-				}
 			}
 		}
 
