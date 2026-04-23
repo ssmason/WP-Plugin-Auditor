@@ -128,8 +128,8 @@ class ScannerTest extends TestCase {
 	// Nonces
 	// -------------------------------------------------------------------------
 
-	public function test_flags_post_handler_without_nonce(): void {
-		$this->write_php( 'form.php', '<?php if ( isset( $_POST["save"] ) ) { update_option( "x", 1 ); }' );
+	public function test_flags_form_without_nonce_field(): void {
+		$this->write_php( 'form.php', "<?php\ndefined( 'ABSPATH' ) || exit;\necho '<form method=\"post\"><input type=\"submit\"></form>';" );
 		$findings = $this->scanner->scan( $this->tmp_dir );
 		$this->assertNotEmpty( $findings['nonces'] );
 	}

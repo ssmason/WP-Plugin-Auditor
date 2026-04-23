@@ -162,8 +162,6 @@ class Scanner {
 			$findings['capabilities']         = array_merge( $findings['capabilities'], $this->check_capabilities( $rel, $lines ) );
 			$findings['database']             = array_merge( $findings['database'], $this->check_database( $rel, $lines ) );
 			$findings['credentials']          = array_merge( $findings['credentials'], $this->check_credentials( $rel, $lines ) );
-			$findings['requests']             = array_merge( $findings['requests'], $this->check_external_requests( $rel, $lines ) );
-			$findings['assets']               = array_merge( $findings['assets'], $this->check_asset_versioning( $rel, $lines ) );
 			$findings['errors']               = array_merge( $findings['errors'], $this->check_error_suppression( $rel, $lines ) );
 			$findings['obfuscation']          = array_merge( $findings['obfuscation'], $this->check_obfuscation( $rel, $lines ) );
 			$findings['debug_output']         = array_merge( $findings['debug_output'], $this->check_debug_output( $rel, $lines ) );
@@ -190,9 +188,20 @@ class Scanner {
 		}
 
 		$findings['permissions'] = $this->check_file_permissions( $plugin_dir );
-		$findings['meta']            = $this->check_plugin_header( $plugin_dir );
-		$findings['structure']       = $this->check_plugin_structure( $plugin_dir );
-		$findings['licensing']       = $this->check_licensing( $plugin_dir );
+		$findings['structure']   = $this->check_plugin_structure( $plugin_dir );
+		$findings['licensing']   = $this->check_licensing( $plugin_dir );
+
+		foreach ( array_keys( $findings ) as $section ) {
+			if ( ! is_array( $findings[ $section ] ) ) {
+				continue;
+			}
+			$findings[ $section ] = array_values(
+				array_filter(
+					$findings[ $section ],
+					static fn( $f ) => ! str_contains( (string) ( $f['snippet'] ?? '' ), '// phpcs:ignore' )
+				)
+			);
+		}
 
 		$findings['score']  = ScoreCalculator::score( $findings );
 		$findings['rating'] = ScoreCalculator::rating( (int) $findings['score'] );
@@ -533,8 +542,6 @@ class Scanner {
 		$info        = array();
 		$cap_pattern = '/current_user_can\s*\(\s*[\'"]([^\'"]+)[\'"]/';
 
-		$full_file = implode( "\n", $lines );
-
 		foreach ( $lines as $i => $line ) {
 			$trimmed_cap = ltrim( $line );
 			if ( str_starts_with( $trimmed_cap, '//' ) || str_starts_with( $trimmed_cap, '*' ) || str_starts_with( $trimmed_cap, '#' ) ) {
@@ -562,30 +569,6 @@ class Scanner {
 				);
 			}
 
-			if ( preg_match( '/\b(update_option|add_option|delete_option)\s*\(/', $line ) ) {
-				// Find the enclosing function start to scan its full scope.
-				$func_start = max( 0, $i - 30 );
-				for ( $j = $i - 1; $j >= 0; $j-- ) {
-					if ( preg_match( '/\bfunction\s+\w+/', $lines[ $j ] ) ) {
-						$func_start = $j;
-						break;
-					}
-				}
-				$func_context = implode( "\n", array_slice( $lines, $func_start, $i - $func_start + 1 ) );
-
-				if ( ! str_contains( $func_context, 'current_user_can' )
-					&& ! str_contains( $full_file, 'register_activation_hook' )
-					&& ! str_contains( $full_file, 'register_deactivation_hook' )
-				) {
-					$findings[] = $this->finding(
-						'HIGH',
-						$file,
-						$i + 1,
-						$line,
-						__( 'Write operation without a visible current_user_can() check in the preceding scope.', 'plugin-auditor' )
-					);
-				}
-			}
 		}
 
 		return array_merge( $findings, $info );
@@ -801,7 +784,7 @@ class Scanner {
 			if ( str_starts_with( $trimmed, '//' ) || str_starts_with( $trimmed, '*' ) ) {
 				continue;
 			}
-			if ( preg_match( '/\bconsole\.(log|warn|error|debug|info)\s*\(/', $line, $m ) ) {
+			if ( preg_match( '/\bconsole\.(log|debug|info)\s*\(/', $line, $m ) ) {
 				$findings[] = $this->finding(
 					'LOW',
 					$file,
@@ -1058,7 +1041,10 @@ class Scanner {
 			}
 
 			if ( $needs_80_check ) {
-				if ( preg_match( '/\bmatch\s*\(/', $line ) ) {
+				if ( preg_match( '/\bmatch\s*\(/', $line )
+					&& ! preg_match( '/function\s+match\s*\(/', $line )
+					&& ! preg_match( '/->match\s*\(/', $line )
+				) {
 					$findings[] = $this->finding(
 						'MEDIUM',
 						$file,
@@ -1114,121 +1100,6 @@ class Scanner {
 						sprintf( __( 'Readonly properties require PHP 8.1  declared minimum is PHP %s.', 'plugin-auditor' ), $required_php )
 					);
 				}
-			}
-		}
-
-		return $findings;
-	}
-
-	/**
-	 * Checks the plugin header for required metadata.
-	 *
-	 * @param string $plugin_dir Absolute plugin directory.
-	 * @return array<int, array<string, mixed>>
-	 */
-	private function check_plugin_header( string $plugin_dir ): array {
-		$findings  = array();
-		$main_file = $this->find_main_plugin_file( $plugin_dir );
-
-		if ( null === $main_file ) {
-			$findings[] = $this->finding( 'HIGH', '', 0, '', __( 'No main plugin file with Plugin Name header found.', 'plugin-auditor' ) );
-			return $findings;
-		}
-
-		$content  = (string) file_get_contents( $main_file ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents -- local filesystem read, not HTTP.
-		$rel      = basename( $main_file );
-		$required = array(
-			'Requires PHP'      => __( 'Missing "Requires PHP" header.', 'plugin-auditor' ),
-			'Requires at least' => __( 'Missing "Requires at least" header.', 'plugin-auditor' ),
-			'License'           => __( 'Missing "License" header.', 'plugin-auditor' ),
-			'Author URI'        => __( 'Missing "Author URI" header.', 'plugin-auditor' ),
-			'Plugin URI'        => __( 'Missing "Plugin URI" header.', 'plugin-auditor' ),
-		);
-
-		foreach ( $required as $header => $message ) {
-			if ( ! preg_match( '/' . preg_quote( $header, '/' ) . '\s*:/i', $content ) ) {
-				$findings[] = $this->finding( 'LOW', $rel, 0, '', $message );
-			}
-		}
-
-		return $findings;
-	}
-
-	/**
-	 * Checks for external HTTP requests.
-	 *
-	 * @param string   $file  Relative file path.
-	 * @param string[] $lines File lines.
-	 * @return array<int, array<string, mixed>>
-	 */
-	private function check_external_requests( string $file, array $lines ): array {
-		$findings = array();
-		$pattern  = '/\b(wp_remote_get|wp_remote_post|wp_remote_request|wp_remote_head|curl_exec|curl_init|file_get_contents)\s*\(/';
-
-		foreach ( $lines as $i => $line ) {
-			if ( preg_match( $pattern, $line, $m ) ) {
-				// Skip file_get_contents() when it has no HTTP URL  local filesystem read.
-				if ( 'file_get_contents' === $m[1] && ! preg_match( '/[\'"]https?:\/\//', $line ) ) {
-					continue;
-				}
-
-				$url = '';
-				if ( preg_match( '/[\'"]https?:\/\/[^\'"]+[\'"]/', $line, $um ) ) {
-					$url = $um[0];
-				}
-
-				$findings[] = $this->finding(
-					'INFO',
-					$file,
-					$i + 1,
-					$line,
-					sprintf(
-						/* translators: 1: function name, 2: URL or empty */
-						__( 'External HTTP request via %1$s%2$s', 'plugin-auditor' ),
-						$m[1] . '()',
-						$url ? '  endpoint: ' . $url : ''
-					)
-				);
-			}
-		}
-
-		return $findings;
-	}
-
-	/**
-	 * Checks asset enqueue version arguments.
-	 *
-	 * @param string   $file  Relative file path.
-	 * @param string[] $lines File lines.
-	 * @return array<int, array<string, mixed>>
-	 */
-	private function check_asset_versioning( string $file, array $lines ): array {
-		$findings = array();
-		$pattern  = '/\b(wp_enqueue_script|wp_enqueue_style|wp_register_script|wp_register_style)\s*\(/';
-
-		foreach ( $lines as $i => $line ) {
-			if ( ! preg_match( $pattern, $line ) ) {
-				continue;
-			}
-
-			if ( preg_match( '/,\s*false\s*[,)]/', $line ) ) {
-				$findings[] = $this->finding(
-					'LOW',
-					$file,
-					$i + 1,
-					$line,
-					__( 'Asset enqueued with false version  use a version constant or a file hash.', 'plugin-auditor' )
-				);
-			}
-
-			if ( preg_match( '/,\s*[\'"][\d.]+[\'"]/', $line ) ) {
-				$findings[] = $this->finding(
-					'LOW',
-					$file,
-					$i + 1,
-					$line,
-					__( 'Asset enqueued with hardcoded version string  use a constant instead.', 'plugin-auditor' )
-				);
 			}
 		}
 

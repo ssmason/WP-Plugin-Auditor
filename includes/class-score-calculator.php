@@ -60,9 +60,6 @@ class ScoreCalculator {
 	 */
 	public static function code_quality_sections(): array {
 		return array(
-			'requests',
-			'meta',
-			'assets',
 			'deprecated',
 			'structure',
 			'licensing',
