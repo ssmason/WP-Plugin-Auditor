@@ -386,10 +386,11 @@
 }
 
 .pla-reports-table .pla-col-cb { width: 2.2em; }
-.pla-reports-table .pla-col-count { width: 60px; text-align: center; }
-.pla-reports-table .pla-col-risk { width: 90px; }
-.pla-reports-table .pla-col-date { width: 130px; }
-.pla-reports-table .pla-col-actions { width: 200px; }
+.pla-reports-table .pla-col-plugin { min-width: 140px; }
+.pla-reports-table .pla-col-count { width: 50px; text-align: center; }
+.pla-reports-table .pla-col-risk { width: 80px; }
+.pla-reports-table .pla-col-date { width: 120px; }
+.pla-reports-table .pla-col-actions { width: 170px; }
 
 .pla-reports-table thead th.pla-col-plugin,
 .pla-reports-table thead th.pla-col-risk,
