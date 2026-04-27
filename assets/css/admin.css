@@ -85,6 +85,14 @@
 
 .pla-admin-section--flush .pla-col-actions {
 	white-space: nowrap;
+	width: 140px;
+}
+
+.pla-admin-section--flush .pla-view-report.button,
+.pla-admin-section--flush .pla-download-report.button {
+	font-size: 11px;
+	padding-right: 7px;
+	padding-left: 7px;
 }
 
 .pla-admin-section--flush {

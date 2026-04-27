@@ -251,7 +251,7 @@ $checks = array(
 											class="button pla-download-report"
 											data-report-id="<?php echo esc_attr( (string) $report->ID ); ?>"
 											data-nonce="<?php echo esc_attr( $download_nonce ); ?>"
-										><?php esc_html_e( 'Download JSON', 'plugin-auditor' ); ?></button>
+										><?php esc_html_e( 'Download', 'plugin-auditor' ); ?></button>
 									</td>
 								</tr>
 							<?php endforeach; ?>
