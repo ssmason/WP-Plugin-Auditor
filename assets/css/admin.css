@@ -1,0 +1,167 @@
+.pla-page-banner {
+	margin: 20px 0 24px;
+	padding-bottom: 16px;
+	border-bottom: 1px solid #dcdcdc;
+}
+
+.pla-page-banner h1 {
+	margin: 0;
+}
+
+.pla-page-columns {
+	display: flex;
+	gap: 24px;
+	align-items: flex-start;
+}
+
+.pla-col-main {
+	flex: 0 0 calc(66.66% - 12px);
+	min-width: 0;
+}
+
+.pla-col-sidebar {
+	flex: 1;
+	min-width: 0;
+}
+
+.pla-hero-banner {
+	background: #0891b2;
+	padding: 48px 32px;
+	margin-bottom: 20px;
+	border-radius: 3px;
+}
+
+.pla-hero-banner h2 {
+	color: #fff;
+	font-size: 1.6em;
+	font-weight: 600;
+	margin: 0 0 14px;
+}
+
+.pla-hero-banner p {
+	color: #e0f7fa;
+	font-size: 1.05em;
+	margin: 0;
+}
+
+.pla-admin-section {
+	background: #fff;
+	border: 1px solid #dcdcdc;
+	border-radius: 3px;
+	padding: 20px;
+	margin-bottom: 20px;
+}
+
+.pla-admin-section h3 {
+	margin: 0 0 14px;
+	padding-bottom: 10px;
+	border-bottom: 1px solid #f0f0f0;
+	font-size: 11px;
+	font-weight: 700;
+	text-transform: uppercase;
+	letter-spacing: 0.06em;
+	color: #50575e;
+}
+
+.pla-plugin-list {
+	margin: 0;
+	padding: 0;
+	list-style: none;
+}
+
+.pla-plugin-item {
+	display: flex;
+	align-items: center;
+	gap: 10px;
+	padding: 7px 0;
+	border-bottom: 1px solid #f6f7f7;
+	font-size: 13px;
+}
+
+.pla-plugin-item:last-child {
+	border-bottom: none;
+}
+
+.pla-plugin-name {
+	flex: 1;
+}
+
+.pla-plugin-version {
+	color: #787c82;
+	font-size: 11px;
+}
+
+.pla-plugin-badge {
+	display: inline-block;
+	font-size: 10px;
+	font-weight: 700;
+	padding: 2px 7px;
+	border-radius: 10px;
+	text-transform: uppercase;
+	letter-spacing: 0.05em;
+}
+
+.pla-plugin-badge--active {
+	background: #d4edda;
+	color: #155724;
+}
+
+.pla-plugin-badge--inactive {
+	background: #f6f7f7;
+	color: #787c82;
+}
+
+.pla-col-sidebar > h2 {
+	font-size: 1.1em;
+	margin: 0 0 14px;
+}
+
+.pla-checks-table {
+	width: 100%;
+	border-collapse: collapse;
+	font-size: 12px;
+}
+
+.pla-checks-table th {
+	text-align: left;
+	padding: 6px 8px;
+	background: #f6f7f7;
+	border-bottom: 2px solid #dcdcdc;
+	font-size: 11px;
+	font-weight: 700;
+	text-transform: uppercase;
+	letter-spacing: 0.05em;
+	color: #50575e;
+}
+
+.pla-checks-table td {
+	padding: 6px 8px;
+	border-bottom: 1px solid #f6f7f7;
+	vertical-align: top;
+	line-height: 1.4;
+}
+
+.pla-checks-table tbody tr:last-child td {
+	border-bottom: none;
+}
+
+.pla-checks-table .pla-check-num {
+	width: 24px;
+	text-align: right;
+	padding-right: 4px;
+	color: #b4b9be;
+}
+
+.pla-checks-table a {
+	display: block;
+	margin-top: 2px;
+	color: #2271b1;
+	font-size: 11px;
+	text-decoration: none;
+	opacity: 0.8;
+}
+
+.pla-checks-table a:hover {
+	text-decoration: underline;
+	opacity: 1;
+}

@@ -19,6 +19,11 @@ class Admin {
 	/**
 	 * @param ReportRepository $repository Report database queries.
 	 */
+	private string $page_hook = '';
+
+	/**
+	 * @param ReportRepository $repository Report database queries.
+	 */
 	public function __construct( private ReportRepository $repository ) {}
 
 	/**
@@ -27,6 +32,7 @@ class Admin {
 	public function init(): void {
 		add_filter( 'plugin_action_links', array( $this, 'add_audit_link' ), 10, 2 );
 		add_action( 'admin_menu', array( $this, 'register_menu' ), 10, 0 );
+		add_action( 'admin_enqueue_scripts', array( $this, 'enqueue_assets' ), 10, 1 );
 	}
 
 	/**
@@ -57,13 +63,30 @@ class Admin {
 	 * Registers the auditor admin menu page.
 	 */
 	public function register_menu(): void {
-		add_management_page(
+		$hook = add_management_page(
 			esc_html__( 'Plugin Audit Reports', 'plugin-auditor' ),
 			esc_html__( 'Plugin Auditor', 'plugin-auditor' ),
 			'manage_options',
 			'plugin-auditor',
 			array( $this, 'render_reports_page' ),
 			10
+		);
+
+		if ( false !== $hook ) {
+			$this->page_hook = $hook;
+		}
+	}
+
+	public function enqueue_assets( string $hook_suffix ): void {
+		if ( $this->page_hook !== $hook_suffix ) {
+			return;
+		}
+
+		wp_enqueue_style(
+			'pla-admin',
+			PLUGIN_AUDITOR_URL . 'assets/css/admin.css',
+			array(),
+			PLUGIN_AUDITOR_VERSION
 		);
 	}
 
