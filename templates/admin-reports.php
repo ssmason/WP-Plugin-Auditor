@@ -137,7 +137,7 @@ $checks = array(
 				<?php endif; ?>
 			</div>
 
-			<div class="pla-admin-section">
+			<div class="pla-admin-section pla-admin-section--flush">
 				<h3><?php esc_html_e( 'Audit Reports', 'plugin-auditor' ); ?></h3>
 
 				<?php if ( empty( $reports ) ) : ?>
