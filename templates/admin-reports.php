@@ -71,13 +71,32 @@ $checks = array(
 		<div class="pla-col-main">
 
 			<div class="pla-hero-banner">
-				<h2><?php esc_html_e( '"Every plugin, fully exposed."', 'plugin-auditor' ); ?></h2>
-				<p><?php esc_html_e( 'Instant security audits, straight from your Plugins page.', 'plugin-auditor' ); ?></p>
-				<ul class="pla-hero-list">
-					<li><?php esc_html_e( 'No tools', 'plugin-auditor' ); ?></li>
-					<li><?php esc_html_e( 'No terminal', 'plugin-auditor' ); ?></li>
-					<li><?php esc_html_e( 'No guesswork', 'plugin-auditor' ); ?></li>
-				</ul>
+				<div class="pla-hero-banner__content">
+					<h2><?php esc_html_e( '"Every plugin, fully exposed."', 'plugin-auditor' ); ?></h2>
+					<p><?php esc_html_e( 'Instant security audits, straight from your Plugins page.', 'plugin-auditor' ); ?></p>
+					<ul class="pla-hero-list">
+						<li><?php esc_html_e( 'No tools', 'plugin-auditor' ); ?></li>
+						<li><?php esc_html_e( 'No terminal', 'plugin-auditor' ); ?></li>
+						<li><?php esc_html_e( 'No guesswork', 'plugin-auditor' ); ?></li>
+					</ul>
+				</div>
+				<div class="pla-hero-banner__graphic" aria-hidden="true">
+					<svg width="130" height="170" viewBox="0 0 130 170" fill="none" xmlns="http://www.w3.org/2000/svg">
+						<rect x="8" y="8" width="108" height="144" rx="8" fill="white" fill-opacity="0.1" stroke="white" stroke-opacity="0.2" stroke-width="1.5"/>
+						<rect x="8" y="8" width="108" height="38" rx="8" fill="white" fill-opacity="0.15"/>
+						<rect x="8" y="34" width="108" height="12" fill="white" fill-opacity="0.05"/>
+						<circle cx="28" cy="27" r="5" fill="white" fill-opacity="0.55"/>
+						<circle cx="44" cy="27" r="5" fill="white" fill-opacity="0.4"/>
+						<circle cx="60" cy="27" r="5" fill="white" fill-opacity="0.28"/>
+						<rect x="24" y="64" width="58" height="6" rx="3" fill="white" fill-opacity="0.55"/>
+						<rect x="24" y="79" width="76" height="6" rx="3" fill="white" fill-opacity="0.38"/>
+						<rect x="24" y="94" width="44" height="6" rx="3" fill="white" fill-opacity="0.28"/>
+						<rect x="24" y="109" width="66" height="6" rx="3" fill="white" fill-opacity="0.38"/>
+						<rect x="24" y="124" width="38" height="6" rx="3" fill="white" fill-opacity="0.22"/>
+						<path d="M80 106 L104 114 L104 129 C104 140 93 147 80 149 C67 147 56 140 56 129 L56 114 Z" fill="white" fill-opacity="0.92"/>
+						<path d="M71 129 L77 135 L91 119" stroke="#0891b2" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+					</svg>
+				</div>
 			</div>
 
 			<div class="pla-admin-section">
