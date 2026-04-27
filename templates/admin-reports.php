@@ -72,7 +72,12 @@ $checks = array(
 
 			<div class="pla-hero-banner">
 				<h2><?php esc_html_e( '"Every plugin, fully exposed."', 'plugin-auditor' ); ?></h2>
-				<p><?php esc_html_e( 'Instant security audits, straight from your Plugins page — no tools, no terminal, no guesswork.', 'plugin-auditor' ); ?></p>
+				<p><?php esc_html_e( 'Instant security audits, straight from your Plugins page.', 'plugin-auditor' ); ?></p>
+				<ul class="pla-hero-list">
+					<li><?php esc_html_e( 'No tools', 'plugin-auditor' ); ?></li>
+					<li><?php esc_html_e( 'No terminal', 'plugin-auditor' ); ?></li>
+					<li><?php esc_html_e( 'No guesswork', 'plugin-auditor' ); ?></li>
+				</ul>
 			</div>
 
 			<div class="pla-admin-section">
