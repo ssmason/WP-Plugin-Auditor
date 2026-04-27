@@ -79,6 +79,10 @@
 	margin-bottom: 20px;
 }
 
+.widefat td {
+	padding: 8px 0 !important;
+}
+
 .pla-admin-section--flush .pla-reports-table {
 	table-layout: auto;
 }
