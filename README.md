@@ -2,6 +2,10 @@
 
 A WordPress plugin that audits other installed plugins for security issues, coding standards violations, and file permissions. Triggered from the Plugins page action row. Results display in an inline modal with a live progress indicator while the audit runs via AJAX in the background. Reports are stored as a Custom Post Type and can be downloaded as PDF via the browser print dialog.
 
+![Audit Report](assets/screens/audit-report-2.png)
+
+![Audit Report](assets/screens/audit-report.png)
+
 ---
 
 ## Requirements
