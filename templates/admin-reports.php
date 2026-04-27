@@ -238,7 +238,7 @@ $checks = array(
 									<td class="pla-col-count">
 										<span class="pla-count pla-count--low"><?php echo esc_html( (string) ( $counts['low'] ?? '—' ) ); ?></span>
 									</td>
-									<td><?php echo esc_html( (string) get_the_date( 'Y-m-d H:i', $report ) ); ?></td>
+									<td><?php echo esc_html( (string) get_the_date( 'd-m-Y H:i', $report ) ); ?></td>
 									<td class="pla-col-actions">
 										<button
 											type="button"
