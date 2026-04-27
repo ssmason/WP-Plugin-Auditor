@@ -23,7 +23,16 @@ foreach ( $reports as $rpt ) {
 	}
 }
 
-$avatar_colors = array( '#0891b2', '#7c3aed', '#db2777', '#d97706', '#059669', '#dc2626', '#2563eb', '#0d9488' );
+$avatar_palettes = array(
+	array( '#dbeafe', '#1e3a8a' ),
+	array( '#ede9fe', '#4c1d95' ),
+	array( '#fce7f3', '#831843' ),
+	array( '#fef3c7', '#78350f' ),
+	array( '#d1fae5', '#064e3b' ),
+	array( '#fee2e2', '#7f1d1d' ),
+	array( '#e0f2fe', '#0c4a6e' ),
+	array( '#ccfbf1', '#134e4a' ),
+);
 
 $checks = array(
 	array( __( 'Dangerous functions', 'plugin-auditor' ), 'https://owasp.org/www-community/attacks/Code_Injection', __( 'OWASP — Code Injection', 'plugin-auditor' ) ),
@@ -53,6 +62,7 @@ $checks = array(
 <div class="wrap">
 
 	<div class="pla-page-banner">
+		<img src="<?php echo esc_url( PLUGIN_AUDITOR_URL . 'assets/images/satori-logo.png' ); ?>" alt="" aria-hidden="true" class="pla-page-banner__logo" />
 		<h1><?php esc_html_e( 'Satori Plugin Auditor', 'plugin-auditor' ); ?></h1>
 	</div>
 
@@ -81,33 +91,46 @@ $checks = array(
 					<div class="pla-plugin-grid">
 						<?php foreach ( $installed_plugins as $plugin_file => $plugin_data ) : ?>
 							<?php
-							$avatar_color  = $avatar_colors[ abs( crc32( $plugin_data['Name'] ) ) % count( $avatar_colors ) ];
-							$avatar_letter = mb_strtoupper( mb_substr( $plugin_data['Name'], 0, 1 ) );
-							$card_report   = $report_map[ $plugin_file ] ?? null;
+							$palette         = $avatar_palettes[ abs( crc32( $plugin_data['Name'] ) ) % count( $avatar_palettes ) ];
+							$words           = preg_split( '/\s+/', $plugin_data['Name'], -1, PREG_SPLIT_NO_EMPTY );
+							$words           = false !== $words ? $words : array( $plugin_data['Name'] );
+							$avatar_initials = '';
+							foreach ( $words as $word ) {
+								$avatar_initials .= mb_strtoupper( mb_substr( $word, 0, 1 ) );
+								if ( mb_strlen( $avatar_initials ) >= 3 ) {
+									break;
+								}
+							}
+							$card_report = $report_map[ $plugin_file ] ?? null;
 							?>
 							<div class="pla-plugin-card">
-								<div class="pla-plugin-card__header">
-									<div class="pla-plugin-avatar" style="background:<?php echo esc_attr( $avatar_color ); ?>">
-										<?php echo esc_html( $avatar_letter ); ?>
+								<div class="pla-plugin-card__top">
+									<div class="pla-plugin-avatar" style="background:<?php echo esc_attr( $palette[0] ); ?>;color:<?php echo esc_attr( $palette[1] ); ?>">
+										<?php echo esc_html( $avatar_initials ); ?>
 									</div>
 									<div class="pla-plugin-card__meta">
-										<span class="pla-plugin-card__name"><?php echo esc_html( $plugin_data['Name'] ); ?></span>
-										<span class="pla-plugin-card__version">v<?php echo esc_html( $plugin_data['Version'] ); ?></span>
+										<div class="pla-plugin-card__name"><?php echo esc_html( $plugin_data['Name'] ); ?></div>
+										<div class="pla-plugin-card__version">v<?php echo esc_html( $plugin_data['Version'] ); ?></div>
 									</div>
-									<button type="button" class="button pla-audit-card-btn">
+								</div>
+								<div class="pla-plugin-card__bottom">
+									<?php if ( null !== $card_report ) : ?>
+										<?php
+										$card_risk  = strtolower( (string) get_post_meta( $card_report->ID, '_pla_risk', true ) );
+										$card_score = (string) get_post_meta( $card_report->ID, '_pla_score', true );
+										?>
+										<span class="pla-score-badge pla-score-badge--<?php echo esc_attr( $card_risk ); ?>">
+											<span class="pla-score-badge__dot"></span>
+											<?php /* translators: %s: numeric risk score */ ?>
+										<?php echo esc_html( sprintf( __( 'Score %s', 'plugin-auditor' ), $card_score ) ); ?>
+										</span>
+									<?php else : ?>
+										<span></span>
+									<?php endif; ?>
+									<button type="button" class="pla-audit-card-btn">
 										<?php esc_html_e( 'Audit', 'plugin-auditor' ); ?>
 									</button>
 								</div>
-								<?php if ( null !== $card_report ) : ?>
-									<?php
-									$card_risk  = (string) get_post_meta( $card_report->ID, '_pla_risk', true );
-									$card_score = (string) get_post_meta( $card_report->ID, '_pla_score', true );
-									?>
-									<div class="pla-plugin-card__score">
-										<span class="pla-risk pla-risk--<?php echo esc_attr( strtolower( $card_risk ) ); ?>"><?php echo esc_html( $card_risk ); ?></span>
-										<span class="pla-plugin-card__score-val"><?php echo esc_html( $card_score ); ?></span>
-									</div>
-								<?php endif; ?>
 							</div>
 						<?php endforeach; ?>
 					</div>

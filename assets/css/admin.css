@@ -1,11 +1,21 @@
 .pla-page-banner {
+	display: flex;
+	align-items: center;
+	gap: 14px;
 	margin: 20px 0 24px;
-	padding-bottom: 16px;
-	border-bottom: 1px solid #dcdcdc;
+	padding: 16px 20px;
+	background: #f8fafc;
+	border: 1px solid #e5e7eb;
+	border-radius: 4px;
 }
 
 .pla-page-banner h1 {
 	margin: 0;
+}
+
+.pla-page-banner__logo {
+	height: 36px;
+	width: auto;
 }
 
 .pla-page-columns {
@@ -70,43 +80,44 @@
 }
 
 .pla-plugin-card {
-	border: 1px solid #dcdcdc;
-	border-radius: 4px;
+	display: flex;
+	flex-direction: column;
+	gap: 12px;
+	padding: 16px;
 	background: #fff;
-	overflow: hidden;
+	border: 1px solid #e5e7eb;
+	border-radius: 4px;
 }
 
-.pla-plugin-card__header {
+.pla-plugin-card__top {
 	display: flex;
-	align-items: center;
+	align-items: flex-start;
 	gap: 12px;
-	padding: 14px;
 }
 
 .pla-plugin-avatar {
 	flex-shrink: 0;
-	width: 42px;
-	height: 42px;
-	border-radius: 6px;
+	width: 40px;
+	height: 40px;
+	border-radius: 4px;
 	display: flex;
 	align-items: center;
 	justify-content: center;
-	color: #fff;
-	font-size: 20px;
+	font-size: 11px;
 	font-weight: 700;
 }
 
 .pla-plugin-card__meta {
-	flex: 1;
-	min-width: 0;
 	display: flex;
 	flex-direction: column;
-	gap: 3px;
+	gap: 2px;
+	min-width: 0;
 }
 
 .pla-plugin-card__name {
-	font-weight: 600;
 	font-size: 13px;
+	font-weight: 600;
+	color: #1f2937;
 	white-space: nowrap;
 	overflow: hidden;
 	text-overflow: ellipsis;
@@ -114,22 +125,76 @@
 
 .pla-plugin-card__version {
 	font-size: 11px;
-	color: #787c82;
+	color: #6b7280;
 }
 
-.pla-plugin-card__score {
+.pla-plugin-card__bottom {
 	display: flex;
 	align-items: center;
-	gap: 8px;
-	padding: 10px 14px;
-	border-top: 1px solid #f0f0f0;
-	background: #f9f9f9;
+	justify-content: space-between;
 }
 
-.pla-plugin-card__score-val {
-	font-size: 12px;
+.pla-score-badge {
+	display: inline-flex;
+	align-items: center;
+	gap: 6px;
+	font-size: 11px;
 	font-weight: 600;
-	color: #50575e;
+	padding: 3px 8px;
+	border-radius: 20px;
+}
+
+.pla-score-badge__dot {
+	width: 6px;
+	height: 6px;
+	border-radius: 50%;
+}
+
+.pla-score-badge--critical,
+.pla-score-badge--high {
+	background: #fee2e2;
+	color: #991b1b;
+}
+
+.pla-score-badge--critical .pla-score-badge__dot,
+.pla-score-badge--high .pla-score-badge__dot {
+	background: #ef4444;
+}
+
+.pla-score-badge--medium {
+	background: #fef9c3;
+	color: #854d0e;
+}
+
+.pla-score-badge--medium .pla-score-badge__dot {
+	background: #eab308;
+}
+
+.pla-score-badge--low,
+.pla-score-badge--clean {
+	background: #dcfce7;
+	color: #166534;
+}
+
+.pla-score-badge--low .pla-score-badge__dot,
+.pla-score-badge--clean .pla-score-badge__dot {
+	background: #22c55e;
+}
+
+.pla-audit-card-btn {
+	font-size: 11px;
+	font-weight: 500;
+	padding: 5px 12px;
+	border: 1px solid #2563eb;
+	color: #2563eb;
+	border-radius: 4px;
+	background: transparent;
+	cursor: pointer;
+	line-height: 1.4;
+}
+
+.pla-audit-card-btn:hover {
+	background: #eff6ff;
 }
 
 .pla-col-sidebar > h2 {
