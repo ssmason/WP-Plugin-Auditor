@@ -38,7 +38,7 @@
 	background-color: #0891b2;
 	background-repeat: no-repeat;
 	background-position: right top;
-	background-size: cover;
+	background-size: contain;
 	padding: 48px 32px;
 	margin-bottom: 20px;
 	border-radius: 8px;
