@@ -15,6 +15,16 @@ defined( 'ABSPATH' ) || exit;
 $active_plugins    = (array) get_option( 'active_plugins', array() );
 $installed_plugins = get_plugins();
 
+$report_map = array();
+foreach ( $reports as $rpt ) {
+	$rpt_file = (string) get_post_meta( $rpt->ID, '_pla_plugin_file', true );
+	if ( '' !== $rpt_file && ! isset( $report_map[ $rpt_file ] ) ) {
+		$report_map[ $rpt_file ] = $rpt;
+	}
+}
+
+$avatar_colors = array( '#0891b2', '#7c3aed', '#db2777', '#d97706', '#059669', '#dc2626', '#2563eb', '#0d9488' );
+
 $checks = array(
 	array( __( 'Dangerous functions', 'plugin-auditor' ), 'https://owasp.org/www-community/attacks/Code_Injection', __( 'OWASP — Code Injection', 'plugin-auditor' ) ),
 	array( __( 'Output escaping', 'plugin-auditor' ), 'https://developer.wordpress.org/apis/security/escaping/', __( 'WP Handbook — Escaping', 'plugin-auditor' ) ),
@@ -68,19 +78,39 @@ $checks = array(
 				<?php if ( empty( $installed_plugins ) ) : ?>
 					<p><?php esc_html_e( 'No plugins found.', 'plugin-auditor' ); ?></p>
 				<?php else : ?>
-					<ul class="pla-plugin-list">
+					<div class="pla-plugin-grid">
 						<?php foreach ( $installed_plugins as $plugin_file => $plugin_data ) : ?>
-							<li class="pla-plugin-item">
-								<span class="pla-plugin-name"><?php echo esc_html( $plugin_data['Name'] ); ?></span>
-								<span class="pla-plugin-version"><?php echo esc_html( $plugin_data['Version'] ); ?></span>
-								<?php if ( in_array( $plugin_file, $active_plugins, true ) ) : ?>
-									<span class="pla-plugin-badge pla-plugin-badge--active"><?php esc_html_e( 'Active', 'plugin-auditor' ); ?></span>
-								<?php else : ?>
-									<span class="pla-plugin-badge pla-plugin-badge--inactive"><?php esc_html_e( 'Inactive', 'plugin-auditor' ); ?></span>
+							<?php
+							$avatar_color  = $avatar_colors[ abs( crc32( $plugin_data['Name'] ) ) % count( $avatar_colors ) ];
+							$avatar_letter = mb_strtoupper( mb_substr( $plugin_data['Name'], 0, 1 ) );
+							$card_report   = $report_map[ $plugin_file ] ?? null;
+							?>
+							<div class="pla-plugin-card">
+								<div class="pla-plugin-card__header">
+									<div class="pla-plugin-avatar" style="background:<?php echo esc_attr( $avatar_color ); ?>">
+										<?php echo esc_html( $avatar_letter ); ?>
+									</div>
+									<div class="pla-plugin-card__meta">
+										<span class="pla-plugin-card__name"><?php echo esc_html( $plugin_data['Name'] ); ?></span>
+										<span class="pla-plugin-card__version">v<?php echo esc_html( $plugin_data['Version'] ); ?></span>
+									</div>
+									<button type="button" class="button pla-audit-card-btn">
+										<?php esc_html_e( 'Audit', 'plugin-auditor' ); ?>
+									</button>
+								</div>
+								<?php if ( null !== $card_report ) : ?>
+									<?php
+									$card_risk  = (string) get_post_meta( $card_report->ID, '_pla_risk', true );
+									$card_score = (string) get_post_meta( $card_report->ID, '_pla_score', true );
+									?>
+									<div class="pla-plugin-card__score">
+										<span class="pla-risk pla-risk--<?php echo esc_attr( strtolower( $card_risk ) ); ?>"><?php echo esc_html( $card_risk ); ?></span>
+										<span class="pla-plugin-card__score-val"><?php echo esc_html( $card_score ); ?></span>
+									</div>
 								<?php endif; ?>
-							</li>
+							</div>
 						<?php endforeach; ?>
-					</ul>
+					</div>
 				<?php endif; ?>
 			</div>
 
@@ -131,7 +161,11 @@ $checks = array(
 								$plugin_name    = (string) get_post_meta( $report->ID, '_pla_plugin_name', true );
 								$risk           = (string) get_post_meta( $report->ID, '_pla_risk', true );
 								$raw_counts     = get_post_meta( $report->ID, '_pla_counts', true );
-								$counts         = is_array( $raw_counts ) ? $raw_counts : array( 'high' => '—', 'medium' => '—', 'low' => '—' );
+								$counts         = is_array( $raw_counts ) ? $raw_counts : array(
+									'high'   => '—',
+									'medium' => '—',
+									'low'    => '—',
+								);
 								$view_nonce     = wp_create_nonce( 'pla_view_report_' . $report->ID );
 								$download_nonce = wp_create_nonce( 'pla_download_json_' . $report->ID );
 								$delete_nonce   = wp_create_nonce( 'pla_delete_report_' . $report->ID );

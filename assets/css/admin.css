@@ -63,52 +63,73 @@
 	color: #50575e;
 }
 
-.pla-plugin-list {
-	margin: 0;
-	padding: 0;
-	list-style: none;
+.pla-plugin-grid {
+	display: grid;
+	grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+	gap: 12px;
 }
 
-.pla-plugin-item {
+.pla-plugin-card {
+	border: 1px solid #dcdcdc;
+	border-radius: 4px;
+	background: #fff;
+	overflow: hidden;
+}
+
+.pla-plugin-card__header {
 	display: flex;
 	align-items: center;
-	gap: 10px;
-	padding: 7px 0;
-	border-bottom: 1px solid #f6f7f7;
-	font-size: 13px;
+	gap: 12px;
+	padding: 14px;
 }
 
-.pla-plugin-item:last-child {
-	border-bottom: none;
-}
-
-.pla-plugin-name {
-	flex: 1;
-}
-
-.pla-plugin-version {
-	color: #787c82;
-	font-size: 11px;
-}
-
-.pla-plugin-badge {
-	display: inline-block;
-	font-size: 10px;
+.pla-plugin-avatar {
+	flex-shrink: 0;
+	width: 42px;
+	height: 42px;
+	border-radius: 6px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	color: #fff;
+	font-size: 20px;
 	font-weight: 700;
-	padding: 2px 7px;
-	border-radius: 10px;
-	text-transform: uppercase;
-	letter-spacing: 0.05em;
 }
 
-.pla-plugin-badge--active {
-	background: #d4edda;
-	color: #155724;
+.pla-plugin-card__meta {
+	flex: 1;
+	min-width: 0;
+	display: flex;
+	flex-direction: column;
+	gap: 3px;
 }
 
-.pla-plugin-badge--inactive {
-	background: #f6f7f7;
+.pla-plugin-card__name {
+	font-weight: 600;
+	font-size: 13px;
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+}
+
+.pla-plugin-card__version {
+	font-size: 11px;
 	color: #787c82;
+}
+
+.pla-plugin-card__score {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	padding: 10px 14px;
+	border-top: 1px solid #f0f0f0;
+	background: #f9f9f9;
+}
+
+.pla-plugin-card__score-val {
+	font-size: 12px;
+	font-weight: 600;
+	color: #50575e;
 }
 
 .pla-col-sidebar > h2 {
