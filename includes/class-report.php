@@ -202,6 +202,9 @@ class Report {
 		return $counts;
 	}
 
+	/**
+	 * @param array<string, mixed> $findings
+	 */
 	private function save_json_export( int $post_id, string $plugin_file, string $plugin_name, array $findings ): void {
 		$sections = $findings;
 		unset( $sections['rating'], $sections['score'] );

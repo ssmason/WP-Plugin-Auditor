@@ -26,7 +26,10 @@ class PluginValidator {
 	 */
 	public readonly string $name;
 
-	private function __construct() {}
+	private function __construct( string $dir, string $name ) {
+		$this->dir  = $dir;
+		$this->name = $name;
+	}
 
 	/**
 	 * Resolves plugin metadata from a relative plugin file path.
@@ -34,9 +37,9 @@ class PluginValidator {
 	 * Returns a populated instance on success, or WP_Error if the file does not exist.
 	 *
 	 * @param string $plugin_file Relative plugin file path (e.g. my-plugin/my-plugin.php).
-	 * @return static|\WP_Error
+	 * @return self|\WP_Error
 	 */
-	public static function resolve( string $plugin_file ): static|\WP_Error {
+	public static function resolve( string $plugin_file ): self|\WP_Error {
 		if ( ! function_exists( 'get_plugin_data' ) ) {
 			require_once ABSPATH . 'wp-admin/includes/plugin.php';
 		}
@@ -49,11 +52,8 @@ class PluginValidator {
 		}
 
 		$data = get_plugin_data( $path );
+		$name = '' !== $data['Name'] ? $data['Name'] : basename( dirname( $plugin_file ) );
 
-		$instance       = new static();
-		$instance->dir  = $dir;
-		$instance->name = '' !== $data['Name'] ? $data['Name'] : basename( dirname( $plugin_file ) );
-
-		return $instance;
+		return new self( $dir, $name );
 	}
 }

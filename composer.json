@@ -28,6 +28,9 @@
       "url": "https://github.com/ssmason/WP-Plugin-Auditor"
     }
   ],
+  "scripts": {
+    "analyze": "phpstan analyse --configuration phpstan.neon.dist"
+  },
   "config": {
     "allow-plugins": {
       "dealerdirect/phpcodesniffer-composer-installer": true
