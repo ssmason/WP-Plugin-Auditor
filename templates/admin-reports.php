@@ -102,6 +102,7 @@ $checks = array(
 								}
 							}
 							$card_report = $report_map[ $plugin_file ] ?? null;
+							$card_nonce  = wp_create_nonce( 'pla_audit_' . $plugin_file );
 							?>
 							<div class="pla-plugin-card">
 								<div class="pla-plugin-card__top">
@@ -127,9 +128,12 @@ $checks = array(
 									<?php else : ?>
 										<span></span>
 									<?php endif; ?>
-									<button type="button" class="pla-audit-card-btn">
-										<?php esc_html_e( 'Audit', 'plugin-auditor' ); ?>
-									</button>
+									<button
+										type="button"
+										class="pla-audit-card-btn pla-audit-trigger"
+										data-plugin="<?php echo esc_attr( $plugin_file ); ?>"
+										data-nonce="<?php echo esc_attr( $card_nonce ); ?>"
+									><?php esc_html_e( 'Audit', 'plugin-auditor' ); ?></button>
 								</div>
 							</div>
 						<?php endforeach; ?>

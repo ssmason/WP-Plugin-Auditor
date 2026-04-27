@@ -43,14 +43,14 @@
 
 .pla-hero-banner h2 {
 	color: #fff;
-	font-size: 1.6em;
-	font-weight: 600;
+	font-size: 2.6em;
+	font-weight: 300;
 	margin: 0 0 14px;
 }
 
 .pla-hero-banner p {
 	color: #e0f7fa;
-	font-size: 1.05em;
+	font-size: 1.6em;
 	margin: 0;
 }
 
@@ -207,7 +207,8 @@
 }
 
 .pla-col-sidebar > h2 {
-	font-size: 1.1em;
+	font-size: 1.6em;
+	font-weight: 300;
 	margin: 0 0 14px;
 }
 
