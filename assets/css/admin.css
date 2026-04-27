@@ -79,6 +79,14 @@
 	margin-bottom: 20px;
 }
 
+.pla-admin-section--flush .pla-reports-table {
+	table-layout: auto;
+}
+
+.pla-admin-section--flush .pla-col-actions {
+	white-space: nowrap;
+}
+
 .pla-admin-section--flush {
 	padding: 0;
 }
