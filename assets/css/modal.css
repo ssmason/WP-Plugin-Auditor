@@ -475,8 +475,8 @@
 
 /* Risk column in admin list */
 .pla-risk {
-	font-size: 11px;
-	font-weight: 600;
+	font-size: 10px;
+	font-weight: 300;
 	padding: 2px 6px;
 	border-radius: 2px;
 }
