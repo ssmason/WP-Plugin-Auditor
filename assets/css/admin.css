@@ -220,6 +220,13 @@
 	background: #eff6ff;
 }
 
+.pla-sidebar-intro {
+	font-size: 12px;
+	color: #50575e;
+	line-height: 1.6;
+	margin: -6px 0 16px;
+}
+
 .pla-col-sidebar > h2 {
 	font-size: 1.6em;
 	font-weight: 300;
