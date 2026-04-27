@@ -271,7 +271,7 @@ $checks = array(
 
 		<div class="pla-col-sidebar">
 			<h2><?php esc_html_e( 'What the report includes', 'plugin-auditor' ); ?></h2>
-			<p class="pla-sidebar-intro"><?php esc_html_e( '22 checks covering the security and code quality issues most likely to put a WordPress site at risk — drawn from OWASP, the WordPress Developer Handbook, and WordPress Coding Standards.', 'plugin-auditor' ); ?></p>
+			<p class="pla-sidebar-intro"><?php esc_html_e( '22 checks covering the security and code quality issues most likely to put a WordPress site at risk, drawn from OWASP, the WordPress Developer Handbook, and WordPress Coding Standards.', 'plugin-auditor' ); ?></p>
 			<table class="pla-checks-table">
 				<thead>
 					<tr>
