@@ -79,7 +79,9 @@
 	margin-bottom: 20px;
 }
 
-.widefat td {
+.widefat td,
+.widefat th {
+	padding: 8px 0 !important;
 	font-size: 12px;
 }
 
