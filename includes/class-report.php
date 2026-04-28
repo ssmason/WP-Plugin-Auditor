@@ -20,30 +20,30 @@ class Report {
 	 * Meta keys for each findings section.
 	 */
 	private const SECTION_META_KEYS = array(
-		'dangerous'            => '_pla_findings_dangerous',
-		'output'               => '_pla_findings_output',
-		'input'                => '_pla_findings_input',
-		'nonces'               => '_pla_findings_nonces',
-		'capabilities'         => '_pla_findings_capabilities',
-		'database'             => '_pla_findings_database',
-		'credentials'          => '_pla_findings_credentials',
-		'permissions'          => '_pla_findings_permissions',
-		'errors'               => '_pla_findings_errors',
-		'obfuscation'          => '_pla_findings_obfuscation',
-		'debug_output'         => '_pla_findings_debug_output',
-		'redirects'            => '_pla_findings_redirects',
-		'role_checks'          => '_pla_findings_role_checks',
-		'shortcodes'           => '_pla_findings_shortcodes',
-		'option_writes'        => '_pla_findings_option_writes',
-		'wpdb_placeholders'    => '_pla_findings_wpdb_placeholders',
-		'deprecated'           => '_pla_findings_deprecated',
-		'unnecessary_closures' => '_pla_findings_unnecessary_closures',
-		'commented_code'       => '_pla_findings_commented_code',
-		'early_translations'   => '_pla_findings_early_translations',
-		'duplicate_hooks'      => '_pla_findings_duplicate_hooks',
-		'meta'                 => '_pla_findings_meta',
-		'assets'               => '_pla_findings_assets',
-		'requests'             => '_pla_findings_requests',
+		'dangerous'             => '_pla_findings_dangerous',
+		'output'                => '_pla_findings_output',
+		'input'                 => '_pla_findings_input',
+		'nonces'                => '_pla_findings_nonces',
+		'capabilities'          => '_pla_findings_capabilities',
+		'database'              => '_pla_findings_database',
+		'credentials'           => '_pla_findings_credentials',
+		'requests'              => '_pla_findings_requests',
+		'permissions'           => '_pla_findings_permissions',
+		'meta'                  => '_pla_findings_meta',
+		'assets'                => '_pla_findings_assets',
+		'errors'                => '_pla_findings_errors',
+		'obfuscation'           => '_pla_findings_obfuscation',
+		'direct_access'         => '_pla_findings_direct_access',
+		'debug_output'          => '_pla_findings_debug_output',
+		'redirects'             => '_pla_findings_redirects',
+		'role_checks'           => '_pla_findings_role_checks',
+		'shortcodes'            => '_pla_findings_shortcodes',
+		'option_writes'         => '_pla_findings_option_writes',
+		'wpdb_placeholders'     => '_pla_findings_wpdb_placeholders',
+		'deprecated'            => '_pla_findings_deprecated',
+		'duplicate_hooks'       => '_pla_findings_duplicate_hooks',
+		'unnecessary_closures'  => '_pla_findings_unnecessary_closures',
+		'early_translations'    => '_pla_findings_early_translations',
 	);
 
 	/**
@@ -57,9 +57,13 @@ class Report {
 		'capabilities'         => 'Capability Checks',
 		'database'             => 'Database Queries',
 		'credentials'          => 'Hardcoded Credentials',
+		'requests'             => 'External HTTP Requests',
 		'permissions'          => 'File Permissions',
+		'meta'                 => 'Plugin Header / Metadata',
+		'assets'               => 'Asset Versioning',
 		'errors'               => 'Error Suppression',
 		'obfuscation'          => 'Obfuscated Calls',
+		'direct_access'        => 'Direct File Access Guard',
 		'debug_output'         => 'Debug Output',
 		'redirects'            => 'Redirect Without Exit',
 		'role_checks'          => 'Role Name in Capability Checks',
@@ -67,13 +71,9 @@ class Report {
 		'option_writes'        => 'Option Writes Without Capability',
 		'wpdb_placeholders'    => 'Database Placeholder Types',
 		'deprecated'           => 'Deprecated Functions',
-		'unnecessary_closures' => 'Unnecessary Closures',
-		'commented_code'       => 'Commented-Out Code',
-		'early_translations'   => 'Early Translation Calls',
 		'duplicate_hooks'      => 'Duplicate Hook Registrations',
-		'meta'                 => 'Plugin Header',
-		'assets'               => 'Asset Version Strings',
-		'requests'             => 'Outbound HTTP Requests',
+		'unnecessary_closures' => 'Unnecessary Closures',
+		'early_translations'   => 'Early Translation Calls',
 	);
 
 	/**
@@ -199,13 +199,7 @@ class Report {
 	 * @return array<string, int>
 	 */
 	private function count_severities( array $findings ): array {
-		$counts = array(
-			'critical' => 0,
-			'high'     => 0,
-			'medium'   => 0,
-			'low'      => 0,
-			'info'     => 0,
-		);
+		$counts = array( 'critical' => 0, 'high' => 0, 'medium' => 0, 'low' => 0, 'info' => 0 );
 		foreach ( array_keys( self::SECTION_META_KEYS ) as $section ) {
 			if ( ! isset( $findings[ $section ] ) || ! is_array( $findings[ $section ] ) ) {
 				continue;
@@ -220,9 +214,6 @@ class Report {
 		return $counts;
 	}
 
-	/**
-	 * @param array<string, mixed> $findings
-	 */
 	private function save_json_export( int $post_id, string $plugin_file, string $plugin_name, array $findings ): void {
 		$sections = $findings;
 		unset( $sections['rating'], $sections['score'] );

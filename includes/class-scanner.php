@@ -118,18 +118,6 @@ class Scanner {
 	private const SKIP_DIRS = array( 'vendor', 'node_modules', '.git', 'tests' );
 
 	/**
-	 * Translation functions that must not be called at file scope before init.
-	 */
-	private const EARLY_TRANSLATION_FUNCTIONS = array(
-		'__',
-		'_e',
-		'esc_html__',
-		'esc_html_e',
-		'esc_attr__',
-		'esc_attr_e',
-	);
-
-	/**
 	 * WordPress role names that must never be passed to current_user_can().
 	 */
 	private const WP_ROLE_NAMES = array(
@@ -141,8 +129,18 @@ class Scanner {
 	);
 
 	/**
-	 * Creates a new Scanner instance.
-	 *
+	 * Translation functions that must not be called before init.
+	 */
+	private const EARLY_TRANSLATION_FUNCTIONS = array(
+		'__',
+		'_e',
+		'esc_html__',
+		'esc_html_e',
+		'esc_attr__',
+		'esc_attr_e',
+	);
+
+	/**
 	 * @param FileCollector $file_collector File collection service.
 	 */
 	public function __construct( private FileCollector $file_collector = new FileCollector() ) {}
@@ -162,8 +160,8 @@ class Scanner {
 		$sections = array_merge( ScoreCalculator::security_sections(), ScoreCalculator::code_quality_sections() );
 		$findings = array_fill_keys( $sections, array() );
 
-		$total_lines = 0;
-		$hook_calls  = array();
+		$total_lines    = 0;
+		$all_hook_calls = array();
 
 		foreach ( $php_files as $file ) {
 			$lines = file( $file, FILE_IGNORE_NEW_LINES );
@@ -181,21 +179,23 @@ class Scanner {
 			$findings['capabilities']         = array_merge( $findings['capabilities'], $this->check_capabilities( $rel, $lines ) );
 			$findings['database']             = array_merge( $findings['database'], $this->check_database( $rel, $lines ) );
 			$findings['credentials']          = array_merge( $findings['credentials'], $this->check_credentials( $rel, $lines ) );
+			$findings['requests']             = array_merge( $findings['requests'], $this->check_external_requests( $rel, $lines ) );
+			$findings['assets']               = array_merge( $findings['assets'], $this->check_asset_versioning( $rel, $lines ) );
 			$findings['errors']               = array_merge( $findings['errors'], $this->check_error_suppression( $rel, $lines ) );
 			$findings['obfuscation']          = array_merge( $findings['obfuscation'], $this->check_obfuscation( $rel, $lines ) );
+			$findings['direct_access']        = array_merge( $findings['direct_access'], $this->check_direct_access( $rel, $lines ) );
 			$findings['debug_output']         = array_merge( $findings['debug_output'], $this->check_debug_output( $rel, $lines ) );
 			$findings['deprecated']           = array_merge( $findings['deprecated'], $this->check_deprecated_functions( $rel, $lines ) );
+			$findings['commented_code']       = array_merge( $findings['commented_code'], $this->check_commented_code( $rel, $lines ) );
 			$findings['redirects']            = array_merge( $findings['redirects'], $this->check_redirect_without_exit( $rel, $lines ) );
 			$findings['role_checks']          = array_merge( $findings['role_checks'], $this->check_role_checks( $rel, $lines ) );
 			$findings['shortcodes']           = array_merge( $findings['shortcodes'], $this->check_shortcode_escaping( $rel, $lines, $content ) );
 			$findings['option_writes']        = array_merge( $findings['option_writes'], $this->check_option_writes( $rel, $lines ) );
 			$findings['wpdb_placeholders']    = array_merge( $findings['wpdb_placeholders'], $this->check_wpdb_placeholders( $rel, $lines ) );
 			$findings['unnecessary_closures'] = array_merge( $findings['unnecessary_closures'], $this->check_unnecessary_closures( $rel, $lines ) );
-			$findings['commented_code']       = array_merge( $findings['commented_code'], $this->check_commented_code( $rel, $lines ) );
 			$findings['early_translations']   = array_merge( $findings['early_translations'], $this->check_early_translations( $rel, $lines ) );
-			$findings['assets']               = array_merge( $findings['assets'], $this->check_assets( $rel, $lines ) );
-			$findings['requests']             = array_merge( $findings['requests'], $this->check_requests( $rel, $lines ) );
-			$hook_calls                       = array_merge( $hook_calls, $this->collect_hook_calls( $rel, $lines ) );
+
+			$all_hook_calls = array_merge( $all_hook_calls, $this->collect_hook_calls( $rel, $lines ) );
 
 			if ( '' !== $required_php ) {
 				$findings['php_compat'] = array_merge( $findings['php_compat'], $this->check_php_compat( $rel, $lines, $required_php ) );
@@ -211,23 +211,11 @@ class Scanner {
 			$findings['debug_output'] = array_merge( $findings['debug_output'], $this->check_debug_js( $rel, $lines ) );
 		}
 
+		$findings['duplicate_hooks'] = $this->check_duplicate_hooks( $all_hook_calls );
 		$findings['permissions']     = $this->check_file_permissions( $plugin_dir );
+		$findings['meta']            = $this->check_plugin_header( $plugin_dir );
 		$findings['structure']       = $this->check_plugin_structure( $plugin_dir );
 		$findings['licensing']       = $this->check_licensing( $plugin_dir );
-		$findings['meta']            = $this->check_meta( $plugin_dir );
-		$findings['duplicate_hooks'] = $this->check_duplicate_hooks( $hook_calls );
-
-		foreach ( array_keys( $findings ) as $section ) {
-			if ( ! is_array( $findings[ $section ] ) ) {
-				continue;
-			}
-			$findings[ $section ] = array_values(
-				array_filter(
-					$findings[ $section ],
-					static fn( $f ) => ! str_contains( (string) ( $f['snippet'] ?? '' ), '// phpcs:ignore' )
-				)
-			);
-		}
 
 		$findings['score']  = ScoreCalculator::score( $findings );
 		$findings['rating'] = ScoreCalculator::rating( (int) $findings['score'] );
@@ -579,6 +567,8 @@ class Scanner {
 		$info        = array();
 		$cap_pattern = '/current_user_can\s*\(\s*[\'"]([^\'"]+)[\'"]/';
 
+		$full_file = implode( "\n", $lines );
+
 		foreach ( $lines as $i => $line ) {
 			$trimmed_cap = ltrim( $line );
 			if ( str_starts_with( $trimmed_cap, '//' ) || str_starts_with( $trimmed_cap, '*' ) || str_starts_with( $trimmed_cap, '#' ) ) {
@@ -604,6 +594,31 @@ class Scanner {
 					$line,
 					__( 'Admin page registered  ensure callback checks current_user_can() before rendering.', 'plugin-auditor' )
 				);
+			}
+
+			if ( preg_match( '/\b(update_option|add_option|delete_option)\s*\(/', $line ) ) {
+				// Find the enclosing function start to scan its full scope.
+				$func_start = max( 0, $i - 30 );
+				for ( $j = $i - 1; $j >= 0; $j-- ) {
+					if ( preg_match( '/\bfunction\s+\w+/', $lines[ $j ] ) ) {
+						$func_start = $j;
+						break;
+					}
+				}
+				$func_context = implode( "\n", array_slice( $lines, $func_start, $i - $func_start + 1 ) );
+
+				if ( ! str_contains( $func_context, 'current_user_can' )
+					&& ! str_contains( $full_file, 'register_activation_hook' )
+					&& ! str_contains( $full_file, 'register_deactivation_hook' )
+				) {
+					$findings[] = $this->finding(
+						'HIGH',
+						$file,
+						$i + 1,
+						$line,
+						__( 'Write operation without a visible current_user_can() check in the preceding scope.', 'plugin-auditor' )
+					);
+				}
 			}
 		}
 
@@ -776,6 +791,34 @@ class Scanner {
 	}
 
 	/**
+	 * Checks each PHP file for a direct file access guard at the top.
+	 *
+	 * @param string   $file  Relative file path.
+	 * @param string[] $lines File lines.
+	 * @return array<int, array<string, mixed>>
+	 */
+	private function check_direct_access( string $file, array $lines ): array {
+		$findings = array();
+
+		$preamble = implode( "\n", array_slice( $lines, 0, 25 ) );
+
+		$has_guard = (bool) preg_match( '/defined\s*\(\s*[\'"]ABSPATH[\'"]\s*\)\s*\|\|/', $preamble )
+			|| (bool) preg_match( '/defined\s*\(\s*[\'"]WP_UNINSTALL_PLUGIN[\'"]\s*\)\s*\|\|/', $preamble );
+
+		if ( ! $has_guard ) {
+			$findings[] = $this->finding(
+				'HIGH',
+				$file,
+				0,
+				'',
+				__( "Missing direct file access guard  add defined( 'ABSPATH' ) || exit; at the top of the file.", 'plugin-auditor' )
+			);
+		}
+
+		return $findings;
+	}
+
+	/**
 	 * Checks PHP files for debug output functions.
 	 *
 	 * @param string   $file  Relative file path.
@@ -820,7 +863,7 @@ class Scanner {
 			if ( str_starts_with( $trimmed, '//' ) || str_starts_with( $trimmed, '*' ) ) {
 				continue;
 			}
-			if ( preg_match( '/\bconsole\.(log|debug|info|warn|error)\s*\(/', $line, $m ) ) {
+			if ( preg_match( '/\bconsole\.(log|warn|error|debug|info)\s*\(/', $line, $m ) ) {
 				$findings[] = $this->finding(
 					'LOW',
 					$file,
@@ -848,8 +891,8 @@ class Scanner {
 		);
 
 		foreach ( $iterator as $item ) {
-			$path      = $item->getPathname();
-			$rel       = str_replace( $plugin_dir . '/', '', $path );
+			$path     = $item->getPathname();
+			$rel      = str_replace( $plugin_dir . '/', '', $path );
 			$rel_parts = explode( DIRECTORY_SEPARATOR, $rel );
 			if ( array_intersect( $rel_parts, self::SKIP_DIRS ) ) {
 				continue;
@@ -976,6 +1019,7 @@ class Scanner {
 			}
 		}
 
+		// Flag presence of readme files  may expose version info.
 		foreach ( array( 'readme.txt', 'readme.md', 'README.md', 'README.txt' ) as $readme ) {
 			if ( file_exists( $plugin_dir . '/' . $readme ) ) {
 				$findings[] = $this->finding(
@@ -1076,10 +1120,7 @@ class Scanner {
 			}
 
 			if ( $needs_80_check ) {
-				if ( preg_match( '/\bmatch\s*\(/', $line )
-					&& ! preg_match( '/function\s+match\s*\(/', $line )
-					&& ! preg_match( '/->match\s*\(/', $line )
-				) {
+				if ( preg_match( '/\bmatch\s*\(/', $line ) ) {
 					$findings[] = $this->finding(
 						'MEDIUM',
 						$file,
@@ -1135,6 +1176,186 @@ class Scanner {
 						sprintf( __( 'Readonly properties require PHP 8.1  declared minimum is PHP %s.', 'plugin-auditor' ), $required_php )
 					);
 				}
+			}
+		}
+
+		return $findings;
+	}
+
+	/**
+	 * Flags blocks of 5 or more consecutive commented lines.
+	 *
+	 * @param string   $file  Relative file path.
+	 * @param string[] $lines File lines.
+	 * @return array<int, array<string, mixed>>
+	 */
+	private function check_commented_code( string $file, array $lines ): array {
+		$findings    = array();
+		$consecutive = 0;
+		$block_start = 0;
+		$block_lines = array();
+
+		foreach ( $lines as $i => $line ) {
+			if ( $this->is_comment_line( trim( $line ) ) ) {
+				if ( 0 === $consecutive ) {
+					$block_start = $i + 1;
+					$block_lines = array();
+				}
+				$block_lines[] = trim( $line );
+				++$consecutive;
+			} else {
+				if ( $consecutive >= 5 ) {
+					$findings[] = $this->make_commented_block_finding( $file, $block_start, $consecutive, $block_lines );
+				}
+				$consecutive = 0;
+				$block_lines = array();
+			}
+		}
+		if ( $consecutive >= 5 ) {
+			$findings[] = $this->make_commented_block_finding( $file, $block_start, $consecutive, $block_lines );
+		}
+
+		return $findings;
+	}
+
+	/**
+	 * Builds a finding for a block of commented-out code.
+	 *
+	 * @param string   $file        Relative file path.
+	 * @param int      $block_start Starting line number.
+	 * @param int      $consecutive Number of consecutive comment lines.
+	 * @param string[] $block_lines The comment lines.
+	 * @return array<string, mixed>
+	 */
+	private function make_commented_block_finding( string $file, int $block_start, int $consecutive, array $block_lines ): array {
+		$sensitive_keys = array( 'password', 'secret', 'api_key', 'select ', 'insert ', 'update ', 'delete ', 'drop ', 'token', 'credential' );
+		$block_text     = strtolower( implode( "\n", $block_lines ) );
+		$severity       = 'LOW';
+		foreach ( $sensitive_keys as $key ) {
+			if ( str_contains( $block_text, $key ) ) {
+				$severity = 'MEDIUM';
+				break;
+			}
+		}
+		return $this->finding(
+			$severity,
+			$file,
+			$block_start,
+			'',
+			/* translators: %d: number of lines */
+			sprintf( __( 'Block of %d consecutive commented lines  review for dead code or sensitive content.', 'plugin-auditor' ), $consecutive )
+		);
+	}
+
+	/**
+	 * Checks the plugin header for required metadata.
+	 *
+	 * @param string $plugin_dir Absolute plugin directory.
+	 * @return array<int, array<string, mixed>>
+	 */
+	private function check_plugin_header( string $plugin_dir ): array {
+		$findings  = array();
+		$main_file = $this->find_main_plugin_file( $plugin_dir );
+
+		if ( null === $main_file ) {
+			$findings[] = $this->finding( 'HIGH', '', 0, '', __( 'No main plugin file with Plugin Name header found.', 'plugin-auditor' ) );
+			return $findings;
+		}
+
+		$content  = (string) file_get_contents( $main_file ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents -- local filesystem read, not HTTP.
+		$rel      = basename( $main_file );
+		$required = array(
+			'Requires PHP'      => __( 'Missing "Requires PHP" header.', 'plugin-auditor' ),
+			'Requires at least' => __( 'Missing "Requires at least" header.', 'plugin-auditor' ),
+			'License'           => __( 'Missing "License" header.', 'plugin-auditor' ),
+			'Author URI'        => __( 'Missing "Author URI" header.', 'plugin-auditor' ),
+			'Plugin URI'        => __( 'Missing "Plugin URI" header.', 'plugin-auditor' ),
+		);
+
+		foreach ( $required as $header => $message ) {
+			if ( ! preg_match( '/' . preg_quote( $header, '/' ) . '\s*:/i', $content ) ) {
+				$findings[] = $this->finding( 'LOW', $rel, 0, '', $message );
+			}
+		}
+
+		return $findings;
+	}
+
+	/**
+	 * Checks for external HTTP requests.
+	 *
+	 * @param string   $file  Relative file path.
+	 * @param string[] $lines File lines.
+	 * @return array<int, array<string, mixed>>
+	 */
+	private function check_external_requests( string $file, array $lines ): array {
+		$findings = array();
+		$pattern  = '/\b(wp_remote_get|wp_remote_post|wp_remote_request|wp_remote_head|curl_exec|curl_init|file_get_contents)\s*\(/';
+
+		foreach ( $lines as $i => $line ) {
+			if ( preg_match( $pattern, $line, $m ) ) {
+				// Skip file_get_contents() when it has no HTTP URL  local filesystem read.
+				if ( 'file_get_contents' === $m[1] && ! preg_match( '/[\'"]https?:\/\//', $line ) ) {
+					continue;
+				}
+
+				$url = '';
+				if ( preg_match( '/[\'"]https?:\/\/[^\'"]+[\'"]/', $line, $um ) ) {
+					$url = $um[0];
+				}
+
+				$findings[] = $this->finding(
+					'INFO',
+					$file,
+					$i + 1,
+					$line,
+					sprintf(
+						/* translators: 1: function name, 2: URL or empty */
+						__( 'External HTTP request via %1$s%2$s', 'plugin-auditor' ),
+						$m[1] . '()',
+						$url ? '  endpoint: ' . $url : ''
+					)
+				);
+			}
+		}
+
+		return $findings;
+	}
+
+	/**
+	 * Checks asset enqueue version arguments.
+	 *
+	 * @param string   $file  Relative file path.
+	 * @param string[] $lines File lines.
+	 * @return array<int, array<string, mixed>>
+	 */
+	private function check_asset_versioning( string $file, array $lines ): array {
+		$findings = array();
+		$pattern  = '/\b(wp_enqueue_script|wp_enqueue_style|wp_register_script|wp_register_style)\s*\(/';
+
+		foreach ( $lines as $i => $line ) {
+			if ( ! preg_match( $pattern, $line ) ) {
+				continue;
+			}
+
+			if ( preg_match( '/,\s*false\s*[,)]/', $line ) ) {
+				$findings[] = $this->finding(
+					'LOW',
+					$file,
+					$i + 1,
+					$line,
+					__( 'Asset enqueued with false version  use a version constant or a file hash.', 'plugin-auditor' )
+				);
+			}
+
+			if ( preg_match( '/,\s*[\'"][\d.]+[\'"]/', $line ) ) {
+				$findings[] = $this->finding(
+					'LOW',
+					$file,
+					$i + 1,
+					$line,
+					__( 'Asset enqueued with hardcoded version string  use a constant instead.', 'plugin-auditor' )
+				);
 			}
 		}
 
@@ -1411,6 +1632,75 @@ class Scanner {
 	}
 
 	// -------------------------------------------------------------------------
+	// Duplicate hook registrations (cross-file, collected then checked)
+	// -------------------------------------------------------------------------
+
+	/**
+	 * Collects all add_action() / add_filter() calls from a file for cross-file duplicate detection.
+	 *
+	 * @param string   $file  Relative file path.
+	 * @param string[] $lines File lines.
+	 * @return array<int, array<string, mixed>>
+	 */
+	private function collect_hook_calls( string $file, array $lines ): array {
+		$calls = array();
+
+		foreach ( $lines as $i => $line ) {
+			if ( ! preg_match( '/\b(add_action|add_filter)\s*\(\s*([\'"][^\'"]+[\'"])\s*,\s*([^,)]+)(?:,\s*(\d+))?/', $line, $m ) ) {
+				continue;
+			}
+
+			$calls[] = array(
+				'file'     => $file,
+				'line'     => $i + 1,
+				'snippet'  => $line,
+				'function' => $m[1],
+				'hook'     => trim( $m[2], '\'"' ),
+				'callback' => trim( $m[3] ),
+				'priority' => isset( $m[4] ) ? $m[4] : '10',
+			);
+		}
+
+		return $calls;
+	}
+
+	/**
+	 * Flags identical add_action/add_filter registrations (same hook, callback, priority) appearing more than once.
+	 *
+	 * @param array<int, array<string, mixed>> $all_calls Collected hook calls from all files.
+	 * @return array<int, array<string, mixed>>
+	 */
+	private function check_duplicate_hooks( array $all_calls ): array {
+		$findings = array();
+		$seen     = array();
+
+		foreach ( $all_calls as $call ) {
+			$key = $call['function'] . '|' . $call['hook'] . '|' . $call['callback'] . '|' . $call['priority'];
+			if ( isset( $seen[ $key ] ) ) {
+				$findings[] = $this->finding(
+					'LOW',
+					$call['file'],
+					$call['line'],
+					$call['snippet'],
+					/* translators: 1: function name e.g. add_action, 2: hook name, 3: file path, 4: line number */
+					sprintf(
+						/* translators: 1: function, 2: hook, 3: file, 4: line */
+						esc_html__( 'Duplicate %1$s() registration  hook "%2$s" with same callback and priority already registered in %3$s on line %4$s.', 'plugin-auditor' ),
+						$call['function'],
+						$call['hook'],
+						$seen[ $key ]['file'],
+						(string) $seen[ $key ]['line']
+					)
+				);
+			} else {
+				$seen[ $key ] = $call;
+			}
+		}
+
+		return $findings;
+	}
+
+	// -------------------------------------------------------------------------
 	// Unnecessary closures
 	// -------------------------------------------------------------------------
 
@@ -1451,59 +1741,12 @@ class Scanner {
 		return $findings;
 	}
 
-	/**
-	 * Flags blocks of 5 or more consecutive commented-out code lines.
-	 *
-	 * @param string   $file  Relative file path.
-	 * @param string[] $lines File lines.
-	 * @return array<int, array<string, mixed>>
-	 */
-	private function check_commented_code( string $file, array $lines ): array {
-		$findings  = array();
-		$run       = 0;
-		$run_start = 0;
-
-		foreach ( $lines as $i => $line ) {
-			$trimmed         = ltrim( $line );
-			$is_code_comment = ( str_starts_with( $trimmed, '//' ) || str_starts_with( $trimmed, '#' ) )
-				&& (bool) preg_match( '/[\$;(){}\[\]>-]/', $trimmed );
-
-			if ( $is_code_comment ) {
-				if ( 0 === $run ) {
-					$run_start = $i + 1;
-				}
-				++$run;
-			} else {
-				if ( $run >= 5 ) {
-					$findings[] = $this->finding(
-						'LOW',
-						$file,
-						$run_start,
-						'',
-						/* translators: %d: number of lines */
-						sprintf( __( 'Excessive commented-out code block (%d lines)  remove dead code before shipping.', 'plugin-auditor' ), $run )
-					);
-				}
-				$run = 0;
-			}
-		}
-
-		if ( $run >= 5 ) {
-			$findings[] = $this->finding(
-				'LOW',
-				$file,
-				$run_start,
-				'',
-				/* translators: %d: number of lines */
-				sprintf( __( 'Excessive commented-out code block (%d lines)  remove dead code before shipping.', 'plugin-auditor' ), $run )
-			);
-		}
-
-		return $findings;
-	}
+	// -------------------------------------------------------------------------
+	// Early translation calls
+	// -------------------------------------------------------------------------
 
 	/**
-	 * Flags translation calls at file scope (outside any function or class body).
+	 * Flags translation functions called at file scope or before init fires.
 	 *
 	 * @param string   $file  Relative file path.
 	 * @param string[] $lines File lines.
@@ -1558,176 +1801,6 @@ class Scanner {
 					--$in_function;
 				}
 			}
-		}
-
-		return $findings;
-	}
-
-	/**
-	 * Collects all add_action / add_filter calls with string callbacks from a file.
-	 *
-	 * @param string   $file  Relative file path.
-	 * @param string[] $lines File lines.
-	 * @return array<int, array<string, mixed>>
-	 */
-	private function collect_hook_calls( string $file, array $lines ): array {
-		$hooks   = array();
-		$pattern = '/\b(add_action|add_filter)\s*\(\s*[\'"]([^\'"]+)[\'"]\s*,\s*[\'"]([^\'"]+)[\'"]/';
-
-		foreach ( $lines as $i => $line ) {
-			if ( preg_match( $pattern, $line, $m ) ) {
-				$hooks[] = array(
-					'key'     => $m[1] . ':' . $m[2] . ':' . $m[3],
-					'file'    => $file,
-					'line'    => $i + 1,
-					'snippet' => $line,
-				);
-			}
-		}
-
-		return $hooks;
-	}
-
-	/**
-	 * Flags add_action / add_filter calls that are registered more than once.
-	 *
-	 * @param array<int, array<string, mixed>> $all_hooks Collected hook calls from all files.
-	 * @return array<int, array<string, mixed>>
-	 */
-	private function check_duplicate_hooks( array $all_hooks ): array {
-		$findings = array();
-		$seen     = array();
-
-		foreach ( $all_hooks as $hook ) {
-			$key = $hook['key'];
-			if ( isset( $seen[ $key ] ) ) {
-				$findings[] = $this->finding(
-					'LOW',
-					$hook['file'],
-					$hook['line'],
-					$hook['snippet'],
-					/* translators: %s: hook registration string */
-					sprintf( __( 'Duplicate hook registration: %s  already registered elsewhere.', 'plugin-auditor' ), $key )
-				);
-			} else {
-				$seen[ $key ] = true;
-			}
-		}
-
-		return $findings;
-	}
-
-	/**
-	 * Checks the plugin header for required fields.
-	 *
-	 * @param string $plugin_dir Absolute plugin directory.
-	 * @return array<int, array<string, mixed>>
-	 */
-	private function check_meta( string $plugin_dir ): array {
-		$findings  = array();
-		$main_file = $this->find_main_plugin_file( $plugin_dir );
-
-		if ( null === $main_file ) {
-			$findings[] = $this->finding( 'HIGH', '', 0, '', __( 'No main plugin file with Plugin Name header found.', 'plugin-auditor' ) );
-			return $findings;
-		}
-
-		$content  = (string) file_get_contents( $main_file ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents -- local filesystem read, not HTTP.
-		$rel      = basename( $main_file );
-		$required = array(
-			'Requires PHP'      => __( 'Missing "Requires PHP" header.', 'plugin-auditor' ),
-			'Requires at least' => __( 'Missing "Requires at least" header.', 'plugin-auditor' ),
-			'License'           => __( 'Missing "License" header.', 'plugin-auditor' ),
-			'Author URI'        => __( 'Missing "Author URI" header.', 'plugin-auditor' ),
-			'Plugin URI'        => __( 'Missing "Plugin URI" header.', 'plugin-auditor' ),
-		);
-
-		foreach ( $required as $header => $message ) {
-			if ( ! preg_match( '/' . preg_quote( $header, '/' ) . '\s*:/i', $content ) ) {
-				$findings[] = $this->finding( 'LOW', $rel, 0, '', $message );
-			}
-		}
-
-		return $findings;
-	}
-
-	/**
-	 * Flags wp_enqueue_style / wp_enqueue_script calls with hardcoded version strings.
-	 *
-	 * @param string   $file  Relative file path.
-	 * @param string[] $lines File lines.
-	 * @return array<int, array<string, mixed>>
-	 */
-	private function check_assets( string $file, array $lines ): array {
-		$findings = array();
-		$pattern  = '/\b(wp_enqueue_script|wp_enqueue_style|wp_register_script|wp_register_style)\s*\(/';
-
-		foreach ( $lines as $i => $line ) {
-			if ( ! preg_match( $pattern, $line ) ) {
-				continue;
-			}
-
-			if ( preg_match( '/,\s*false\s*[,)]/', $line ) ) {
-				$findings[] = $this->finding(
-					'LOW',
-					$file,
-					$i + 1,
-					$line,
-					__( 'Asset enqueued with false version  use a version constant or a file hash.', 'plugin-auditor' )
-				);
-			}
-
-			if ( preg_match( '/,\s*[\'"][\d.]+[\'"]/', $line ) ) {
-				$findings[] = $this->finding(
-					'LOW',
-					$file,
-					$i + 1,
-					$line,
-					__( 'Asset enqueued with hardcoded version string  use a constant instead.', 'plugin-auditor' )
-				);
-			}
-		}
-
-		return $findings;
-	}
-
-	/**
-	 * Flags outbound HTTP request calls.
-	 *
-	 * @param string   $file  Relative file path.
-	 * @param string[] $lines File lines.
-	 * @return array<int, array<string, mixed>>
-	 */
-	private function check_requests( string $file, array $lines ): array {
-		$findings = array();
-		$pattern  = '/\b(wp_remote_get|wp_remote_post|wp_remote_request|wp_remote_head|curl_exec|curl_init|file_get_contents)\s*\(/';
-
-		foreach ( $lines as $i => $line ) {
-			if ( ! preg_match( $pattern, $line, $m ) ) {
-				continue;
-			}
-
-			if ( 'file_get_contents' === $m[1] && ! preg_match( '/[\'"]https?:\/\//', $line ) ) {
-				continue;
-			}
-
-			$url = '';
-			if ( preg_match( '/[\'"]https?:\/\/[^\'"]+[\'"]/', $line, $um ) ) {
-				$url = $um[0];
-			}
-
-			$findings[] = $this->finding(
-				'INFO',
-				$file,
-				$i + 1,
-				$line,
-				sprintf(
-					/* translators: 1: function name, 2: URL or empty */
-					__( 'External HTTP request via %1$s%2$s', 'plugin-auditor' ),
-					$m[1] . '()',
-					$url ? '  endpoint: ' . $url : ''
-				)
-			);
 		}
 
 		return $findings;

@@ -60,17 +60,18 @@ class ScoreCalculator {
 	 */
 	public static function code_quality_sections(): array {
 		return array(
+			'requests',
+			'meta',
+			'assets',
 			'deprecated',
 			'structure',
 			'licensing',
 			'php_compat',
-			'unnecessary_closures',
 			'commented_code',
-			'early_translations',
+			'direct_access',
 			'duplicate_hooks',
-			'meta',
-			'assets',
-			'requests',
+			'unnecessary_closures',
+			'early_translations',
 		);
 	}
 
