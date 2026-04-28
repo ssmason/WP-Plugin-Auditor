@@ -320,6 +320,222 @@ class ScannerTest extends TestCase {
 	}
 
 	// -------------------------------------------------------------------------
+	// Capability checks
+	// -------------------------------------------------------------------------
+
+	public function test_capability_check_reports_current_user_can_as_info(): void {
+		$this->write_php( 'cap.php', "<?php\ndefined( 'ABSPATH' ) || exit;\nif ( current_user_can( 'manage_options' ) ) { echo 'ok'; }" );
+		$findings = $this->scanner->scan( $this->tmp_dir );
+		$info     = array_filter( $findings['capabilities'], fn( $f ) => 'INFO' === $f['severity'] );
+		$this->assertNotEmpty( $info );
+	}
+
+	public function test_capability_check_reports_add_menu_page_as_info(): void {
+		$this->write_php( 'cap.php', "<?php\ndefined( 'ABSPATH' ) || exit;\nadd_menu_page( 'Title', 'Menu', 'manage_options', 'slug', 'cb' );" );
+		$findings = $this->scanner->scan( $this->tmp_dir );
+		$info     = array_filter( $findings['capabilities'], fn( $f ) => 'INFO' === $f['severity'] );
+		$this->assertNotEmpty( $info );
+	}
+
+	public function test_no_capabilities_info_when_no_capability_calls(): void {
+		$this->write_php( 'cap.php', '<?php $x = 1;' );
+		$findings = $this->scanner->scan( $this->tmp_dir );
+		$this->assertEmpty( $findings['capabilities'] );
+	}
+
+	// -------------------------------------------------------------------------
+	// Hardcoded credentials
+	// -------------------------------------------------------------------------
+
+	public function test_flags_hardcoded_password(): void {
+		$this->write_php( 'cred.php', "<?php \$password = 'supersecret123';" );
+		$findings = $this->scanner->scan( $this->tmp_dir );
+		$this->assertHasFinding( $findings['credentials'], 'CRITICAL', 'credential' );
+	}
+
+	public function test_flags_hardcoded_api_key(): void {
+		$this->write_php( 'cred.php', "<?php \$api_key = 'abc123def456ghi';" );
+		$findings = $this->scanner->scan( $this->tmp_dir );
+		$this->assertHasFinding( $findings['credentials'], 'CRITICAL', 'credential' );
+	}
+
+	public function test_no_flag_credentials_when_clean(): void {
+		$this->write_php( 'cred.php', "<?php \$val = get_option( 'db_host' );" );
+		$findings = $this->scanner->scan( $this->tmp_dir );
+		$this->assertEmpty( $findings['credentials'] );
+	}
+
+	// -------------------------------------------------------------------------
+	// Debug output — PHP
+	// -------------------------------------------------------------------------
+
+	public function test_flags_var_dump(): void {
+		$this->write_php( 'debug.php', '<?php var_dump( $x );' );
+		$findings = $this->scanner->scan( $this->tmp_dir );
+		$this->assertNotEmpty( $findings['debug_output'] );
+	}
+
+	public function test_flags_print_r(): void {
+		$this->write_php( 'debug.php', '<?php print_r( $x );' );
+		$findings = $this->scanner->scan( $this->tmp_dir );
+		$this->assertNotEmpty( $findings['debug_output'] );
+	}
+
+	public function test_flags_var_export(): void {
+		$this->write_php( 'debug.php', '<?php var_export( $x );' );
+		$findings = $this->scanner->scan( $this->tmp_dir );
+		$this->assertNotEmpty( $findings['debug_output'] );
+	}
+
+	// -------------------------------------------------------------------------
+	// Debug output — JS
+	// -------------------------------------------------------------------------
+
+	public function test_flags_console_log(): void {
+		$this->write_js( 'debug.js', "console.log( 'test' );" );
+		$findings = $this->scanner->scan( $this->tmp_dir );
+		$this->assertNotEmpty( $findings['debug_output'] );
+	}
+
+	public function test_flags_console_debug(): void {
+		$this->write_js( 'debug.js', "console.debug( 'test' );" );
+		$findings = $this->scanner->scan( $this->tmp_dir );
+		$this->assertNotEmpty( $findings['debug_output'] );
+	}
+
+	public function test_flags_console_info(): void {
+		$this->write_js( 'debug.js', "console.info( 'test' );" );
+		$findings = $this->scanner->scan( $this->tmp_dir );
+		$this->assertNotEmpty( $findings['debug_output'] );
+	}
+
+	public function test_no_flag_console_warn(): void {
+		$this->write_js( 'debug.js', "console.warn( 'something went wrong' );" );
+		$findings = $this->scanner->scan( $this->tmp_dir );
+		$this->assertEmpty( $findings['debug_output'] );
+	}
+
+	// -------------------------------------------------------------------------
+	// File permissions
+	// -------------------------------------------------------------------------
+
+	public function test_flags_world_writable_file(): void {
+		$this->write_php( 'perm.php', '<?php // test' );
+		chmod( $this->tmp_dir . '/perm.php', 0666 );
+		$findings = $this->scanner->scan( $this->tmp_dir );
+		$this->assertNotEmpty( $findings['permissions'] );
+	}
+
+	public function test_flags_php_file_with_execute_bit(): void {
+		$this->write_php( 'exec.php', '<?php // test' );
+		chmod( $this->tmp_dir . '/exec.php', 0744 );
+		$findings = $this->scanner->scan( $this->tmp_dir );
+		$this->assertNotEmpty( $findings['permissions'] );
+	}
+
+	public function test_no_flag_normal_file_permissions(): void {
+		$this->write_php( 'normal.php', '<?php // test' );
+		chmod( $this->tmp_dir . '/normal.php', 0644 );
+		$findings = $this->scanner->scan( $this->tmp_dir );
+		$this->assertEmpty( $findings['permissions'] );
+	}
+
+	// -------------------------------------------------------------------------
+	// Deprecated functions
+	// -------------------------------------------------------------------------
+
+	public function test_flags_deprecated_attribute_escape(): void {
+		$this->write_php( 'dep.php', "<?php echo attribute_escape( \$val );" );
+		$findings = $this->scanner->scan( $this->tmp_dir );
+		$this->assertNotEmpty( $findings['deprecated'] );
+	}
+
+	public function test_flags_deprecated_wpdb_escape(): void {
+		$this->write_php( 'dep.php', "<?php global \$wpdb; \$wpdb->escape( \$val );" );
+		$findings = $this->scanner->scan( $this->tmp_dir );
+		$this->assertNotEmpty( $findings['deprecated'] );
+	}
+
+	public function test_no_flag_deprecated_when_clean(): void {
+		$this->write_php( 'dep.php', '<?php esc_attr( $val );' );
+		$findings = $this->scanner->scan( $this->tmp_dir );
+		$this->assertEmpty( $findings['deprecated'] );
+	}
+
+	// -------------------------------------------------------------------------
+	// Plugin structure
+	// -------------------------------------------------------------------------
+
+	public function test_flags_missing_root_index_php(): void {
+		$this->write_php( 'plugin.php', '<?php // Plugin Name: Test' );
+		$findings = $this->scanner->scan( $this->tmp_dir );
+		$missing  = array_filter( $findings['structure'], fn( $f ) => str_contains( $f['message'], 'root' ) );
+		$this->assertNotEmpty( $missing );
+	}
+
+	public function test_flags_missing_subdir_index_php(): void {
+		$this->write_php( 'plugin.php', '<?php // Plugin Name: Test' );
+		mkdir( $this->tmp_dir . '/includes' );
+		$findings = $this->scanner->scan( $this->tmp_dir );
+		$missing  = array_filter( $findings['structure'], fn( $f ) => str_contains( $f['message'], 'includes' ) );
+		$this->assertNotEmpty( $missing );
+	}
+
+	public function test_flags_readme_presence(): void {
+		$this->write_php( 'plugin.php', '<?php // Plugin Name: Test' );
+		file_put_contents( $this->tmp_dir . '/readme.txt', 'Readme content' );
+		$findings = $this->scanner->scan( $this->tmp_dir );
+		$readme   = array_filter( $findings['structure'], fn( $f ) => str_contains( strtolower( $f['message'] ), 'readme' ) );
+		$this->assertNotEmpty( $readme );
+	}
+
+	public function test_no_flag_structure_with_root_index_php(): void {
+		file_put_contents( $this->tmp_dir . '/index.php', '<?php // Silence is golden.' );
+		$findings = $this->scanner->scan( $this->tmp_dir );
+		$missing  = array_filter( $findings['structure'], fn( $f ) => str_contains( $f['message'], 'root' ) );
+		$this->assertEmpty( $missing );
+	}
+
+	// -------------------------------------------------------------------------
+	// PHP compatibility
+	// -------------------------------------------------------------------------
+
+	public function test_flags_match_expression_below_php_8(): void {
+		$this->write_plugin_header( '7.4' );
+		$this->write_php( 'code.php', "<?php \$r = match( \$x ) { 1 => 'a', default => 'b' };" );
+		$findings = $this->scanner->scan( $this->tmp_dir );
+		$this->assertNotEmpty( $findings['php_compat'] );
+	}
+
+	public function test_flags_nullsafe_operator_below_php_8(): void {
+		$this->write_plugin_header( '7.4' );
+		$this->write_php( 'code.php', "<?php \$val = \$obj?->method();" );
+		$findings = $this->scanner->scan( $this->tmp_dir );
+		$this->assertNotEmpty( $findings['php_compat'] );
+	}
+
+	public function test_flags_str_contains_below_php_8(): void {
+		$this->write_plugin_header( '7.4' );
+		$this->write_php( 'code.php', "<?php \$f = str_contains( \$str, 'needle' );" );
+		$findings = $this->scanner->scan( $this->tmp_dir );
+		$this->assertNotEmpty( $findings['php_compat'] );
+	}
+
+	public function test_flags_enum_below_php_81(): void {
+		$this->write_plugin_header( '8.0' );
+		$this->write_php( 'code.php', "<?php\nenum Status { case Active; case Inactive; }" );
+		$findings = $this->scanner->scan( $this->tmp_dir );
+		$this->assertNotEmpty( $findings['php_compat'] );
+	}
+
+	public function test_no_flag_php_compat_when_version_meets_requirement(): void {
+		$this->write_plugin_header( '8.1' );
+		$this->write_php( 'code.php', "<?php \$r = match( \$x ) { 1 => 'a', default => 'b' };" );
+		$findings = $this->scanner->scan( $this->tmp_dir );
+		$this->assertEmpty( $findings['php_compat'] );
+	}
+
+	// -------------------------------------------------------------------------
 	// Stats header
 	// -------------------------------------------------------------------------
 
@@ -357,6 +573,15 @@ class ScannerTest extends TestCase {
 
 	private function write_php( string $name, string $content ): void {
 		file_put_contents( $this->tmp_dir . '/' . $name, $content );
+	}
+
+	private function write_js( string $name, string $content ): void {
+		file_put_contents( $this->tmp_dir . '/' . $name, $content );
+	}
+
+	private function write_plugin_header( string $php_version ): void {
+		$content = "<?php\n/**\n * Plugin Name: Test Plugin\n * Requires PHP: {$php_version}\n */\n";
+		file_put_contents( $this->tmp_dir . '/test-plugin.php', $content );
 	}
 
 	/**
