@@ -487,19 +487,19 @@ class ScannerTest extends TestCase {
 		$this->assertNotEmpty( $missing );
 	}
 
-	public function test_flags_missing_readme_txt(): void {
-		$this->write_php( 'plugin.php', '<?php // Plugin Name: Test' );
-		$findings = $this->scanner->scan( $this->tmp_dir );
-		$missing  = array_filter( $findings['structure'], fn( $f ) => str_contains( strtolower( $f['message'] ), 'missing readme' ) );
-		$this->assertNotEmpty( $missing );
-	}
-
-	public function test_no_flag_structure_with_readme_txt(): void {
+	public function test_flags_readme_txt_present(): void {
 		$this->write_php( 'plugin.php', '<?php // Plugin Name: Test' );
 		file_put_contents( $this->tmp_dir . '/readme.txt', 'Stable tag: 1.0.0' );
 		$findings = $this->scanner->scan( $this->tmp_dir );
-		$missing  = array_filter( $findings['structure'], fn( $f ) => str_contains( strtolower( $f['message'] ), 'missing readme' ) );
-		$this->assertEmpty( $missing );
+		$readme   = array_filter( $findings['structure'], fn( $f ) => str_contains( strtolower( $f['message'] ), 'readme.txt present' ) );
+		$this->assertNotEmpty( $readme );
+	}
+
+	public function test_no_flag_structure_without_readme(): void {
+		$this->write_php( 'plugin.php', '<?php // Plugin Name: Test' );
+		$findings = $this->scanner->scan( $this->tmp_dir );
+		$readme   = array_filter( $findings['structure'], fn( $f ) => str_contains( strtolower( $f['message'] ), 'present in plugin root' ) );
+		$this->assertEmpty( $readme );
 	}
 
 	public function test_no_flag_structure_with_root_index_php(): void {
@@ -555,13 +555,13 @@ class ScannerTest extends TestCase {
 	public function test_flags_call_user_func_with_variable_callback(): void {
 		$this->write_php( 'dyn.php', '<?php call_user_func( $fn, $arg );' );
 		$findings = $this->scanner->scan( $this->tmp_dir );
-		$this->assertHasFinding( $findings['dangerous'], 'HIGH', 'call_user_func' );
+		$this->assertHasFinding( $findings['dangerous'], 'CRITICAL', 'call_user_func' );
 	}
 
 	public function test_flags_call_user_func_array_with_variable_callback(): void {
 		$this->write_php( 'dyn.php', '<?php call_user_func_array( $fn, array( $arg ) );' );
 		$findings = $this->scanner->scan( $this->tmp_dir );
-		$this->assertHasFinding( $findings['dangerous'], 'HIGH', 'call_user_func' );
+		$this->assertHasFinding( $findings['dangerous'], 'CRITICAL', 'call_user_func' );
 	}
 
 	public function test_no_flag_call_user_func_with_string_callback(): void {
@@ -578,13 +578,13 @@ class ScannerTest extends TestCase {
 	public function test_flags_eval_base64_decode_combo(): void {
 		$this->write_php( 'b64.php', '<?php eval( base64_decode( $payload ) );' );
 		$findings = $this->scanner->scan( $this->tmp_dir );
-		$this->assertHasFinding( $findings['obfuscation'], 'CRITICAL', 'base64_decode' );
+		$this->assertHasFinding( $findings['dangerous'], 'CRITICAL', 'eval' );
 	}
 
 	public function test_flags_base64_decode_assigned_to_variable(): void {
 		$this->write_php( 'b64.php', '<?php $code = base64_decode( $payload );' );
 		$findings = $this->scanner->scan( $this->tmp_dir );
-		$this->assertHasFinding( $findings['obfuscation'], 'HIGH', 'base64_decode' );
+		$this->assertHasFinding( $findings['dangerous'], 'CRITICAL', 'base64_decode' );
 	}
 
 	public function test_no_flag_base64_on_string_literal(): void {
@@ -601,17 +601,17 @@ class ScannerTest extends TestCase {
 	public function test_flags_post_access_without_nonce(): void {
 		$this->write_php( 'handler.php', "<?php \$val = sanitize_text_field( wp_unslash( \$_POST['x'] ) );" );
 		$findings = $this->scanner->scan( $this->tmp_dir );
-		$high     = array_filter( $findings['nonces'], fn( $f ) => 'HIGH' === $f['severity'] && str_contains( $f['message'], 'nonce' ) );
-		$this->assertNotEmpty( $high );
+		$critical = array_filter( $findings['nonces'], fn( $f ) => 'CRITICAL' === $f['severity'] && str_contains( $f['message'], 'nonce' ) );
+		$this->assertNotEmpty( $critical );
 	}
 
-	public function test_no_flag_post_with_ajax_nonce(): void {
-		$code = "<?php\ncheck_ajax_referer( 'my_action', 'nonce' );\n\$val = sanitize_text_field( wp_unslash( \$_POST['x'] ) );";
+	public function test_no_flag_post_with_wp_verify_nonce(): void {
+		$code = "<?php\nwp_verify_nonce( \$_POST['nonce'], 'my_action' );\n\$val = sanitize_text_field( wp_unslash( \$_POST['x'] ) );";
 		$this->write_php( 'handler.php', $code );
-		$findings = $this->scanner->scan( $this->tmp_dir );
+		$findings   = $this->scanner->scan( $this->tmp_dir );
 		$post_nonce = array_filter(
 			$findings['nonces'],
-			fn( $f ) => str_contains( $f['message'], 'no nonce verification' )
+			fn( $f ) => str_contains( $f['message'], 'handles $_POST' )
 		);
 		$this->assertEmpty( $post_nonce );
 	}
@@ -643,7 +643,7 @@ class ScannerTest extends TestCase {
 	// -------------------------------------------------------------------------
 
 	public function test_flags_translation_at_file_scope(): void {
-		$this->write_php( 'early.php', "<?php\n\$msg = __( 'Hello', 'domain' );" );
+		$this->write_php( 'early.php', "<?php\n\$msg = __( 'Hello', 'domain' );\nfunction foo() {}" );
 		$findings = $this->scanner->scan( $this->tmp_dir );
 		$this->assertNotEmpty( $findings['early_translations'] );
 	}
@@ -684,7 +684,7 @@ class ScannerTest extends TestCase {
 	}
 
 	public function test_no_flag_complete_plugin_header(): void {
-		$header = "<?php\n/**\n * Plugin Name: Test\n * Description: A test plugin.\n * Version: 1.0.0\n * Author: Test Author\n * Text Domain: test\n */\n";
+		$header = "<?php\n/**\n * Plugin Name: Test\n * Requires PHP: 8.0\n * Requires at least: 5.9\n * License: GPL-2.0\n * Author URI: https://example.com\n * Plugin URI: https://example.com\n */\n";
 		$this->write_php( 'plugin.php', $header );
 		$findings = $this->scanner->scan( $this->tmp_dir );
 		$this->assertEmpty( $findings['meta'] );

@@ -27,11 +27,15 @@ class Scanner {
 		'passthru',
 		'popen',
 		'proc_open',
+		'base64_decode',
+		'base64_encode',
 		'str_rot13',
 		'gzinflate',
 		'gzuncompress',
 		'assert',
 		'create_function',
+		'call_user_func',
+		'call_user_func_array',
 	);
 
 	/**
@@ -114,6 +118,18 @@ class Scanner {
 	private const SKIP_DIRS = array( 'vendor', 'node_modules', '.git', 'tests' );
 
 	/**
+	 * Translation functions that must not be called at file scope before init.
+	 */
+	private const EARLY_TRANSLATION_FUNCTIONS = array(
+		'__',
+		'_e',
+		'esc_html__',
+		'esc_html_e',
+		'esc_attr__',
+		'esc_attr_e',
+	);
+
+	/**
 	 * WordPress role names that must never be passed to current_user_can().
 	 */
 	private const WP_ROLE_NAMES = array(
@@ -125,6 +141,8 @@ class Scanner {
 	);
 
 	/**
+	 * Creates a new Scanner instance.
+	 *
 	 * @param FileCollector $file_collector File collection service.
 	 */
 	public function __construct( private FileCollector $file_collector = new FileCollector() ) {}
@@ -293,18 +311,6 @@ class Scanner {
 					$line,
 					/* translators: %s: function name */
 					sprintf( __( 'Dangerous function used: %s()', 'plugin-auditor' ), $matches[1] )
-				);
-			}
-
-			if ( preg_match( '/\bcall_user_func(_array)?\s*\(\s*\$/', $line, $m ) ) {
-				$func_name  = 'call_user_func' . ( ! empty( $m[1] ) ? $m[1] : '' );
-				$findings[] = $this->finding(
-					'HIGH',
-					$file,
-					$i + 1,
-					$line,
-					/* translators: %s: function name */
-					sprintf( __( '%s() called with a variable callback  dynamic dispatch may execute arbitrary code.', 'plugin-auditor' ), $func_name )
 				);
 			}
 		}
@@ -522,13 +528,21 @@ class Scanner {
 	private function check_nonces( string $file, array $lines, string $content ): array {
 		$findings = array();
 
-		$has_nonce_check = str_contains( $content, 'wp_verify_nonce' )
-			|| str_contains( $content, 'check_admin_referer' )
-			|| str_contains( $content, 'check_ajax_referer' );
-		$has_nonce_field = str_contains( $content, 'wp_nonce_field' );
-		$has_form        = str_contains( $content, '<form' );
-		$has_get_action  = (bool) preg_match( '/\$_GET\[.action.\]/', $content );
-		$has_post_access = str_contains( $content, '$_POST' );
+		$has_post_handling = str_contains( $content, '$_POST' );
+		$has_nonce_check   = str_contains( $content, 'wp_verify_nonce' ) || str_contains( $content, 'check_admin_referer' );
+		$has_nonce_field   = str_contains( $content, 'wp_nonce_field' );
+		$has_form          = str_contains( $content, '<form' );
+		$has_get_action    = (bool) preg_match( '/\$_GET\[.action.\]/', $content );
+
+		if ( $has_post_handling && ! $has_nonce_check ) {
+			$findings[] = $this->finding(
+				'CRITICAL',
+				$file,
+				0,
+				'',
+				__( 'File handles $_POST data but has no wp_verify_nonce() or check_admin_referer() call.', 'plugin-auditor' )
+			);
+		}
 
 		if ( $has_form && ! $has_nonce_field ) {
 			$findings[] = $this->finding(
@@ -547,16 +561,6 @@ class Scanner {
 				0,
 				'',
 				__( 'GET action parameter used without nonce verification.', 'plugin-auditor' )
-			);
-		}
-
-		if ( $has_post_access && ! $has_nonce_check ) {
-			$findings[] = $this->finding(
-				'HIGH',
-				$file,
-				0,
-				'',
-				__( 'File accesses $_POST but contains no nonce verification  missing wp_verify_nonce(), check_admin_referer(), or check_ajax_referer().', 'plugin-auditor' )
 			);
 		}
 
@@ -766,24 +770,6 @@ class Scanner {
 					__( 'preg_replace() with /e modifier executes matched content as PHP code.', 'plugin-auditor' )
 				);
 			}
-
-			if ( preg_match( '/\beval\s*\([^)]*base64_decode\s*\(/', $line ) ) {
-				$findings[] = $this->finding(
-					'CRITICAL',
-					$file,
-					$i + 1,
-					$line,
-					__( 'eval() combined with base64_decode()  classic obfuscated code execution pattern.', 'plugin-auditor' )
-				);
-			} elseif ( preg_match( '/\$\w+\s*=\s*base64_decode\s*\(/', $line ) ) {
-				$findings[] = $this->finding(
-					'HIGH',
-					$file,
-					$i + 1,
-					$line,
-					__( 'base64_decode() result assigned to a variable  potential obfuscated payload decoding.', 'plugin-auditor' )
-				);
-			}
 		}
 
 		return $findings;
@@ -990,19 +976,17 @@ class Scanner {
 			}
 		}
 
-		$has_readme = file_exists( $plugin_dir . '/readme.txt' )
-			|| file_exists( $plugin_dir . '/README.txt' )
-			|| file_exists( $plugin_dir . '/readme.md' )
-			|| file_exists( $plugin_dir . '/README.md' );
-
-		if ( ! $has_readme ) {
-			$findings[] = $this->finding(
-				'LOW',
-				'readme.txt',
-				0,
-				'',
-				__( 'Missing readme.txt in plugin root.', 'plugin-auditor' )
-			);
+		foreach ( array( 'readme.txt', 'readme.md', 'README.md', 'README.txt' ) as $readme ) {
+			if ( file_exists( $plugin_dir . '/' . $readme ) ) {
+				$findings[] = $this->finding(
+					'LOW',
+					$readme,
+					0,
+					'',
+					/* translators: %s: filename */
+					sprintf( __( '%s present in plugin root  may expose version info or known issues.', 'plugin-auditor' ), $readme )
+				);
+			}
 		}
 
 		return $findings;
@@ -1526,26 +1510,54 @@ class Scanner {
 	 * @return array<int, array<string, mixed>>
 	 */
 	private function check_early_translations( string $file, array $lines ): array {
-		$findings = array();
-		$depth    = 0;
+		$findings    = array();
+		$in_function = 0;
+		$in_class    = 0;
+		$brace_depth = 0;
+
+		$content = implode( "\n", $lines );
+		if ( ! preg_match( '/\b(?:function|class)\s+\w+/', $content ) ) {
+			return $findings;
+		}
 
 		foreach ( $lines as $i => $line ) {
-			if ( $this->is_comment_line( ltrim( $line ) ) ) {
-				continue;
+			$opens  = substr_count( $line, '{' );
+			$closes = substr_count( $line, '}' );
+
+			if ( preg_match( '/^\s*class\s+\w+/', $line ) ) {
+				++$in_class;
 			}
 
-			if ( $depth <= 0 && preg_match( '/\b(__\s*\(|_e\s*\()/', $line ) ) {
-				$findings[] = $this->finding(
-					'MEDIUM',
-					$file,
-					$i + 1,
-					$line,
-					__( 'Translation function called at file scope  may execute before the init hook fires.', 'plugin-auditor' )
-				);
+			if ( preg_match( '/\bfunction\s+\w+\s*\(/', $line ) || preg_match( '/\bfunction\s*\(/', $line ) ) {
+				++$in_function;
 			}
 
-			$stripped = (string) preg_replace( '/([\'"])[^\'"]*\1/', "''", $line );
-			$depth   += substr_count( $stripped, '{' ) - substr_count( $stripped, '}' );
+			$brace_depth += $opens - $closes;
+
+			if ( $brace_depth < 0 ) {
+				$brace_depth = 0;
+			}
+
+			if ( 0 === $in_function && 0 === $in_class ) {
+				foreach ( self::EARLY_TRANSLATION_FUNCTIONS as $fn ) {
+					if ( preg_match( '/\b' . preg_quote( $fn, '/' ) . '\s*\(/', $line ) ) {
+						$findings[] = $this->finding(
+							'LOW',
+							$file,
+							$i + 1,
+							$line,
+							/* translators: %s: function name */
+							sprintf( __( '%s() called at file scope before init  text domain may not be loaded yet. Wrap in an init or plugins_loaded hook callback.', 'plugin-auditor' ), $fn )
+						);
+					}
+				}
+			}
+
+			if ( $closes > 0 && $brace_depth <= ( $in_class > 0 ? 1 : 0 ) ) {
+				if ( $in_function > 0 ) {
+					--$in_function;
+				}
+			}
 		}
 
 		return $findings;
@@ -1616,30 +1628,23 @@ class Scanner {
 		$main_file = $this->find_main_plugin_file( $plugin_dir );
 
 		if ( null === $main_file ) {
-			$findings[] = $this->finding(
-				'MEDIUM',
-				'',
-				0,
-				'',
-				__( 'No plugin header file found  missing Plugin Name declaration.', 'plugin-auditor' )
-			);
+			$findings[] = $this->finding( 'HIGH', '', 0, '', __( 'No main plugin file with Plugin Name header found.', 'plugin-auditor' ) );
 			return $findings;
 		}
 
-		$content         = (string) file_get_contents( $main_file ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents -- local filesystem read, not HTTP.
-		$rel             = basename( $main_file );
-		$required_fields = array( 'Description', 'Version', 'Author', 'Text Domain' );
+		$content  = (string) file_get_contents( $main_file ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents -- local filesystem read, not HTTP.
+		$rel      = basename( $main_file );
+		$required = array(
+			'Requires PHP'      => __( 'Missing "Requires PHP" header.', 'plugin-auditor' ),
+			'Requires at least' => __( 'Missing "Requires at least" header.', 'plugin-auditor' ),
+			'License'           => __( 'Missing "License" header.', 'plugin-auditor' ),
+			'Author URI'        => __( 'Missing "Author URI" header.', 'plugin-auditor' ),
+			'Plugin URI'        => __( 'Missing "Plugin URI" header.', 'plugin-auditor' ),
+		);
 
-		foreach ( $required_fields as $field ) {
-			if ( ! preg_match( '/^\s*\*\s*' . $field . '\s*:/im', $content ) ) {
-				$findings[] = $this->finding(
-					'LOW',
-					$rel,
-					0,
-					'',
-					/* translators: %s: header field name */
-					sprintf( __( 'Missing plugin header field: %s.', 'plugin-auditor' ), $field )
-				);
+		foreach ( $required as $header => $message ) {
+			if ( ! preg_match( '/' . preg_quote( $header, '/' ) . '\s*:/i', $content ) ) {
+				$findings[] = $this->finding( 'LOW', $rel, 0, '', $message );
 			}
 		}
 
@@ -1655,21 +1660,30 @@ class Scanner {
 	 */
 	private function check_assets( string $file, array $lines ): array {
 		$findings = array();
+		$pattern  = '/\b(wp_enqueue_script|wp_enqueue_style|wp_register_script|wp_register_style)\s*\(/';
 
 		foreach ( $lines as $i => $line ) {
-			if ( $this->is_comment_line( ltrim( $line ) ) ) {
+			if ( ! preg_match( $pattern, $line ) ) {
 				continue;
 			}
 
-			if ( preg_match( '/\bwp_enqueue_(style|script)\s*\(/', $line )
-				&& preg_match( '/[\'"][\d]+\.[\d.]+[\'"]/', $line )
-			) {
+			if ( preg_match( '/,\s*false\s*[,)]/', $line ) ) {
 				$findings[] = $this->finding(
 					'LOW',
 					$file,
 					$i + 1,
 					$line,
-					__( 'Hardcoded version string on enqueued asset  use a constant or variable so cache-busting is automatic on update.', 'plugin-auditor' )
+					__( 'Asset enqueued with false version  use a version constant or a file hash.', 'plugin-auditor' )
+				);
+			}
+
+			if ( preg_match( '/,\s*[\'"][\d.]+[\'"]/', $line ) ) {
+				$findings[] = $this->finding(
+					'LOW',
+					$file,
+					$i + 1,
+					$line,
+					__( 'Asset enqueued with hardcoded version string  use a constant instead.', 'plugin-auditor' )
 				);
 			}
 		}
@@ -1686,22 +1700,34 @@ class Scanner {
 	 */
 	private function check_requests( string $file, array $lines ): array {
 		$findings = array();
+		$pattern  = '/\b(wp_remote_get|wp_remote_post|wp_remote_request|wp_remote_head|curl_exec|curl_init|file_get_contents)\s*\(/';
 
 		foreach ( $lines as $i => $line ) {
-			if ( $this->is_comment_line( ltrim( $line ) ) ) {
+			if ( ! preg_match( $pattern, $line, $m ) ) {
 				continue;
 			}
 
-			if ( preg_match( '/\bwp_remote_(post|get|request|head|delete|put)\s*\(/', $line, $m ) ) {
-				$findings[] = $this->finding(
-					'INFO',
-					$file,
-					$i + 1,
-					$line,
-					/* translators: %s: function name */
-					sprintf( __( 'Outbound HTTP request via %s()  ensure the URL is validated and the response is sanitised.', 'plugin-auditor' ), 'wp_remote_' . $m[1] )
-				);
+			if ( 'file_get_contents' === $m[1] && ! preg_match( '/[\'"]https?:\/\//', $line ) ) {
+				continue;
 			}
+
+			$url = '';
+			if ( preg_match( '/[\'"]https?:\/\/[^\'"]+[\'"]/', $line, $um ) ) {
+				$url = $um[0];
+			}
+
+			$findings[] = $this->finding(
+				'INFO',
+				$file,
+				$i + 1,
+				$line,
+				sprintf(
+					/* translators: 1: function name, 2: URL or empty */
+					__( 'External HTTP request via %1$s%2$s', 'plugin-auditor' ),
+					$m[1] . '()',
+					$url ? '  endpoint: ' . $url : ''
+				)
+			);
 		}
 
 		return $findings;
