@@ -409,10 +409,16 @@ class ScannerTest extends TestCase {
 		$this->assertNotEmpty( $findings['debug_output'] );
 	}
 
-	public function test_no_flag_console_warn(): void {
+	public function test_flags_console_warn(): void {
 		$this->write_js( 'debug.js', "console.warn( 'something went wrong' );" );
 		$findings = $this->scanner->scan( $this->tmp_dir );
-		$this->assertEmpty( $findings['debug_output'] );
+		$this->assertNotEmpty( $findings['debug_output'] );
+	}
+
+	public function test_flags_console_error(): void {
+		$this->write_js( 'debug.js', "console.error( 'an error occurred' );" );
+		$findings = $this->scanner->scan( $this->tmp_dir );
+		$this->assertNotEmpty( $findings['debug_output'] );
 	}
 
 	// -------------------------------------------------------------------------
@@ -481,18 +487,25 @@ class ScannerTest extends TestCase {
 		$this->assertNotEmpty( $missing );
 	}
 
-	public function test_flags_readme_presence(): void {
+	public function test_flags_missing_readme_txt(): void {
 		$this->write_php( 'plugin.php', '<?php // Plugin Name: Test' );
-		file_put_contents( $this->tmp_dir . '/readme.txt', 'Readme content' );
 		$findings = $this->scanner->scan( $this->tmp_dir );
-		$readme   = array_filter( $findings['structure'], fn( $f ) => str_contains( strtolower( $f['message'] ), 'readme' ) );
-		$this->assertNotEmpty( $readme );
+		$missing  = array_filter( $findings['structure'], fn( $f ) => str_contains( strtolower( $f['message'] ), 'missing readme' ) );
+		$this->assertNotEmpty( $missing );
+	}
+
+	public function test_no_flag_structure_with_readme_txt(): void {
+		$this->write_php( 'plugin.php', '<?php // Plugin Name: Test' );
+		file_put_contents( $this->tmp_dir . '/readme.txt', 'Stable tag: 1.0.0' );
+		$findings = $this->scanner->scan( $this->tmp_dir );
+		$missing  = array_filter( $findings['structure'], fn( $f ) => str_contains( strtolower( $f['message'] ), 'missing readme' ) );
+		$this->assertEmpty( $missing );
 	}
 
 	public function test_no_flag_structure_with_root_index_php(): void {
 		file_put_contents( $this->tmp_dir . '/index.php', '<?php // Silence is golden.' );
 		$findings = $this->scanner->scan( $this->tmp_dir );
-		$missing  = array_filter( $findings['structure'], fn( $f ) => str_contains( $f['message'], 'root' ) );
+		$missing  = array_filter( $findings['structure'], fn( $f ) => str_contains( $f['message'], 'Missing index.php in plugin root' ) );
 		$this->assertEmpty( $missing );
 	}
 
@@ -533,6 +546,204 @@ class ScannerTest extends TestCase {
 		$this->write_php( 'code.php', "<?php \$r = match( \$x ) { 1 => 'a', default => 'b' };" );
 		$findings = $this->scanner->scan( $this->tmp_dir );
 		$this->assertEmpty( $findings['php_compat'] );
+	}
+
+	// -------------------------------------------------------------------------
+	// call_user_func / call_user_func_array
+	// -------------------------------------------------------------------------
+
+	public function test_flags_call_user_func_with_variable_callback(): void {
+		$this->write_php( 'dyn.php', '<?php call_user_func( $fn, $arg );' );
+		$findings = $this->scanner->scan( $this->tmp_dir );
+		$this->assertHasFinding( $findings['dangerous'], 'HIGH', 'call_user_func' );
+	}
+
+	public function test_flags_call_user_func_array_with_variable_callback(): void {
+		$this->write_php( 'dyn.php', '<?php call_user_func_array( $fn, array( $arg ) );' );
+		$findings = $this->scanner->scan( $this->tmp_dir );
+		$this->assertHasFinding( $findings['dangerous'], 'HIGH', 'call_user_func' );
+	}
+
+	public function test_no_flag_call_user_func_with_string_callback(): void {
+		$this->write_php( 'dyn.php', "<?php call_user_func( 'sanitize_text_field', \$val );" );
+		$findings = $this->scanner->scan( $this->tmp_dir );
+		$high     = array_filter( $findings['dangerous'], fn( $f ) => 'HIGH' === $f['severity'] );
+		$this->assertEmpty( $high );
+	}
+
+	// -------------------------------------------------------------------------
+	// base64 obfuscation
+	// -------------------------------------------------------------------------
+
+	public function test_flags_eval_base64_decode_combo(): void {
+		$this->write_php( 'b64.php', '<?php eval( base64_decode( $payload ) );' );
+		$findings = $this->scanner->scan( $this->tmp_dir );
+		$this->assertHasFinding( $findings['obfuscation'], 'CRITICAL', 'base64_decode' );
+	}
+
+	public function test_flags_base64_decode_assigned_to_variable(): void {
+		$this->write_php( 'b64.php', '<?php $code = base64_decode( $payload );' );
+		$findings = $this->scanner->scan( $this->tmp_dir );
+		$this->assertHasFinding( $findings['obfuscation'], 'HIGH', 'base64_decode' );
+	}
+
+	public function test_no_flag_base64_on_string_literal(): void {
+		$this->write_php( 'b64.php', "<?php \$x = base64_encode( 'hello' );" );
+		$findings = $this->scanner->scan( $this->tmp_dir );
+		$b64      = array_filter( $findings['obfuscation'], fn( $f ) => str_contains( $f['message'], 'base64' ) );
+		$this->assertEmpty( $b64 );
+	}
+
+	// -------------------------------------------------------------------------
+	// File-level $_POST nonce check
+	// -------------------------------------------------------------------------
+
+	public function test_flags_post_access_without_nonce(): void {
+		$this->write_php( 'handler.php', "<?php \$val = sanitize_text_field( wp_unslash( \$_POST['x'] ) );" );
+		$findings = $this->scanner->scan( $this->tmp_dir );
+		$high     = array_filter( $findings['nonces'], fn( $f ) => 'HIGH' === $f['severity'] && str_contains( $f['message'], 'nonce' ) );
+		$this->assertNotEmpty( $high );
+	}
+
+	public function test_no_flag_post_with_ajax_nonce(): void {
+		$code = "<?php\ncheck_ajax_referer( 'my_action', 'nonce' );\n\$val = sanitize_text_field( wp_unslash( \$_POST['x'] ) );";
+		$this->write_php( 'handler.php', $code );
+		$findings = $this->scanner->scan( $this->tmp_dir );
+		$post_nonce = array_filter(
+			$findings['nonces'],
+			fn( $f ) => str_contains( $f['message'], 'no nonce verification' )
+		);
+		$this->assertEmpty( $post_nonce );
+	}
+
+	// -------------------------------------------------------------------------
+	// Commented-out code
+	// -------------------------------------------------------------------------
+
+	public function test_flags_excessive_commented_code(): void {
+		$block  = "<?php\n";
+		$block .= "// \$a = foo();\n";
+		$block .= "// \$b = bar( \$a );\n";
+		$block .= "// if ( \$b ) {\n";
+		$block .= "//     do_something();\n";
+		$block .= "// }\n";
+		$this->write_php( 'old.php', $block );
+		$findings = $this->scanner->scan( $this->tmp_dir );
+		$this->assertNotEmpty( $findings['commented_code'] );
+	}
+
+	public function test_no_flag_few_commented_lines(): void {
+		$this->write_php( 'old.php', "<?php\n// \$a = foo();\n// \$b = bar();" );
+		$findings = $this->scanner->scan( $this->tmp_dir );
+		$this->assertEmpty( $findings['commented_code'] );
+	}
+
+	// -------------------------------------------------------------------------
+	// Early translation calls
+	// -------------------------------------------------------------------------
+
+	public function test_flags_translation_at_file_scope(): void {
+		$this->write_php( 'early.php', "<?php\n\$msg = __( 'Hello', 'domain' );" );
+		$findings = $this->scanner->scan( $this->tmp_dir );
+		$this->assertNotEmpty( $findings['early_translations'] );
+	}
+
+	public function test_no_flag_translation_inside_function(): void {
+		$code = "<?php\nfunction foo() {\n\$msg = __( 'Hello', 'domain' );\nreturn \$msg;\n}";
+		$this->write_php( 'fn.php', $code );
+		$findings = $this->scanner->scan( $this->tmp_dir );
+		$this->assertEmpty( $findings['early_translations'] );
+	}
+
+	// -------------------------------------------------------------------------
+	// Duplicate hook registrations
+	// -------------------------------------------------------------------------
+
+	public function test_flags_duplicate_hook_registration(): void {
+		$this->write_php( 'hooks-a.php', "<?php\nadd_action( 'init', 'my_callback' );" );
+		$this->write_php( 'hooks-b.php', "<?php\nadd_action( 'init', 'my_callback' );" );
+		$findings = $this->scanner->scan( $this->tmp_dir );
+		$this->assertNotEmpty( $findings['duplicate_hooks'] );
+	}
+
+	public function test_no_flag_unique_hooks(): void {
+		$this->write_php( 'hooks-a.php', "<?php\nadd_action( 'init', 'callback_a' );" );
+		$this->write_php( 'hooks-b.php', "<?php\nadd_action( 'init', 'callback_b' );" );
+		$findings = $this->scanner->scan( $this->tmp_dir );
+		$this->assertEmpty( $findings['duplicate_hooks'] );
+	}
+
+	// -------------------------------------------------------------------------
+	// Plugin header meta
+	// -------------------------------------------------------------------------
+
+	public function test_flags_missing_plugin_header_fields(): void {
+		$this->write_php( 'plugin.php', "<?php\n/**\n * Plugin Name: Test\n * Version: 1.0.0\n */\n" );
+		$findings = $this->scanner->scan( $this->tmp_dir );
+		$this->assertNotEmpty( $findings['meta'] );
+	}
+
+	public function test_no_flag_complete_plugin_header(): void {
+		$header = "<?php\n/**\n * Plugin Name: Test\n * Description: A test plugin.\n * Version: 1.0.0\n * Author: Test Author\n * Text Domain: test\n */\n";
+		$this->write_php( 'plugin.php', $header );
+		$findings = $this->scanner->scan( $this->tmp_dir );
+		$this->assertEmpty( $findings['meta'] );
+	}
+
+	// -------------------------------------------------------------------------
+	// Asset version strings
+	// -------------------------------------------------------------------------
+
+	public function test_flags_hardcoded_version_in_enqueue(): void {
+		$this->write_php( 'assets.php', "<?php\nwp_enqueue_script( 'my-script', plugins_url( 'js/app.js', __FILE__ ), array(), '1.2.3', true );" );
+		$findings = $this->scanner->scan( $this->tmp_dir );
+		$this->assertNotEmpty( $findings['assets'] );
+	}
+
+	public function test_no_flag_constant_version_in_enqueue(): void {
+		$this->write_php( 'assets.php', "<?php\nwp_enqueue_script( 'my-script', plugins_url( 'js/app.js', __FILE__ ), array(), PLUGIN_VERSION, true );" );
+		$findings = $this->scanner->scan( $this->tmp_dir );
+		$this->assertEmpty( $findings['assets'] );
+	}
+
+	// -------------------------------------------------------------------------
+	// Outbound HTTP requests
+	// -------------------------------------------------------------------------
+
+	public function test_flags_wp_remote_post(): void {
+		$this->write_php( 'req.php', "<?php\n\$r = wp_remote_post( 'https://api.example.com', array( 'body' => \$data ) );" );
+		$findings = $this->scanner->scan( $this->tmp_dir );
+		$this->assertHasFinding( $findings['requests'], 'INFO', 'wp_remote_post' );
+	}
+
+	public function test_flags_wp_remote_get(): void {
+		$this->write_php( 'req.php', "<?php\n\$r = wp_remote_get( 'https://api.example.com/data' );" );
+		$findings = $this->scanner->scan( $this->tmp_dir );
+		$this->assertHasFinding( $findings['requests'], 'INFO', 'wp_remote_get' );
+	}
+
+	// -------------------------------------------------------------------------
+	// Licensing
+	// -------------------------------------------------------------------------
+
+	public function test_flags_missing_license_file(): void {
+		$this->write_php( 'plugin.php', "<?php\n/**\n * Plugin Name: Test\n * License: GPL-2.0\n */\n" );
+		$findings = $this->scanner->scan( $this->tmp_dir );
+		$this->assertNotEmpty( $findings['licensing'] );
+	}
+
+	public function test_flags_non_gpl_compatible_license(): void {
+		$this->write_php( 'plugin.php', "<?php\n/**\n * Plugin Name: Test\n * License: Proprietary\n */\n" );
+		file_put_contents( $this->tmp_dir . '/LICENSE', 'Proprietary license text.' );
+		$findings = $this->scanner->scan( $this->tmp_dir );
+		$this->assertNotEmpty( $findings['licensing'] );
+	}
+
+	public function test_no_flag_gpl_license_with_license_file(): void {
+		$this->write_php( 'plugin.php', "<?php\n/**\n * Plugin Name: Test\n * License: GPL-2.0\n */\n" );
+		file_put_contents( $this->tmp_dir . '/LICENSE', 'GNU General Public License v2.0' );
+		$findings = $this->scanner->scan( $this->tmp_dir );
+		$this->assertEmpty( $findings['licensing'] );
 	}
 
 	// -------------------------------------------------------------------------

@@ -65,6 +65,12 @@ class ScoreCalculator {
 			'licensing',
 			'php_compat',
 			'unnecessary_closures',
+			'commented_code',
+			'early_translations',
+			'duplicate_hooks',
+			'meta',
+			'assets',
+			'requests',
 		);
 	}
 
