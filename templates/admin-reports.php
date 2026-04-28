@@ -3,7 +3,10 @@
  * Admin reports page template.
  *
  * Variables available from Admin::render_reports_page():
- *   $reports  \WP_Post[]  All report posts.
+ *   $reports  \WP_Post[]                                         All report posts.
+ *   $grouped  array<string, array<string, array{label, default}>> Checks grouped by category.
+ *   $enabled  string[]                                            Currently enabled check slugs.
+ *   $saved    bool                                               True if settings were just saved.
  *
  * @package PluginAuditor
  */
@@ -34,29 +37,35 @@ $avatar_palettes = array(
 	array( '#ccfbf1', '#134e4a' ),
 );
 
-$checks = array(
-	array( __( 'Dangerous functions', 'plugin-auditor' ), 'https://owasp.org/www-community/attacks/Code_Injection', __( 'OWASP — Code Injection', 'plugin-auditor' ) ),
-	array( __( 'Output escaping', 'plugin-auditor' ), 'https://developer.wordpress.org/apis/security/escaping/', __( 'WP Handbook — Escaping', 'plugin-auditor' ) ),
-	array( __( 'Input sanitization', 'plugin-auditor' ), 'https://developer.wordpress.org/apis/security/sanitizing/', __( 'WP Handbook — Sanitizing', 'plugin-auditor' ) ),
-	array( __( 'Nonce verification', 'plugin-auditor' ), 'https://developer.wordpress.org/apis/security/nonces/', __( 'WP Handbook — Nonces', 'plugin-auditor' ) ),
-	array( __( 'Capability checks', 'plugin-auditor' ), 'https://developer.wordpress.org/apis/security/current-user-can/', __( 'WP Handbook — current_user_can()', 'plugin-auditor' ) ),
-	array( __( 'Database queries', 'plugin-auditor' ), 'https://developer.wordpress.org/apis/security/sql-injection/', __( 'WP Handbook — SQL Injection', 'plugin-auditor' ) ),
-	array( __( 'Hardcoded credentials', 'plugin-auditor' ), 'https://owasp.org/www-community/vulnerabilities/Use_of_hard-coded_credentials', __( 'OWASP — Hard-coded Credentials', 'plugin-auditor' ) ),
-	array( __( 'Error suppression', 'plugin-auditor' ), 'https://owasp.org/www-community/Improper_Error_Handling', __( 'OWASP — Improper Error Handling', 'plugin-auditor' ) ),
-	array( __( 'Obfuscation', 'plugin-auditor' ), 'https://owasp.org/www-project-web-security-testing-guide/latest/4-Web_Application_Security_Testing/07-Input_Validation_Testing/18-Testing_for_Server_Side_Template_Injection', __( 'OWASP — Malicious Code', 'plugin-auditor' ) ),
-	array( __( 'Debug output — PHP', 'plugin-auditor' ), 'https://owasp.org/www-community/vulnerabilities/Information_exposure_through_query_strings_in_url', __( 'OWASP — Information Exposure', 'plugin-auditor' ) ),
-	array( __( 'Debug output — JS', 'plugin-auditor' ), 'https://owasp.org/www-community/vulnerabilities/Information_exposure_through_query_strings_in_url', __( 'OWASP — Information Exposure', 'plugin-auditor' ) ),
-	array( __( 'File permissions', 'plugin-auditor' ), 'https://owasp.org/www-project-web-security-testing-guide/latest/4-Web_Application_Security_Testing/02-Configuration_and_Deployment_Management_Testing/09-Test_File_Permission', __( 'OWASP — Insecure File Permissions', 'plugin-auditor' ) ),
-	array( __( 'Deprecated functions', 'plugin-auditor' ), 'https://developer.wordpress.org/plugins/security/', __( 'WP Handbook — Plugin Security', 'plugin-auditor' ) ),
-	array( __( 'Plugin structure', 'plugin-auditor' ), 'https://developer.wordpress.org/plugins/plugin-basics/best-practices/', __( 'WP Plugin Handbook — Best Practices', 'plugin-auditor' ) ),
-	array( __( 'Licensing', 'plugin-auditor' ), 'https://developer.wordpress.org/plugins/wordpress-org/detailed-plugin-guidelines/', __( 'WordPress.org Plugin Guidelines', 'plugin-auditor' ) ),
-	array( __( 'PHP compatibility', 'plugin-auditor' ), 'https://github.com/PHPCompatibility/PHPCompatibilityWP', __( 'PHPCompatibilityWP', 'plugin-auditor' ) ),
-	array( __( 'Redirect without exit', 'plugin-auditor' ), 'https://developer.wordpress.org/reference/functions/wp_redirect/', __( 'WP Handbook — wp_redirect()', 'plugin-auditor' ) ),
-	array( __( 'Role name in current_user_can()', 'plugin-auditor' ), 'https://developer.wordpress.org/plugins/users/roles-and-capabilities/', __( 'WP Handbook — Roles vs Capabilities', 'plugin-auditor' ) ),
-	array( __( 'Shortcode output escaping', 'plugin-auditor' ), 'https://developer.wordpress.org/apis/security/escaping/', __( 'WP Handbook — Escaping', 'plugin-auditor' ) ),
-	array( __( 'Option writes without capability', 'plugin-auditor' ), 'https://developer.wordpress.org/apis/security/current-user-can/', __( 'WP Handbook — current_user_can()', 'plugin-auditor' ) ),
-	array( __( 'Wrong $wpdb placeholder type', 'plugin-auditor' ), 'https://developer.wordpress.org/reference/classes/wpdb/prepare/', __( 'WP Handbook — $wpdb->prepare()', 'plugin-auditor' ) ),
-	array( __( 'Unnecessary closures', 'plugin-auditor' ), 'https://developer.wordpress.org/coding-standards/wordpress-coding-standards/php/', __( 'WordPress Coding Standards', 'plugin-auditor' ) ),
+$sources = array(
+	'dangerous_functions'  => 'https://owasp.org/www-community/attacks/Code_Injection',
+	'output_escaping'      => 'https://developer.wordpress.org/apis/security/escaping/',
+	'input_sanitization'   => 'https://developer.wordpress.org/apis/security/sanitizing/',
+	'nonce_verification'   => 'https://developer.wordpress.org/apis/security/nonces/',
+	'capability_checks'    => 'https://developer.wordpress.org/apis/security/current-user-can/',
+	'credentials'          => 'https://owasp.org/www-community/vulnerabilities/Use_of_hard-coded_credentials',
+	'obfuscation'          => 'https://owasp.org/www-community/attacks/Code_Injection',
+	'redirects'            => 'https://developer.wordpress.org/reference/functions/wp_redirect/',
+	'shortcodes'           => 'https://developer.wordpress.org/apis/security/escaping/',
+	'call_user_func'       => 'https://owasp.org/www-community/attacks/Code_Injection',
+	'base64'               => 'https://owasp.org/www-community/attacks/Code_Injection',
+	'nonces_post'          => 'https://developer.wordpress.org/apis/security/nonces/',
+	'database'             => 'https://developer.wordpress.org/apis/security/sql-injection/',
+	'wpdb_placeholders'    => 'https://developer.wordpress.org/reference/classes/wpdb/prepare/',
+	'option_writes'        => 'https://developer.wordpress.org/apis/security/current-user-can/',
+	'error_suppression'    => 'https://owasp.org/www-community/Improper_Error_Handling',
+	'debug_php'            => 'https://owasp.org/www-community/vulnerabilities/Information_exposure_through_query_strings_in_url',
+	'debug_js'             => 'https://owasp.org/www-community/vulnerabilities/Information_exposure_through_query_strings_in_url',
+	'debug_js_warn'        => 'https://owasp.org/www-community/vulnerabilities/Information_exposure_through_query_strings_in_url',
+	'unnecessary_closures' => 'https://developer.wordpress.org/coding-standards/wordpress-coding-standards/php/',
+	'early_translations'   => 'https://developer.wordpress.org/coding-standards/wordpress-coding-standards/php/',
+	'commented_code'       => 'https://developer.wordpress.org/coding-standards/wordpress-coding-standards/php/',
+	'php_compat'           => 'https://github.com/PHPCompatibility/PHPCompatibilityWP',
+	'deprecated'           => 'https://developer.wordpress.org/plugins/security/',
+	'plugin_structure'     => 'https://developer.wordpress.org/plugins/plugin-basics/best-practices/',
+	'file_permissions'     => 'https://owasp.org/www-project-web-security-testing-guide/latest/4-Web_Application_Security_Testing/02-Configuration_and_Deployment_Management_Testing/09-Test_File_Permission',
+	'licensing'            => 'https://developer.wordpress.org/plugins/wordpress-org/detailed-plugin-guidelines/',
+	'role_checks'          => 'https://developer.wordpress.org/plugins/users/roles-and-capabilities/',
 );
 ?>
 <div class="wrap">
@@ -65,39 +74,6 @@ $checks = array(
 		<img src="<?php echo esc_url( PLUGIN_AUDITOR_URL . 'assets/images/satori-logo.png' ); ?>" alt="" aria-hidden="true" class="pla-page-banner__logo" />
 		<h1><?php esc_html_e( 'Satori Plugin Auditor', 'plugin-auditor' ); ?></h1>
 	</div>
-
-	<nav class="pla-tabs" aria-label="<?php esc_attr_e( 'Plugin Auditor sections', 'plugin-auditor' ); ?>">
-		<a href="
-		<?php
-		echo esc_url(
-			add_query_arg(
-				array(
-					'page' => 'plugin-auditor',
-					'tab'  => 'reports',
-				),
-				admin_url( 'tools.php' )
-			)
-		);
-		?>
-		" class="pla-tab pla-tab--active">
-			<?php esc_html_e( 'Reports', 'plugin-auditor' ); ?>
-		</a>
-		<a href="
-		<?php
-		echo esc_url(
-			add_query_arg(
-				array(
-					'page' => 'plugin-auditor',
-					'tab'  => 'checks',
-				),
-				admin_url( 'tools.php' )
-			)
-		);
-		?>
-		" class="pla-tab">
-			<?php esc_html_e( 'Test Settings', 'plugin-auditor' ); ?>
-		</a>
-	</nav>
 
 	<div class="pla-page-columns">
 
@@ -304,29 +280,73 @@ $checks = array(
 
 		<div class="pla-col-sidebar">
 			<h2><?php esc_html_e( 'What the report includes', 'plugin-auditor' ); ?></h2>
-			<p class="pla-sidebar-intro"><?php esc_html_e( '22 checks covering the security and code quality issues most likely to put a WordPress site at risk, drawn from OWASP, the WordPress Developer Handbook, and WordPress Coding Standards.', 'plugin-auditor' ); ?></p>
-			<table class="pla-checks-table">
-				<thead>
-					<tr>
-						<th class="pla-check-num">#</th>
-						<th><?php esc_html_e( 'Check', 'plugin-auditor' ); ?></th>
-						<th><?php esc_html_e( 'Official Source', 'plugin-auditor' ); ?></th>
-					</tr>
-				</thead>
-				<tbody>
-					<?php foreach ( $checks as $i => $check ) : ?>
-						<tr>
-							<td class="pla-check-num"><?php echo esc_html( (string) ( $i + 1 ) ); ?></td>
-							<td><?php echo esc_html( $check[0] ); ?></td>
-							<td>
-								<a href="<?php echo esc_url( $check[1] ); ?>" target="_blank" rel="noopener noreferrer">
-									<?php echo esc_html( $check[2] ); ?>
-								</a>
-							</td>
-						</tr>
-					<?php endforeach; ?>
-				</tbody>
-			</table>
+			<p class="pla-sidebar-intro"><?php esc_html_e( '33 checks across security, database, code quality, compatibility, and plugin standards. Toggle which checks run on each audit.', 'plugin-auditor' ); ?></p>
+
+			<?php if ( $saved ) : ?>
+				<div class="notice notice-success is-dismissible pla-notice">
+					<p><?php esc_html_e( 'Test settings saved.', 'plugin-auditor' ); ?></p>
+				</div>
+			<?php endif; ?>
+
+			<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>" class="pla-checks-form">
+				<input type="hidden" name="action" value="pla_save_checks" />
+				<?php wp_nonce_field( 'pla_save_checks', 'pla_checks_nonce' ); ?>
+
+				<div class="pla-checks-accordion">
+
+				<?php foreach ( $grouped as $category => $checks ) : ?>
+					<div class="pla-accordion-item">
+						<button type="button" class="pla-accordion-toggle" aria-expanded="false">
+							<span class="pla-accordion-title"><?php echo esc_html( $category ); ?></span>
+							<span class="pla-accordion-icon" aria-hidden="true"></span>
+						</button>
+						<div class="pla-accordion-body" hidden>
+							<table class="pla-checks-table">
+								<tbody>
+								<?php foreach ( $checks as $slug => $check ) : ?>
+									<tr class="pla-check-row">
+										<td class="pla-check-cell">
+											<label class="pla-check-label" for="pla-check-<?php echo esc_attr( $slug ); ?>">
+												<input
+													type="checkbox"
+													id="pla-check-<?php echo esc_attr( $slug ); ?>"
+													name="pla_checks[]"
+													value="<?php echo esc_attr( $slug ); ?>"
+													<?php checked( in_array( $slug, $enabled, true ) ); ?>
+												/>
+												<?php echo esc_html( $check['label'] ); ?>
+											</label>
+											<?php if ( isset( $sources[ $slug ] ) ) : ?>
+												<a href="<?php echo esc_url( $sources[ $slug ] ); ?>" target="_blank" rel="noopener noreferrer" class="pla-source-link"><?php esc_html_e( 'source', 'plugin-auditor' ); ?></a>
+											<?php endif; ?>
+										</td>
+										<td class="pla-check-default">
+											<?php if ( $check['default'] ) : ?>
+												<span class="pla-badge pla-badge--on"><?php esc_html_e( 'ON', 'plugin-auditor' ); ?></span>
+											<?php else : ?>
+												<span class="pla-badge pla-badge--off"><?php esc_html_e( 'OFF', 'plugin-auditor' ); ?></span>
+											<?php endif; ?>
+										</td>
+									</tr>
+								<?php endforeach; ?>
+								</tbody>
+							</table>
+						</div>
+					</div>
+				<?php endforeach; ?>
+
+				</div>
+
+				<div class="pla-checks-actions">
+					<button type="submit" class="button button-primary">
+						<?php esc_html_e( 'Save', 'plugin-auditor' ); ?>
+					</button>
+					<button type="button" class="button pla-reset-defaults">
+						<?php esc_html_e( 'Reset to Defaults', 'plugin-auditor' ); ?>
+					</button>
+				</div>
+
+			</form>
 		</div>
 
 	</div>

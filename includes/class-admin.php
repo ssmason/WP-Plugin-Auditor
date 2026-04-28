@@ -107,17 +107,9 @@ class Admin {
 			wp_die( esc_html__( 'You do not have permission to view this page.', 'plugin-auditor' ), '', array( 'response' => 403 ) );
 		}
 
-		/* translators: no variables */
-		$active_tab = isset( $_GET['tab'] ) ? sanitize_key( wp_unslash( $_GET['tab'] ) ) : 'reports'; // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- read-only tab switch, no state change.
-
-		if ( 'checks' === $active_tab ) {
-			$grouped = CheckSettings::grouped();
-			$enabled = CheckSettings::get_enabled();
-			$saved   = isset( $_GET['saved'] ) && '1' === $_GET['saved']; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
-			include PLUGIN_AUDITOR_DIR . 'templates/admin-checks.php';
-			return;
-		}
-
+		$grouped = CheckSettings::grouped();
+		$enabled = CheckSettings::get_enabled();
+		$saved   = isset( $_GET['saved'] ) && '1' === $_GET['saved']; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
 		$reports = $this->repository->all( 50 );
 		include PLUGIN_AUDITOR_DIR . 'templates/admin-reports.php';
 	}
@@ -142,7 +134,6 @@ class Admin {
 			add_query_arg(
 				array(
 					'page'  => 'plugin-auditor',
-					'tab'   => 'checks',
 					'saved' => '1',
 				),
 				admin_url( 'tools.php' )

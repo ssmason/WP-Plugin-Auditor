@@ -445,3 +445,17 @@
 .pla-notice {
 	margin: 0 0 20px;
 }
+
+.pla-source-link {
+	display: inline-block;
+	margin-top: 2px;
+	font-size: 10px;
+	color: #2271b1;
+	text-decoration: none;
+	opacity: 0.7;
+}
+
+.pla-source-link:hover {
+	text-decoration: underline;
+	opacity: 1;
+}
