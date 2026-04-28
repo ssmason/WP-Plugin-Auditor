@@ -97,7 +97,7 @@ class Modal {
 			'ajaxUrl'         => admin_url( 'admin-ajax.php' ),
 			'ajaxTimeout'     => 120000,
 			'bulkDeleteNonce' => wp_create_nonce( 'pla_bulk_delete' ),
-			'i18n'        => array(
+			'i18n'            => array(
 				'running'        => esc_html__( 'Audit running…', 'plugin-auditor' ),
 				'complete'       => esc_html__( 'Audit complete', 'plugin-auditor' ),
 				'error'          => esc_html__( 'Audit failed. Please try again.', 'plugin-auditor' ),

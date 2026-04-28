@@ -378,6 +378,65 @@ class ScannerTest extends TestCase {
 	}
 
 	// -------------------------------------------------------------------------
+	// Toggleable checks — disabled slugs produce no findings
+	// -------------------------------------------------------------------------
+
+	public function test_disabled_dangerous_functions_produces_no_findings(): void {
+		$this->write_php( 'bad.php', '<?php eval( $code );' );
+		$findings = $this->scanner->scan( $this->tmp_dir, array( 'output_escaping' ) );
+		$this->assertEmpty( $findings['dangerous'] );
+	}
+
+	public function test_disabled_output_escaping_produces_no_findings(): void {
+		$this->write_php( 'out.php', '<?php $x = get_option("foo"); echo $x;' );
+		$findings = $this->scanner->scan( $this->tmp_dir, array( 'dangerous_functions' ) );
+		$output_issues = array_filter( $findings['output'], fn( $f ) => 'INFO' !== $f['severity'] );
+		$this->assertEmpty( $output_issues );
+	}
+
+	public function test_disabled_database_produces_no_findings(): void {
+		$this->write_php( 'db.php', '<?php global $wpdb; $wpdb->get_results( "SELECT * FROM $wpdb->users WHERE ID = " . $id );' );
+		$findings = $this->scanner->scan( $this->tmp_dir, array( 'dangerous_functions' ) );
+		$this->assertEmpty( $findings['database'] );
+	}
+
+	public function test_call_user_func_off_suppresses_only_that_finding(): void {
+		$this->write_php( 'bad.php', "<?php\ncall_user_func( \$fn );\neval( \$code );" );
+		// dangerous_functions ON, call_user_func OFF.
+		$findings = $this->scanner->scan( $this->tmp_dir, array( 'dangerous_functions' ) );
+		$this->assertHasFinding( $findings['dangerous'], 'CRITICAL', 'eval' );
+		foreach ( $findings['dangerous'] as $f ) {
+			$this->assertStringNotContainsStringIgnoringCase( 'call_user_func', $f['message'] );
+		}
+	}
+
+	public function test_call_user_func_on_produces_finding(): void {
+		$this->write_php( 'bad.php', '<?php call_user_func( $fn );' );
+		$findings = $this->scanner->scan( $this->tmp_dir, array( 'dangerous_functions', 'call_user_func' ) );
+		$this->assertHasFinding( $findings['dangerous'], 'CRITICAL', 'call_user_func' );
+	}
+
+	public function test_empty_enabled_set_runs_all_checks(): void {
+		$this->write_php( 'bad.php', '<?php eval( $code );' );
+		// Empty array = all checks run (backward-compat).
+		$findings = $this->scanner->scan( $this->tmp_dir, array() );
+		$this->assertHasFinding( $findings['dangerous'], 'CRITICAL', 'eval' );
+	}
+
+	public function test_disabled_nonce_verification_produces_no_findings(): void {
+		$php = "<?php\nif ( isset( \$_POST['action'] ) ) { do_stuff(); }";
+		$this->write_php( 'handler.php', $php );
+		$findings = $this->scanner->scan( $this->tmp_dir, array( 'dangerous_functions' ) );
+		$this->assertEmpty( $findings['nonces'] );
+	}
+
+	public function test_disabled_debug_php_produces_no_findings(): void {
+		$this->write_php( 'debug.php', '<?php var_dump( $x );' );
+		$findings = $this->scanner->scan( $this->tmp_dir, array( 'dangerous_functions' ) );
+		$this->assertEmpty( $findings['debug_output'] );
+	}
+
+	// -------------------------------------------------------------------------
 	// Score / rating
 	// -------------------------------------------------------------------------
 

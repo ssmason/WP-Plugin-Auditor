@@ -19,4 +19,18 @@
 
   <!-- PHPCompatibilityWP 9.3.5 crashes on PHP 8 (trim(null) deprecation). PHPStan level 8 covers compat. -->
   <!-- <rule ref="PHPCompatibilityWP"><config name="testVersion" value="8.1-"/></rule> -->
+
+  <!--
+    WordPress.Files.FileName.InvalidClassFileName false-positive for compound class names.
+    WPCS expects concatenated slugs (class-checksettings.php) but WordPress convention
+    uses hyphens for compound names (class-check-settings.php). All multi-word class files
+    in this project follow the hyphenated convention.
+  -->
+  <rule ref="WordPress.Files.FileName.InvalidClassFileName">
+    <exclude-pattern>*/includes/class-check-settings\.php</exclude-pattern>
+    <exclude-pattern>*/includes/class-score-calculator\.php</exclude-pattern>
+    <exclude-pattern>*/includes/class-report-repository\.php</exclude-pattern>
+    <exclude-pattern>*/includes/class-file-collector\.php</exclude-pattern>
+    <exclude-pattern>*/includes/class-rate-limiter\.php</exclude-pattern>
+  </rule>
 </ruleset>

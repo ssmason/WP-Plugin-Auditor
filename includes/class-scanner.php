@@ -151,7 +151,14 @@ class Scanner {
 	 * @param string $plugin_dir Absolute path to the plugin directory.
 	 * @return array<string, mixed> Findings keyed by section.
 	 */
-	public function scan( string $plugin_dir ): array {
+	/**
+	 * Runs the full audit on all PHP files in a directory.
+	 *
+	 * @param string   $plugin_dir     Absolute path to the plugin directory.
+	 * @param string[] $enabled_checks Slugs of checks to run. Empty = all checks.
+	 * @return array<string, mixed> Findings keyed by section.
+	 */
+	public function scan( string $plugin_dir, array $enabled_checks = array() ): array {
 		$scan_start   = microtime( true );
 		$php_files    = $this->file_collector->php_files( $plugin_dir );
 		$js_files     = $this->file_collector->js_files( $plugin_dir );
@@ -159,6 +166,10 @@ class Scanner {
 
 		$sections = array_merge( ScoreCalculator::security_sections(), ScoreCalculator::code_quality_sections() );
 		$findings = array_fill_keys( $sections, array() );
+
+		$is_on = static function( string $slug ) use ( $enabled_checks ): bool {
+			return empty( $enabled_checks ) || in_array( $slug, $enabled_checks, true );
+		};
 
 		$total_lines    = 0;
 		$all_hook_calls = array();
@@ -172,50 +183,193 @@ class Scanner {
 			$content      = implode( "\n", $lines );
 			$rel          = str_replace( $plugin_dir . '/', '', $file );
 
-			$findings['dangerous']            = array_merge( $findings['dangerous'], $this->check_dangerous_functions( $rel, $lines ) );
-			$findings['output']               = array_merge( $findings['output'], $this->check_output_escaping( $rel, $lines ) );
-			$findings['input']                = array_merge( $findings['input'], $this->check_input_sanitization( $rel, $lines ) );
-			$findings['nonces']               = array_merge( $findings['nonces'], $this->check_nonces( $rel, $lines, $content ) );
-			$findings['capabilities']         = array_merge( $findings['capabilities'], $this->check_capabilities( $rel, $lines ) );
-			$findings['database']             = array_merge( $findings['database'], $this->check_database( $rel, $lines ) );
-			$findings['credentials']          = array_merge( $findings['credentials'], $this->check_credentials( $rel, $lines ) );
-			$findings['requests']             = array_merge( $findings['requests'], $this->check_external_requests( $rel, $lines ) );
-			$findings['assets']               = array_merge( $findings['assets'], $this->check_asset_versioning( $rel, $lines ) );
-			$findings['errors']               = array_merge( $findings['errors'], $this->check_error_suppression( $rel, $lines ) );
-			$findings['obfuscation']          = array_merge( $findings['obfuscation'], $this->check_obfuscation( $rel, $lines ) );
-			$findings['direct_access']        = array_merge( $findings['direct_access'], $this->check_direct_access( $rel, $lines ) );
-			$findings['debug_output']         = array_merge( $findings['debug_output'], $this->check_debug_output( $rel, $lines ) );
-			$findings['deprecated']           = array_merge( $findings['deprecated'], $this->check_deprecated_functions( $rel, $lines ) );
-			$findings['commented_code']       = array_merge( $findings['commented_code'], $this->check_commented_code( $rel, $lines ) );
-			$findings['redirects']            = array_merge( $findings['redirects'], $this->check_redirect_without_exit( $rel, $lines ) );
-			$findings['role_checks']          = array_merge( $findings['role_checks'], $this->check_role_checks( $rel, $lines ) );
-			$findings['shortcodes']           = array_merge( $findings['shortcodes'], $this->check_shortcode_escaping( $rel, $lines, $content ) );
-			$findings['option_writes']        = array_merge( $findings['option_writes'], $this->check_option_writes( $rel, $lines ) );
-			$findings['wpdb_placeholders']    = array_merge( $findings['wpdb_placeholders'], $this->check_wpdb_placeholders( $rel, $lines ) );
-			$findings['unnecessary_closures'] = array_merge( $findings['unnecessary_closures'], $this->check_unnecessary_closures( $rel, $lines ) );
-			$findings['early_translations']   = array_merge( $findings['early_translations'], $this->check_early_translations( $rel, $lines ) );
+			// Dangerous functions — split by sub-slug.
+			if ( $is_on( 'dangerous_functions' ) || $is_on( 'call_user_func' ) || $is_on( 'base64' ) ) {
+				$raw = $this->check_dangerous_functions( $rel, $lines );
+				$findings['dangerous'] = array_merge(
+					$findings['dangerous'],
+					array_values(
+						array_filter(
+							$raw,
+							static function ( $f ) use ( $is_on ) {
+								$msg = $f['message'];
+								if ( str_contains( $msg, 'call_user_func' ) ) {
+									return $is_on( 'call_user_func' );
+								}
+								if ( str_contains( $msg, 'base64_' ) ) {
+									return $is_on( 'base64' );
+								}
+								return $is_on( 'dangerous_functions' );
+							}
+						)
+					)
+				);
+			}
 
-			$all_hook_calls = array_merge( $all_hook_calls, $this->collect_hook_calls( $rel, $lines ) );
+			if ( $is_on( 'output_escaping' ) ) {
+				$findings['output'] = array_merge( $findings['output'], $this->check_output_escaping( $rel, $lines ) );
+			}
 
-			if ( '' !== $required_php ) {
+			if ( $is_on( 'input_sanitization' ) ) {
+				$findings['input'] = array_merge( $findings['input'], $this->check_input_sanitization( $rel, $lines ) );
+			}
+
+			// Nonces — split into form/GET (nonce_verification) and $_POST (nonces_post).
+			if ( $is_on( 'nonce_verification' ) || $is_on( 'nonces_post' ) ) {
+				$raw = $this->check_nonces( $rel, $lines, $content );
+				$findings['nonces'] = array_merge(
+					$findings['nonces'],
+					array_values(
+						array_filter(
+							$raw,
+							static function ( $f ) use ( $is_on ) {
+								if ( str_contains( $f['message'], 'handles $_POST' ) ) {
+									return $is_on( 'nonces_post' );
+								}
+								return $is_on( 'nonce_verification' );
+							}
+						)
+					)
+				);
+			}
+
+			if ( $is_on( 'capability_checks' ) ) {
+				$findings['capabilities'] = array_merge( $findings['capabilities'], $this->check_capabilities( $rel, $lines ) );
+			}
+
+			if ( $is_on( 'database' ) ) {
+				$findings['database'] = array_merge( $findings['database'], $this->check_database( $rel, $lines ) );
+			}
+
+			if ( $is_on( 'credentials' ) ) {
+				$findings['credentials'] = array_merge( $findings['credentials'], $this->check_credentials( $rel, $lines ) );
+			}
+
+			if ( $is_on( 'requests' ) ) {
+				$findings['requests'] = array_merge( $findings['requests'], $this->check_external_requests( $rel, $lines ) );
+			}
+
+			if ( $is_on( 'assets' ) ) {
+				$findings['assets'] = array_merge( $findings['assets'], $this->check_asset_versioning( $rel, $lines ) );
+			}
+
+			if ( $is_on( 'error_suppression' ) ) {
+				$findings['errors'] = array_merge( $findings['errors'], $this->check_error_suppression( $rel, $lines ) );
+			}
+
+			if ( $is_on( 'obfuscation' ) ) {
+				$findings['obfuscation'] = array_merge( $findings['obfuscation'], $this->check_obfuscation( $rel, $lines ) );
+			}
+
+			$findings['direct_access'] = array_merge( $findings['direct_access'], $this->check_direct_access( $rel, $lines ) );
+
+			if ( $is_on( 'debug_php' ) ) {
+				$findings['debug_output'] = array_merge( $findings['debug_output'], $this->check_debug_output( $rel, $lines ) );
+			}
+
+			if ( $is_on( 'deprecated' ) ) {
+				$findings['deprecated'] = array_merge( $findings['deprecated'], $this->check_deprecated_functions( $rel, $lines ) );
+			}
+
+			if ( $is_on( 'commented_code' ) ) {
+				$findings['commented_code'] = array_merge( $findings['commented_code'], $this->check_commented_code( $rel, $lines ) );
+			}
+
+			if ( $is_on( 'redirects' ) ) {
+				$findings['redirects'] = array_merge( $findings['redirects'], $this->check_redirect_without_exit( $rel, $lines ) );
+			}
+
+			if ( $is_on( 'role_checks' ) ) {
+				$findings['role_checks'] = array_merge( $findings['role_checks'], $this->check_role_checks( $rel, $lines ) );
+			}
+
+			if ( $is_on( 'shortcodes' ) ) {
+				$findings['shortcodes'] = array_merge( $findings['shortcodes'], $this->check_shortcode_escaping( $rel, $lines, $content ) );
+			}
+
+			if ( $is_on( 'option_writes' ) ) {
+				$findings['option_writes'] = array_merge( $findings['option_writes'], $this->check_option_writes( $rel, $lines ) );
+			}
+
+			if ( $is_on( 'wpdb_placeholders' ) ) {
+				$findings['wpdb_placeholders'] = array_merge( $findings['wpdb_placeholders'], $this->check_wpdb_placeholders( $rel, $lines ) );
+			}
+
+			if ( $is_on( 'unnecessary_closures' ) ) {
+				$findings['unnecessary_closures'] = array_merge( $findings['unnecessary_closures'], $this->check_unnecessary_closures( $rel, $lines ) );
+			}
+
+			if ( $is_on( 'early_translations' ) ) {
+				$findings['early_translations'] = array_merge( $findings['early_translations'], $this->check_early_translations( $rel, $lines ) );
+			}
+
+			if ( $is_on( 'duplicate_hooks' ) ) {
+				$all_hook_calls = array_merge( $all_hook_calls, $this->collect_hook_calls( $rel, $lines ) );
+			}
+
+			if ( '' !== $required_php && $is_on( 'php_compat' ) ) {
 				$findings['php_compat'] = array_merge( $findings['php_compat'], $this->check_php_compat( $rel, $lines, $required_php ) );
 			}
 		}
 
+		// JS debug — split into log/debug/info (debug_js) and warn/error (debug_js_warn).
 		foreach ( $js_files as $file ) {
 			$lines = file( $file, FILE_IGNORE_NEW_LINES );
 			if ( false === $lines ) {
 				continue;
 			}
-			$rel                      = str_replace( $plugin_dir . '/', '', $file );
-			$findings['debug_output'] = array_merge( $findings['debug_output'], $this->check_debug_js( $rel, $lines ) );
+			if ( ! $is_on( 'debug_js' ) && ! $is_on( 'debug_js_warn' ) ) {
+				continue;
+			}
+			$rel = str_replace( $plugin_dir . '/', '', $file );
+			$raw = $this->check_debug_js( $rel, $lines );
+			$findings['debug_output'] = array_merge(
+				$findings['debug_output'],
+				array_values(
+					array_filter(
+						$raw,
+						static function ( $f ) use ( $is_on ) {
+							if ( str_contains( $f['message'], 'console.warn' ) || str_contains( $f['message'], 'console.error' ) ) {
+								return $is_on( 'debug_js_warn' );
+							}
+							return $is_on( 'debug_js' );
+						}
+					)
+				)
+			);
 		}
 
-		$findings['duplicate_hooks'] = $this->check_duplicate_hooks( $all_hook_calls );
-		$findings['permissions']     = $this->check_file_permissions( $plugin_dir );
-		$findings['meta']            = $this->check_plugin_header( $plugin_dir );
-		$findings['structure']       = $this->check_plugin_structure( $plugin_dir );
-		$findings['licensing']       = $this->check_licensing( $plugin_dir );
+		if ( $is_on( 'duplicate_hooks' ) ) {
+			$findings['duplicate_hooks'] = $this->check_duplicate_hooks( $all_hook_calls );
+		}
+
+		if ( $is_on( 'file_permissions' ) ) {
+			$findings['permissions'] = $this->check_file_permissions( $plugin_dir );
+		}
+
+		if ( $is_on( 'meta' ) ) {
+			$findings['meta'] = $this->check_plugin_header( $plugin_dir );
+		}
+
+		// Structure — split into index.php (plugin_structure) and readme (readme).
+		if ( $is_on( 'plugin_structure' ) || $is_on( 'readme' ) ) {
+			$raw = $this->check_plugin_structure( $plugin_dir );
+			$findings['structure'] = array_values(
+				array_filter(
+					$raw,
+					static function ( $f ) use ( $is_on ) {
+						if ( str_contains( $f['message'], 'present in plugin root' ) ) {
+							return $is_on( 'readme' );
+						}
+						return $is_on( 'plugin_structure' );
+					}
+				)
+			);
+		}
+
+		if ( $is_on( 'licensing' ) ) {
+			$findings['licensing'] = $this->check_licensing( $plugin_dir );
+		}
 
 		$findings['score']  = ScoreCalculator::score( $findings );
 		$findings['rating'] = ScoreCalculator::rating( (int) $findings['score'] );

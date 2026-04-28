@@ -61,7 +61,7 @@ class Ajax {
 		$this->rate_limiter->lock( $plugin_file );
 
 		try {
-			$findings = $this->scanner->scan( $plugin->dir );
+			$findings = $this->scanner->scan( $plugin->dir, CheckSettings::get_enabled() );
 		} catch ( \Throwable $e ) {
 			$this->rate_limiter->release( $plugin_file );
 			wp_send_json_error( array( 'message' => __( 'Audit failed during scan.', 'plugin-auditor' ) ), 500 );
