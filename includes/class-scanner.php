@@ -261,7 +261,9 @@ class Scanner {
 				$findings['obfuscation'] = array_merge( $findings['obfuscation'], $this->check_obfuscation( $rel, $lines ) );
 			}
 
-			$findings['direct_access'] = array_merge( $findings['direct_access'], $this->check_direct_access( $rel, $lines ) );
+			if ( $is_on( 'plugin_structure' ) ) {
+				$findings['direct_access'] = array_merge( $findings['direct_access'], $this->check_direct_access( $rel, $lines ) );
+			}
 
 			if ( $is_on( 'debug_php' ) ) {
 				$findings['debug_output'] = array_merge( $findings['debug_output'], $this->check_debug_output( $rel, $lines ) );

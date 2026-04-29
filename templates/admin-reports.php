@@ -75,6 +75,15 @@ $sources = array(
 		<h1><?php esc_html_e( 'Satori Plugin Auditor', 'plugin-auditor' ); ?></h1>
 	</div>
 
+	<nav class="pla-tabs" aria-label="<?php esc_attr_e( 'Plugin Auditor sections', 'plugin-auditor' ); ?>">
+		<a href="<?php echo esc_url( add_query_arg( array( 'page' => 'plugin-auditor', 'tab' => 'reports' ), admin_url( 'tools.php' ) ) ); ?>" class="pla-tab pla-tab--active">
+			<?php esc_html_e( 'Reports', 'plugin-auditor' ); ?>
+		</a>
+		<a href="<?php echo esc_url( add_query_arg( array( 'page' => 'plugin-auditor', 'tab' => 'test-info' ), admin_url( 'tools.php' ) ) ); ?>" class="pla-tab">
+			<?php esc_html_e( 'Test Info', 'plugin-auditor' ); ?>
+		</a>
+	</nav>
+
 	<div class="pla-page-columns">
 
 		<div class="pla-col-main">
