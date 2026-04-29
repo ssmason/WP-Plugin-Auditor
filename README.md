@@ -71,37 +71,56 @@ npm run env:clean    # destroy and recreate (wipes data)
 4. On completion the full report is displayed in the modal, including a colour-coded risk summary, severity counts table, and per-section findings
 5. Click **Download JSON** to export the raw report data
 6. Previous reports are accessible from **Tools → Plugin Auditor**, which lists all stored reports with High / Medium / Low counts and supports bulk deletion
+7. The sidebar on that page shows all 33 checks grouped by category — toggle which checks run on each audit and click **Save**. Categories are collapsed by default. Each check includes a **source** link to the relevant official reference.
 
 ---
 
 ## What the Scanner Checks
 
-Every check reports both findings **and** confirmed passes.
+Every check reports both findings **and** confirmed passes. All 33 checks are toggleable from **Tools → Plugin Auditor** — the sidebar accordion shows each check with its on/off default and a link to the official reference.
 
-| # | Check | Severity |
+### Default ON (20 checks)
+
+| Category | Check | Severity |
 |---|---|---|
-| 1 | Dangerous functions (`eval`, `exec`, `shell_exec`, `system`, `passthru`, `popen`, `proc_open`, `str_rot13`, `gzinflate`, `gzuncompress`, `assert`, `create_function`) | CRITICAL |
-| 2 | Obfuscated calls  variable variables, dynamic function names, `preg_replace /e` | CRITICAL |
-| 3 | Output escaping  unescaped echo, wrong escape function, `_e()` / `__()` without escaping | HIGH / MEDIUM |
-| 4 | Input sanitization  unsanitized superglobals, missing `wp_unslash()` | HIGH / MEDIUM |
-| 5 | Nonce verification  forms without `wp_nonce_field`, GET actions without nonce | HIGH |
-| 6 | Capability checks  admin page registrations reported as informational | INFO |
-| 7 | Database queries  unprepared statements, raw `mysql_*` calls | CRITICAL |
-| 8 | Hardcoded credentials  passwords, API keys, tokens (value redacted in report) | CRITICAL |
-| 9 | Error suppression  `error_reporting(0)`, `ini_set` on error settings | HIGH / MEDIUM |
-| 10 | File permissions  world-writable files, PHP files with execute bit | HIGH / MEDIUM |
-| 11 | Debug output PHP  `var_dump`, `print_r`, `var_export` | MEDIUM |
-| 12 | Debug output JS  `console.log`, `console.debug`, `console.info` | LOW |
-| 13 | Deprecated WordPress functions and `$wpdb->escape()` | MEDIUM |
-| 14 | Plugin structure  missing `index.php` sentinels, exposed readme files | LOW |
-| 15 | Licensing  LICENSE file present, GPL-compatible license declared | LOW / MEDIUM |
-| 16 | PHP compatibility  PHP 8.0/8.1 features vs declared minimum version | MEDIUM |
-| 17 | Redirect without exit  `wp_redirect` / `wp_safe_redirect` not followed by `exit` | HIGH |
-| 18 | Role name in `current_user_can()`  role names passed instead of capability names | HIGH |
-| 19 | Shortcode output escaping  unescaped return values in shortcode callbacks | MEDIUM |
-| 20 | Option writes without capability check  `update_option`, `add_option`, `delete_option` | HIGH |
-| 21 | Wrong `$wpdb->prepare()` placeholder  `%s` for integers, `%d` for strings | MEDIUM |
-| 22 | Unnecessary closures  `function() { return true; }` instead of `__return_true` | LOW |
+| Security | Dangerous functions (`eval`, `exec`, `shell_exec`, `system`, `passthru`, `popen`, `proc_open`, `str_rot13`, `gzinflate`, `gzuncompress`, `assert`, `create_function`) | CRITICAL |
+| Security | Output escaping — unescaped echo, wrong escape function, `_e()` / `__()` without escaping | HIGH / MEDIUM |
+| Security | Input sanitization — unsanitized superglobals, missing `wp_unslash()` | HIGH / MEDIUM |
+| Security | Nonce verification — forms without `wp_nonce_field`, GET actions without nonce | HIGH |
+| Security | Capability checks — admin page registrations reported as informational | INFO |
+| Security | Hardcoded credentials — passwords, API keys, tokens (value redacted in report) | CRITICAL |
+| Security | Obfuscation — variable variables, dynamic function names, `preg_replace /e` | CRITICAL |
+| Security | Redirect without exit — `wp_redirect` / `wp_safe_redirect` not followed by `exit` | HIGH |
+| Security | Shortcode output escaping — unescaped return values in shortcode callbacks | MEDIUM |
+| Database | Database queries — unprepared statements, raw `mysql_*` calls | CRITICAL |
+| Database | Wrong `$wpdb->prepare()` placeholder — `%s` for integers, `%d` for strings | MEDIUM |
+| Database | Option writes without capability check — `update_option`, `add_option`, `delete_option` | HIGH |
+| Code Quality | Error suppression — `error_reporting(0)`, `ini_set` on error settings | HIGH / MEDIUM |
+| Code Quality | Debug output PHP — `var_dump`, `print_r`, `var_export` | MEDIUM |
+| Code Quality | Debug output JS — `console.log`, `console.debug`, `console.info` | LOW |
+| Compatibility | PHP compatibility — PHP 8.0/8.1 features vs declared minimum version | MEDIUM |
+| Compatibility | Deprecated WordPress functions and `$wpdb->escape()` | MEDIUM |
+| Plugin Standards | Plugin structure — missing `index.php` sentinels, exposed readme files | LOW |
+| Plugin Standards | File permissions — world-writable files, PHP files with execute bit | HIGH / MEDIUM |
+| Roles & Permissions | Role name in `current_user_can()` — role names passed instead of capability names | HIGH |
+
+### Default OFF (13 checks)
+
+| Category | Check |
+|---|---|
+| Security | `call_user_func` / `call_user_func_array` |
+| Security | `base64_encode` / `base64_decode` |
+| Security | File-level `$_POST` nonce check |
+| Code Quality | Commented-out code |
+| Code Quality | Unnecessary closures — `function() { return true; }` instead of `__return_true` |
+| Code Quality | Early translations — `__()` / `_e()` called at file scope |
+| Code Quality | Duplicate hook registrations |
+| Code Quality | `console.warn` / `console.error` |
+| Plugin Standards | Licensing — LICENSE file present, GPL-compatible license declared |
+| Plugin Standards | Plugin header / metadata |
+| Plugin Standards | Readme.txt |
+| Plugin Standards | Asset version strings |
+| External | Outbound HTTP requests |
 
 ### Risk Rating
 
@@ -219,7 +238,8 @@ plugin-auditor/
 ├── tests/
 │   ├── bootstrap.php               # PHPUnit bootstrap
 │   ├── Unit/
-│   │   ├── ScannerTest.php
+│   │   ├── ScannerTest.php         # 45 scanner checks + 8 disabled-check toggle tests
+│   │   ├── CheckSettingsTest.php   # 19 tests covering all CheckSettings public methods
 │   │   └── ReportTest.php
 │   └── Integration/                # WP_UnitTestCase tests (requires wp-env)
 └── languages/
@@ -279,6 +299,6 @@ GPL-2.0-or-later  see [https://www.gnu.org/licenses/gpl-2.0.html](https://www.gn
 
 ---
 
-![Audit Report](assets/screens/audit-report-2.png)
+![Audit Report](assets/screens/screen-1.png)
 
-![Audit Report](assets/screens/audit-report.png)
+![Audit Report](assets/screens/screen-2.png)
