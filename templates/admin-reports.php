@@ -436,7 +436,7 @@ $descriptions = array(
 
 			<div class="pla-col-sidebar">
 				<h2><?php esc_html_e( 'What the report includes', 'plugin-auditor' ); ?></h2>
-				<p class="pla-sidebar-intro"><?php esc_html_e( '33 checks across security, database, code quality, compatibility, and plugin standards. Toggle which checks run on each audit.', 'plugin-auditor' ); ?></p>
+				<p class="pla-sidebar-intro"><?php esc_html_e( 'A detailed security audit across 33 checks covering known WordPress vulnerability patterns, coding standards, and plugin best practices. Each check is mapped to an official source — WordPress Developer Handbook, OWASP, or PHPCompatibility. Findings are grouped by severity, scored, and graded so you know exactly what needs fixing and how urgently.', 'plugin-auditor' ); ?></p>
 
 				<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>" class="pla-checks-form">
 					<input type="hidden" name="action" value="pla_save_checks" />
