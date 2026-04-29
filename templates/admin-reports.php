@@ -439,65 +439,7 @@ $descriptions = array(
 				<p class="pla-sidebar-intro"><?php esc_html_e( 'The Tests Reference page documents every check the auditor runs against your plugin. Each test is listed with its category, a plain-English description of what it detects and why it matters, and a link to the official source that defines the standard — whether that is the WordPress Developer Handbook, OWASP, or PHPCompatibility. Nothing in this auditor is arbitrary; every check maps to a documented vulnerability pattern or coding standard.', 'plugin-auditor' ); ?></p>
 				<p class="pla-sidebar-intro"><?php esc_html_e( 'Use this page as a reference when reviewing audit findings or deciding which optional tests to enable. If a finding appears in your report and you are unsure why it was flagged, the description here will tell you exactly what the check looks for and the source link will give you the full context needed to understand and resolve it.', 'plugin-auditor' ); ?></p>
 
-				<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>" class="pla-checks-form">
-					<input type="hidden" name="action" value="pla_save_checks" />
-					<?php wp_nonce_field( 'pla_save_checks', 'pla_checks_nonce' ); ?>
-
-					<div class="pla-checks-accordion">
-
-					<?php foreach ( $grouped as $category => $checks ) : ?>
-						<div class="pla-accordion-item">
-							<button type="button" class="pla-accordion-toggle" aria-expanded="false">
-								<span class="pla-accordion-title"><?php echo esc_html( $category ); ?></span>
-								<span class="pla-accordion-icon" aria-hidden="true"></span>
-							</button>
-							<div class="pla-accordion-body" hidden>
-								<table class="pla-checks-table">
-									<tbody>
-									<?php foreach ( $checks as $slug => $check ) : ?>
-										<tr class="pla-check-row">
-											<td class="pla-check-cell">
-												<label class="pla-check-label" for="pla-ti-check-<?php echo esc_attr( $slug ); ?>">
-													<input
-														type="checkbox"
-														id="pla-ti-check-<?php echo esc_attr( $slug ); ?>"
-														name="pla_checks[]"
-														value="<?php echo esc_attr( $slug ); ?>"
-														<?php checked( in_array( $slug, $enabled, true ) ); ?>
-													/>
-													<?php echo esc_html( $check['label'] ); ?>
-												</label>
-												<?php if ( isset( $sources[ $slug ] ) ) : ?>
-													<a href="<?php echo esc_url( $sources[ $slug ] ); ?>" target="_blank" rel="noopener noreferrer" class="pla-source-link"><?php esc_html_e( 'source', 'plugin-auditor' ); ?></a>
-												<?php endif; ?>
-											</td>
-											<td class="pla-check-default">
-												<?php if ( $check['default'] ) : ?>
-													<span class="pla-badge pla-badge--on"><?php esc_html_e( 'ON', 'plugin-auditor' ); ?></span>
-												<?php else : ?>
-													<span class="pla-badge pla-badge--off"><?php esc_html_e( 'OFF', 'plugin-auditor' ); ?></span>
-												<?php endif; ?>
-											</td>
-										</tr>
-									<?php endforeach; ?>
-									</tbody>
-								</table>
-							</div>
-						</div>
-					<?php endforeach; ?>
-
-					</div>
-
-					<div class="pla-checks-actions">
-						<button type="submit" class="button button-primary">
-							<?php esc_html_e( 'Save', 'plugin-auditor' ); ?>
-						</button>
-						<button type="button" class="button pla-reset-defaults">
-							<?php esc_html_e( 'Reset to Defaults', 'plugin-auditor' ); ?>
-						</button>
-					</div>
-
-				</form>
+				
 			</div>
 
 		</div>
