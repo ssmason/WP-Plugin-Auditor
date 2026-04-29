@@ -435,8 +435,9 @@ $descriptions = array(
 			</div>
 
 			<div class="pla-col-sidebar">
-				<h2><?php esc_html_e( 'What the report includes', 'plugin-auditor' ); ?></h2>
-				<p class="pla-sidebar-intro"><?php esc_html_e( 'A detailed security audit across 33 checks covering known WordPress vulnerability patterns, coding standards, and plugin best practices. Each check is mapped to an official source — WordPress Developer Handbook, OWASP, or PHPCompatibility. Findings are grouped by severity, scored, and graded so you know exactly what needs fixing and how urgently.', 'plugin-auditor' ); ?></p>
+				<h2><?php esc_html_e( 'Test Reference & Standards', 'plugin-auditor' ); ?></h2>
+				<p class="pla-sidebar-intro"><?php esc_html_e( 'The Tests Reference page documents every check the auditor runs against your plugin. Each test is listed with its category, a plain-English description of what it detects and why it matters, and a link to the official source that defines the standard — whether that is the WordPress Developer Handbook, OWASP, or PHPCompatibility. Nothing in this auditor is arbitrary; every check maps to a documented vulnerability pattern or coding standard.
+Use this page as a reference when reviewing audit findings or deciding which optional tests to enable. If a finding appears in your report and you are unsure why it was flagged, the description here will tell you exactly what the check looks for and the source link will give you the full context needed to understand and resolve it.', 'plugin-auditor' ); ?></p>
 
 				<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>" class="pla-checks-form">
 					<input type="hidden" name="action" value="pla_save_checks" />
