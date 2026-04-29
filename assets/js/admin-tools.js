@@ -3,6 +3,20 @@
 	'use strict';
 
 	document.addEventListener( 'DOMContentLoaded', function () {
+		// Tab switching.
+		document.querySelectorAll( '.pla-tab[data-tab]' ).forEach( function ( tab ) {
+			tab.addEventListener( 'click', function ( e ) {
+				e.preventDefault();
+				var target = tab.dataset.tab;
+				document.querySelectorAll( '.pla-tab[data-tab]' ).forEach( function ( t ) {
+					t.classList.toggle( 'pla-tab--active', t.dataset.tab === target );
+				} );
+				document.querySelectorAll( '.pla-panel' ).forEach( function ( panel ) {
+					panel.hidden = panel.id !== 'pla-panel-' + target;
+				} );
+			} );
+		} );
+
 		// Accordion toggles.
 		document.querySelectorAll( '.pla-accordion-toggle' ).forEach( function ( btn ) {
 			btn.addEventListener( 'click', function () {

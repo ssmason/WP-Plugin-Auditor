@@ -71,7 +71,9 @@ npm run env:clean    # destroy and recreate (wipes data)
 4. On completion the full report is displayed in the modal, including a colour-coded risk summary, severity counts table, and per-section findings
 5. Click **Download JSON** to export the raw report data
 6. Previous reports are accessible from **Tools → Plugin Auditor**, which lists all stored reports with High / Medium / Low counts and supports bulk deletion
-7. The sidebar on that page shows all 33 checks grouped by category — toggle which checks run on each audit and click **Save**. Categories are collapsed by default. Each check includes a **source** link to the relevant official reference.
+7. The hero banner sits above the tabs and is visible on all views
+8. The sidebar shows all 33 checks grouped by category — toggle which checks run on each audit and click **Save**. Categories are collapsed by default. Each check includes a **source** link to the relevant official reference.
+9. Switch to the **Test Info** tab (client-side, no page reload) to see a reference table of all 33 checks with a Details column
 
 ---
 

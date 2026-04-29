@@ -107,17 +107,9 @@ class Admin {
 			wp_die( esc_html__( 'You do not have permission to view this page.', 'plugin-auditor' ), '', array( 'response' => 403 ) );
 		}
 
-		$active_tab = isset( $_GET['tab'] ) ? sanitize_key( wp_unslash( $_GET['tab'] ) ) : 'reports'; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
-
 		$grouped = CheckSettings::grouped();
 		$enabled = CheckSettings::get_enabled();
 		$saved   = isset( $_GET['saved'] ) && '1' === $_GET['saved']; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
-
-		if ( 'test-info' === $active_tab ) {
-			include PLUGIN_AUDITOR_DIR . 'templates/admin-test-info.php';
-			return;
-		}
-
 		$reports = $this->repository->all( 50 );
 		include PLUGIN_AUDITOR_DIR . 'templates/admin-reports.php';
 	}
