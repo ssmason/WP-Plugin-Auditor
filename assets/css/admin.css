@@ -486,12 +486,11 @@
 	line-height: 1.5;
 }
 
-.pla-info-table td:first-child {
-	width: 30%;
-}
-
-.pla-info-table td:last-child {
-	width: 70%;
+.pla-info-col-fit,
+.pla-info-table th.pla-info-col-fit {
+	width: 1%;
+	white-space: nowrap;
+	padding-right: 20px;
 }
 
 .pla-info-category {

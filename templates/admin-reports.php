@@ -400,34 +400,105 @@ $descriptions = array(
 	</div><!-- /#pla-panel-reports -->
 
 	<div id="pla-panel-test-info" class="pla-panel" hidden>
-		<div class="pla-admin-section">
-			<h3><?php esc_html_e( 'Test Reference', 'plugin-auditor' ); ?></h3>
-			<table class="pla-info-table">
-				<thead>
-					<tr>
-						<th><?php esc_html_e( 'Test', 'plugin-auditor' ); ?></th>
-						<th><?php esc_html_e( 'Category', 'plugin-auditor' ); ?></th>
-						<th><?php esc_html_e( 'Description', 'plugin-auditor' ); ?></th>
-						<th width="10%"><?php esc_html_e( 'Source', 'plugin-auditor' ); ?></th>
-					</tr>
-				</thead>
-				<tbody>
-					<?php foreach ( $grouped as $category => $checks ) : ?>
-						<?php foreach ( $checks as $slug => $check ) : ?>
+		<div class="pla-page-columns">
+
+			<div class="pla-col-main">
+				<div class="pla-admin-section">
+					<h3><?php esc_html_e( 'Test Reference', 'plugin-auditor' ); ?></h3>
+					<table class="pla-info-table">
+						<thead>
 							<tr>
-								<td><?php echo esc_html( $check['label'] ); ?></td>
-								<td><?php echo esc_html( $category ); ?></td>
-								<td><?php echo esc_html( $descriptions[ $slug ] ?? '' ); ?></td>
-								<td>
-									<?php if ( isset( $sources[ $slug ] ) ) : ?>
-										<a href="<?php echo esc_url( $sources[ $slug ] ); ?>" target="_blank" rel="noopener noreferrer"><?php esc_html_e( 'source', 'plugin-auditor' ); ?></a>
-									<?php endif; ?>
-								</td>
+								<th><?php esc_html_e( 'Test', 'plugin-auditor' ); ?></th>
+								<th class="pla-info-col-fit"><?php esc_html_e( 'Category', 'plugin-auditor' ); ?></th>
+								<th><?php esc_html_e( 'Description', 'plugin-auditor' ); ?></th>
+								<th class="pla-info-col-fit"><?php esc_html_e( 'Source', 'plugin-auditor' ); ?></th>
 							</tr>
-						<?php endforeach; ?>
+						</thead>
+						<tbody>
+							<?php foreach ( $grouped as $category => $checks ) : ?>
+								<?php foreach ( $checks as $slug => $check ) : ?>
+									<tr>
+										<td><?php echo esc_html( $check['label'] ); ?></td>
+										<td class="pla-info-col-fit"><?php echo esc_html( $category ); ?></td>
+										<td><?php echo esc_html( $descriptions[ $slug ] ?? '' ); ?></td>
+										<td class="pla-info-col-fit">
+											<?php if ( isset( $sources[ $slug ] ) ) : ?>
+												<a href="<?php echo esc_url( $sources[ $slug ] ); ?>" target="_blank" rel="noopener noreferrer"><?php esc_html_e( 'source', 'plugin-auditor' ); ?></a>
+											<?php endif; ?>
+										</td>
+									</tr>
+								<?php endforeach; ?>
+							<?php endforeach; ?>
+						</tbody>
+					</table>
+				</div>
+			</div>
+
+			<div class="pla-col-sidebar">
+				<h2><?php esc_html_e( 'What the report includes', 'plugin-auditor' ); ?></h2>
+				<p class="pla-sidebar-intro"><?php esc_html_e( '33 checks across security, database, code quality, compatibility, and plugin standards. Toggle which checks run on each audit.', 'plugin-auditor' ); ?></p>
+
+				<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>" class="pla-checks-form">
+					<input type="hidden" name="action" value="pla_save_checks" />
+					<?php wp_nonce_field( 'pla_save_checks', 'pla_checks_nonce' ); ?>
+
+					<div class="pla-checks-accordion">
+
+					<?php foreach ( $grouped as $category => $checks ) : ?>
+						<div class="pla-accordion-item">
+							<button type="button" class="pla-accordion-toggle" aria-expanded="false">
+								<span class="pla-accordion-title"><?php echo esc_html( $category ); ?></span>
+								<span class="pla-accordion-icon" aria-hidden="true"></span>
+							</button>
+							<div class="pla-accordion-body" hidden>
+								<table class="pla-checks-table">
+									<tbody>
+									<?php foreach ( $checks as $slug => $check ) : ?>
+										<tr class="pla-check-row">
+											<td class="pla-check-cell">
+												<label class="pla-check-label" for="pla-ti-check-<?php echo esc_attr( $slug ); ?>">
+													<input
+														type="checkbox"
+														id="pla-ti-check-<?php echo esc_attr( $slug ); ?>"
+														name="pla_checks[]"
+														value="<?php echo esc_attr( $slug ); ?>"
+														<?php checked( in_array( $slug, $enabled, true ) ); ?>
+													/>
+													<?php echo esc_html( $check['label'] ); ?>
+												</label>
+												<?php if ( isset( $sources[ $slug ] ) ) : ?>
+													<a href="<?php echo esc_url( $sources[ $slug ] ); ?>" target="_blank" rel="noopener noreferrer" class="pla-source-link"><?php esc_html_e( 'source', 'plugin-auditor' ); ?></a>
+												<?php endif; ?>
+											</td>
+											<td class="pla-check-default">
+												<?php if ( $check['default'] ) : ?>
+													<span class="pla-badge pla-badge--on"><?php esc_html_e( 'ON', 'plugin-auditor' ); ?></span>
+												<?php else : ?>
+													<span class="pla-badge pla-badge--off"><?php esc_html_e( 'OFF', 'plugin-auditor' ); ?></span>
+												<?php endif; ?>
+											</td>
+										</tr>
+									<?php endforeach; ?>
+									</tbody>
+								</table>
+							</div>
+						</div>
 					<?php endforeach; ?>
-				</tbody>
-			</table>
+
+					</div>
+
+					<div class="pla-checks-actions">
+						<button type="submit" class="button button-primary">
+							<?php esc_html_e( 'Save', 'plugin-auditor' ); ?>
+						</button>
+						<button type="button" class="button pla-reset-defaults">
+							<?php esc_html_e( 'Reset to Defaults', 'plugin-auditor' ); ?>
+						</button>
+					</div>
+
+				</form>
+			</div>
+
 		</div>
 	</div><!-- /#pla-panel-test-info -->
 
