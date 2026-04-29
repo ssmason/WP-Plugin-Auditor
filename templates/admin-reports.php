@@ -408,7 +408,7 @@ $descriptions = array(
 						<th><?php esc_html_e( 'Test', 'plugin-auditor' ); ?></th>
 						<th><?php esc_html_e( 'Category', 'plugin-auditor' ); ?></th>
 						<th><?php esc_html_e( 'Description', 'plugin-auditor' ); ?></th>
-						<th><?php esc_html_e( 'Source', 'plugin-auditor' ); ?></th>
+						<th width="10%"><?php esc_html_e( 'Source', 'plugin-auditor' ); ?></th>
 					</tr>
 				</thead>
 				<tbody>
