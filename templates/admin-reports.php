@@ -44,7 +44,7 @@ $sources = array(
 	'nonce_verification'   => 'https://developer.wordpress.org/apis/security/nonces/',
 	'capability_checks'    => 'https://developer.wordpress.org/apis/security/current-user-can/',
 	'credentials'          => 'https://owasp.org/www-community/vulnerabilities/Use_of_hard-coded_credentials',
-	'obfuscation'          => 'https://owasp.org/www-community/attacks/Code_Injection',
+	'obfuscation'          => 'https://owasp.org/www-project-web-security-testing-guide/latest/4-Web_Application_Security_Testing/07-Input_Validation_Testing/18-Testing_for_Server_Side_Template_Injection',
 	'redirects'            => 'https://developer.wordpress.org/reference/functions/wp_redirect/',
 	'shortcodes'           => 'https://developer.wordpress.org/apis/security/escaping/',
 	'call_user_func'       => 'https://owasp.org/www-community/attacks/Code_Injection',
@@ -57,15 +57,56 @@ $sources = array(
 	'debug_php'            => 'https://owasp.org/www-community/vulnerabilities/Information_exposure_through_query_strings_in_url',
 	'debug_js'             => 'https://owasp.org/www-community/vulnerabilities/Information_exposure_through_query_strings_in_url',
 	'debug_js_warn'        => 'https://owasp.org/www-community/vulnerabilities/Information_exposure_through_query_strings_in_url',
-	'unnecessary_closures' => 'https://developer.wordpress.org/coding-standards/wordpress-coding-standards/php/',
-	'early_translations'   => 'https://developer.wordpress.org/coding-standards/wordpress-coding-standards/php/',
 	'commented_code'       => 'https://developer.wordpress.org/coding-standards/wordpress-coding-standards/php/',
+	'unnecessary_closures' => 'https://developer.wordpress.org/coding-standards/wordpress-coding-standards/php/',
+	'early_translations'   => 'https://developer.wordpress.org/plugins/internationalization/how-to-internationalize-your-plugin/',
+	'duplicate_hooks'      => 'https://developer.wordpress.org/reference/functions/add_action/',
 	'php_compat'           => 'https://github.com/PHPCompatibility/PHPCompatibilityWP',
 	'deprecated'           => 'https://developer.wordpress.org/plugins/security/',
 	'plugin_structure'     => 'https://developer.wordpress.org/plugins/plugin-basics/best-practices/',
 	'file_permissions'     => 'https://owasp.org/www-project-web-security-testing-guide/latest/4-Web_Application_Security_Testing/02-Configuration_and_Deployment_Management_Testing/09-Test_File_Permission',
 	'licensing'            => 'https://developer.wordpress.org/plugins/wordpress-org/detailed-plugin-guidelines/',
+	'meta'                 => 'https://developer.wordpress.org/plugins/plugin-basics/header-requirements/',
+	'readme'               => 'https://developer.wordpress.org/plugins/wordpress-org/how-your-readme-txt-works/',
+	'assets'               => 'https://developer.wordpress.org/reference/functions/wp_enqueue_script/',
 	'role_checks'          => 'https://developer.wordpress.org/plugins/users/roles-and-capabilities/',
+	'requests'             => 'https://developer.wordpress.org/plugins/http-api/',
+);
+
+$descriptions = array(
+	'dangerous_functions'  => 'Flags use of functions like eval, exec, shell_exec, system, passthru which allow arbitrary code execution on the server.',
+	'output_escaping'      => 'Flags output sent to the browser without escaping functions like esc_html, esc_attr, esc_url. Unescaped output is a direct XSS vector.',
+	'input_sanitization'   => 'Flags superglobals $_POST, $_GET, $_REQUEST, $_SERVER accessed without sanitization functions like sanitize_text_field, absint.',
+	'nonce_verification'   => 'Flags form submissions and AJAX handlers that do not verify a nonce via wp_verify_nonce or check_admin_referer. Prevents CSRF attacks.',
+	'capability_checks'    => 'Flags privileged operations performed without a preceding current_user_can() check. Prevents privilege escalation.',
+	'credentials'          => 'Flags API keys, passwords, tokens and secrets hardcoded directly in source files. These get exposed when code is committed to version control.',
+	'obfuscation'          => 'Flags patterns associated with malware such as variable-variable callables and preg_replace with the /e modifier which executes matched content as PHP.',
+	'redirects'            => 'Flags calls to wp_redirect or wp_safe_redirect not followed by exit or die. Without exit, PHP continues executing after the redirect header is sent.',
+	'shortcodes'           => 'Flags shortcode callbacks that return unescaped output. Shortcodes render directly into post content making them a direct XSS vector.',
+	'call_user_func'       => 'Flags dynamic function calls where the callable argument is a variable. Dangerous when the callable can be influenced by user input.',
+	'base64'               => 'Flags base64 functions when combined with eval or assigned to a variable for later execution. A common pattern in injected malware.',
+	'nonces_post'          => 'Flags files that access $_POST anywhere in the file without any nonce verification present in the same file.',
+	'database'             => 'Flags raw SQL queries passed to $wpdb methods without going through $wpdb->prepare(). Direct SQL injection risk.',
+	'wpdb_placeholders'    => 'Flags mismatched placeholder types in $wpdb->prepare() such as using %s for an integer or %d for a string. Can cause type coercion vulnerabilities.',
+	'option_writes'        => 'Flags update_option and delete_option calls without a preceding current_user_can() check in scope. Any authenticated user could modify site options.',
+	'error_suppression'    => 'Flags error_reporting(0) and the @ operator. Suppressing errors hides malicious activity and makes forensic investigation impossible.',
+	'debug_php'            => 'Flags var_dump, print_r, var_export left in production code. These expose internal data structures and variable contents to any visitor.',
+	'debug_js'             => 'Flags console.log, console.debug, console.info in production JS files. Exposes application state to anyone with browser developer tools open.',
+	'commented_code'       => 'Flags large blocks of commented-out code. Dead code in production can contain outdated security logic or credentials.',
+	'unnecessary_closures' => 'Flags anonymous functions passed to add_action and add_filter that could be named functions. Closures registered as hooks cannot be removed with remove_action or remove_filter.',
+	'early_translations'   => 'Flags __() and _e() calls made before the init hook fires. Translation strings loaded too early may not be localised correctly.',
+	'duplicate_hooks'      => 'Flags the same hook registered more than once across files. Can cause functions to fire multiple times producing duplicate output or unexpected behaviour.',
+	'debug_js_warn'        => 'Flags console.warn and console.error in production JS files. These expose internal error states and application logic to end users.',
+	'php_compat'           => 'Flags PHP 8.x syntax used in plugins that declare a lower minimum PHP version. Code using named arguments or match expressions on PHP 7.4 will fatal error.',
+	'deprecated'           => 'Flags WordPress functions marked as deprecated. These may be removed in future WordPress versions and often have known issues that led to their deprecation.',
+	'plugin_structure'     => 'Flags plugin subdirectories missing an index.php file. Without it the web server may display a directory listing exposing the plugin file structure.',
+	'file_permissions'     => 'Flags PHP files with the execute bit set and world-writable files. Unnecessary execute permissions allow files to be run directly by the server.',
+	'licensing'            => 'Flags plugins missing a GPL-compatible license declaration. WordPress.org requires GPL v2 or later compatibility for all distributed plugins.',
+	'meta'                 => 'Flags missing or incomplete plugin header fields such as Plugin Name, Description, Author, Version. Incomplete headers can cause WordPress to fail to load the plugin.',
+	'readme'               => 'Flags a missing readme.txt in the plugin root. Required for WordPress.org distribution and contains important information including tested versions and changelog.',
+	'assets'               => 'Flags hardcoded version strings on enqueued scripts and styles. The version should reference the plugin version constant so caches are busted on update.',
+	'role_checks'          => 'Flags role names such as administrator or editor passed to current_user_can(). Roles are not capabilities — they can be renamed or removed. Always pass a capability name.',
+	'requests'             => 'Flags wp_remote_post() and wp_remote_get() calls. Outbound requests can leak data, introduce latency and represent a dependency on external services.',
 );
 ?>
 <div class="wrap">
@@ -365,18 +406,23 @@ $sources = array(
 				<thead>
 					<tr>
 						<th><?php esc_html_e( 'Test', 'plugin-auditor' ); ?></th>
-						<th><?php esc_html_e( 'Details', 'plugin-auditor' ); ?></th>
+						<th><?php esc_html_e( 'Category', 'plugin-auditor' ); ?></th>
+						<th><?php esc_html_e( 'Description', 'plugin-auditor' ); ?></th>
+						<th><?php esc_html_e( 'Source', 'plugin-auditor' ); ?></th>
 					</tr>
 				</thead>
 				<tbody>
 					<?php foreach ( $grouped as $category => $checks ) : ?>
 						<?php foreach ( $checks as $slug => $check ) : ?>
 							<tr>
+								<td><?php echo esc_html( $check['label'] ); ?></td>
+								<td><?php echo esc_html( $category ); ?></td>
+								<td><?php echo esc_html( $descriptions[ $slug ] ?? '' ); ?></td>
 								<td>
-									<strong><?php echo esc_html( $check['label'] ); ?></strong>
-									<span class="pla-info-category"><?php echo esc_html( $category ); ?></span>
+									<?php if ( isset( $sources[ $slug ] ) ) : ?>
+										<a href="<?php echo esc_url( $sources[ $slug ] ); ?>" target="_blank" rel="noopener noreferrer"><?php esc_html_e( 'source', 'plugin-auditor' ); ?></a>
+									<?php endif; ?>
 								</td>
-								<td></td>
 							</tr>
 						<?php endforeach; ?>
 					<?php endforeach; ?>
