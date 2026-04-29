@@ -154,11 +154,11 @@ class Scanner {
 	/**
 	 * Runs the full audit on all PHP files in a directory.
 	 *
-	 * @param string   $plugin_dir     Absolute path to the plugin directory.
-	 * @param string[] $enabled_checks Slugs of checks to run. Empty = all checks.
+	 * @param string        $plugin_dir     Absolute path to the plugin directory.
+	 * @param string[]|null $enabled_checks Slugs of checks to run. Null = all checks, empty array = no checks.
 	 * @return array<string, mixed> Findings keyed by section.
 	 */
-	public function scan( string $plugin_dir, array $enabled_checks = array() ): array {
+	public function scan( string $plugin_dir, ?array $enabled_checks = null ): array {
 		$scan_start   = microtime( true );
 		$php_files    = $this->file_collector->php_files( $plugin_dir );
 		$js_files     = $this->file_collector->js_files( $plugin_dir );
@@ -168,7 +168,7 @@ class Scanner {
 		$findings = array_fill_keys( $sections, array() );
 
 		$is_on = static function( string $slug ) use ( $enabled_checks ): bool {
-			return empty( $enabled_checks ) || in_array( $slug, $enabled_checks, true );
+			return null === $enabled_checks || in_array( $slug, $enabled_checks, true );
 		};
 
 		$total_lines    = 0;

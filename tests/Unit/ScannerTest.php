@@ -416,11 +416,16 @@ class ScannerTest extends TestCase {
 		$this->assertHasFinding( $findings['dangerous'], 'CRITICAL', 'call_user_func' );
 	}
 
-	public function test_empty_enabled_set_runs_all_checks(): void {
+	public function test_null_enabled_set_runs_all_checks(): void {
 		$this->write_php( 'bad.php', '<?php eval( $code );' );
-		// Empty array = all checks run (backward-compat).
-		$findings = $this->scanner->scan( $this->tmp_dir, array() );
+		$findings = $this->scanner->scan( $this->tmp_dir, null );
 		$this->assertHasFinding( $findings['dangerous'], 'CRITICAL', 'eval' );
+	}
+
+	public function test_empty_array_enabled_set_runs_no_checks(): void {
+		$this->write_php( 'bad.php', '<?php eval( $code );' );
+		$findings = $this->scanner->scan( $this->tmp_dir, array() );
+		$this->assertEmpty( $findings['dangerous'] );
 	}
 
 	public function test_disabled_nonce_verification_produces_no_findings(): void {
