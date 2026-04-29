@@ -299,6 +299,6 @@ GPL-2.0-or-later  see [https://www.gnu.org/licenses/gpl-2.0.html](https://www.gn
 
 ---
 
-![Audit Report](assets/screens/screen-1.png)
+![Audit Report](assets/images/screen-1.png)
 
-![Audit Report](assets/screens/screen-2.png)
+![Audit Report](assets/images/screen-2.png)
